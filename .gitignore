@@ -1,0 +1,29 @@
+# 忽略系统文件
+.DS_Store
+Thumbs.db
+
+# 忽略所有老的 git 仓库备份
+**/.git_bak/
+.git_bak/
+
+# 忽略所有大的 exe 安装包
+*.exe
+
+# 忽略 Python 缓存和打包产物
+**/__pycache__/
+*.pyc
+Desktop_QR_Send/build/
+Desktop_QR_Send/dist/
+Desktop_QR_Send/*.spec
+
+# 忽略大数据库和本地日志
+**/example.db
+**/logs/
+*.log
+
+# 忽略 PyCharm 配置
+.idea/
+
+# 忽略临时测试大图片
+**/test2.bmp
+**/processed_image.png

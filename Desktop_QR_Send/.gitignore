@@ -1,0 +1,16 @@
+# 忽略 PyCharm 配置
+/.idea/
+
+# 忽略日志
+/logs/
+
+# 忽略打包产物
+/build/
+/dist/
+/*.spec
+
+# 忽略大数据库
+/example.db
+
+# 忽略缓存
+**/__pycache__/

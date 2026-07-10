@@ -1,0 +1,21 @@
+{
+    "combobox_printSelect": "HPRT N31",
+    "combobox_comSelect": "COM21",
+    "edit_service": "ws://gya.sales.yiknet.com/webSocket/scanCode",
+    "edit_max_jian": "10",
+    "edit_max_xiang": "10",
+    "edit_min_x": "0",
+    "edit_max_x": "0",
+    "edit_min_y": "0",
+    "edit_max_y": "0",
+    "edit_page_width": "600",
+    "edit_page_height": "400",
+    "edit_page_num": "2",
+    "pageData": {
+        "label_data_box": 102830,
+        "label_data_case": 0,
+        "label_data_unline": 7890
+    },
+    "caseData": [],
+    "caseCode": null
+}
