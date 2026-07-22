@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TransDataDirectly</title>
+    <link rel="stylesheet" type="text/css" href="./css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+</head>
+
+<body>
+    <div class="header">
+        <img src="./images/tp.png" height="32px" style="margin-top:16px;" />
+    </div>
+    <div class="main">
+        <span class="tag">
+            TransDataDirectly
+        </span>
+        <div class="content_wrap">
+            <div class="setting">               
+                <p class="title">Print setting: </p>
+                <div class="options border">
+                    <div class="label">                        
+                        <label for="printCount" style=" margin-left: 55px;margin-right: 50px">Printing frequency</label>
+                        <input type="number" id="printCount" value="1" name="printCount">
+                        <button class="success" onclick="handlePrint('Print')">Print</button>
+                    </div>
+                </div>
+
+                <div class="data_set border">
+                    <div class="wrap">                                        
+                        <section>   
+                            <label for="EMU_SEL" style=" margin-right: 50px;">Set emulation</label>    
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ZPL_EMU" value="1" name="EMU_RADIO" checked onclick="changeDataValue(1)">
+                                <label for="ZPL" name="ZPL">ZPL</label>
+                            </div>                         
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="TSPL_EMU" value="2" name="EMU_RADIO" onclick="changeDataValue(2)">
+                                <label for="TSPL" name="TSPL">TSPL</label>
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ESCPOS_EMU" value="3" name="EMU_RADIO" onclick="changeDataValue(3)">
+                                <label for="ESCPOS" name="ESCPOS">ESCPOS</label>
+                            </div>                            
+                        </section>
+                    </div>
+                </div>
+
+                <div class="terminal_wrap">
+                    <div class="top">
+                        <p class="title">Emulation: </p>
+                    </div>
+                    <div class="data_set border" >
+                        <textarea  type="text" style="width: 100%; height: 200px;" id="printText" name="printText" value=''></textarea >
+                    </div>
+                </div>
+
+                <div class="terminal_wrap">
+                    <div class="top">
+                        <p class="title">Message output: </p>
+                        <button onclick="clearLog()">Clear message</button>
+                    </div>
+                    <div class="terminal">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="popup_tips" style="display: none;">
+        <div class="popup_tips_mask"></div>
+        <div class="popup_tips_content"></div>
+    </div>
+</body>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/common.js"></script>
+<script src="./js/base64.js"></script>
+
+
+<script type="text/javascript">
+    window.onload = function () {    //Refresh
+        $(window).scrollTop(0)
+
+        $('#printText').val('^XA\n^PW600\n^LL600\n^SEE:GB18030.DAT^CI26^CWL,E:simsun.fnt\n^FO0,100^ALN,40,40^FD Print Test LABEL^FS\n^XZ');
+    }
+
+    //Convert hexadecimal characters to ASCII code string
+    function hexToString(hexString) {
+        let string = '';
+        for (let i = 0; i < hexString.length; i += 2) {
+            const code = parseInt(hexString.substr(i, 2), 16);
+            string += String.fromCharCode(code);
+        }
+        return string;
+    }
+    //ASCII code string to hexadecimal characters
+    function stringToHex(str,EMU_RADIO) {
+        var result = '';
+        for (var i = 0; i < str.length; i++) 
+        {
+            let hex = str.charCodeAt(i).toString(16);
+            if (hex.length < 2) {
+                hex = '0' + hex;
+            }
+            //When TSPL, it is necessary to add an extra 0x0d before 0x0a, just like change '\n' to '\r\n'
+            if(EMU_RADIO == 2 && hex == '0a')
+                hex = '0d' + hex;
+            result += hex;
+        }
+        return result;
+    }
+
+    
+    function changeDataValue(radioType)
+     {
+        var textValue="";
+        if(radioType == 1)//ZPL
+        {
+            textValue = '^XA';
+            textValue += '\n^PW600';
+            textValue += '\n^LL600';
+            textValue += '\n^SEE:GB18030.DAT^CI26^CWL,E:simsun.fnt';
+            textValue += '\n^FO0,100^ALN,40,40^FD Print Test LABEL^FS';
+            textValue += '\n^XZ';
+        }
+        else if(radioType == 2)//TSPL
+        {
+            textValue = 'CLS';
+            textValue += '\r\nSIZE 4,1';
+            textValue += '\r\nTEXT 110,50,"3",0,1,1,"Print Test LABEL"';
+            textValue += '\r\nPRINT 1';
+            textValue += '\r\n';
+        }
+        else if(radioType == 3)//ESCPOS
+        {
+            textValue = '1b401c26';
+            textValue += '1d2100';                
+            textValue += '1b4d00';
+            textValue += '1b2d00';
+            textValue += '1b4500';
+            textValue += '5072696E742054657374204C4142454C';//Print Test LABEL
+            textValue += '0a';                     
+            textValue += '1d564100';
+        }       
+        $('#printText').val(textValue);
+    }
+
+    //Params
+    function handleParams() {
+        let data = {}
+        $("input[name]").each(function () {
+            var name = $(this).attr("name");
+            var isFile = $(this).attr("type") == "file";
+            var isRadio = $(this).attr("type") == "radio";
+            var isCheckBox = $(this).attr("type") == "checkbox";
+
+            if (isFile) {
+                data[name] = $("input[name=" + name + "]").get(0).files[0] || "";
+            } else if (isRadio) {
+                data[name] = $("input[name=" + name + "]:checked").val()
+            } else if (isCheckBox) {
+                data[name] = $(this).is(":checked")
+            } else {
+                data[name] = $("input[name=" + name + "]").val() || "";
+            }
+        });
+
+        return data
+    }
+
+    //Print
+    async function handlePrint(type) {
+        var rfidType = 0;
+        let params = handleParams()
+        console.log(params);
+        try {
+            await sendPostRequest("web_DSTP2x_SetLibLang", "Set Language", { "language":"1" })
+            
+            //List devices
+            const devRes = await sendPostRequest("web_DSTP2x_EnumDev", "List devices", { "enumType": "1" })
+            
+            let index = devRes.enumList.indexOf(",")
+            if(index != -1)
+            {
+                const devList = devRes.enumList.split(",")
+                devRes.enumList = devList[0]
+            }
+
+            //Connected Device
+            const connectRes = await sendPostRequest("web_DSTP2x_ConnEnumeratedDev", "Connected Device", { "devName": devRes.enumList })
+            //Get printing status
+            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtStatus", "Get printing status", { "devHdl": connectRes.devHdl })
+            if (statusRes.isReady != "1") {
+                openMask("Printer status abnormal", true)
+                //Disconnect
+                await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": connectRes.devHdl })
+                return
+            }
+
+            //Set emulation
+            await sendPostRequest("web_DSTP2x_SetPrnEmulation", "Set emulation", { "devHdl": connectRes.devHdl, "emulation": params.EMU_RADIO })
+             //Set timeout period
+             await sendPostRequest("web_DSTP2x_SetCommTimeout", "Set timeout period", { "devHdl": connectRes.devHdl, "commType": "1", "sendTimeout": "20000", "recvTimeout": "20000"})
+            
+            //Print data
+            var hexInDataText ='';
+            var inDataText = $('#printText').val(); 
+            if(params.EMU_RADIO == 1 || params.EMU_RADIO == 2)//ZPL or TSPL
+                hexInDataText = stringToHex(inDataText,params.EMU_RADIO);
+            else
+                hexInDataText = inDataText;
+
+            let info = {
+                devHdl: connectRes.devHdl,
+                inData: hexInDataText,
+                isHexStr: "1",
+                outDataType:"0"
+            }
+
+            printAll(info, params, 1, type)
+        } catch (error) {
+            let errText = error ? error : "Request failure"
+            openMask(errText, true)
+        }
+    }
+
+    //Loop printing
+    async function printAll(info, params, count, type) {
+        try {
+            if (count <= params.printCount) {
+                //Print
+                await sendPostRequest("web_DSTP2x_TransRecvData", `The ${count} th print`, { "devHdl": info.devHdl,"inData":info.inData,"isHexStr":info.isHexStr,"outDataType": info.outDataType})
+                count++
+                printAll(info, params, count, type)
+            } else {
+
+                //Disconnect
+                await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": info.devHdl })
+                openMask("Print successful", true)
+                // reset()
+            }
+        } catch (error) {
+            console.log(error);
+            let errText = error ? error : "Request failure"
+            openMask(errText, true)
+        }
+    }
+
+
+</script>
+
+</html>

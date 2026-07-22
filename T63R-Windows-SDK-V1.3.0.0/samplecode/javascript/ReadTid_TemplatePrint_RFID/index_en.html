@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReadTid_TemplatePrint_RFID</title>
+    <link rel="stylesheet" type="text/css" href="./css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+</head>
+
+<body>
+    <div class="header">
+        <img src="./images/tp.png" height="32px" style="margin-top:16px;" />
+    </div>
+    <div class="main">
+        <span class="tag">
+            ReadTid_TemplatePrint_RFID
+        </span>
+        <div class="content_wrap">
+            <div class="setting">
+                <p class="title">The template file: </p>
+                <div class="file_input border">
+                    <input style="display: none;" type="file" name="tmplFileSrc" id="tmplFileSrc" />
+                    <input type="text" id="tempDisplay" readonly />
+                    <button onclick="chooseTemp('tmplFileSrc')">To Browse</button>
+                </div>
+                <p class="title">Data: </p>
+                <div class="data_set border">
+                    <div class="wrap">
+                        <section>
+                            <div class="set_label" style="flex: 1; margin-right: 45px">
+                                <label for="elemID1">ID</label>
+                                <input type="text" id="elemID1" name="elemID1">
+                            </div>
+                            <div class="set_label" style="flex: 2;">
+                                <label for="actualData1">Data</label>
+                                <input type="text" id="actualData1" name="actualData1" class="contentInput">
+                            </div>
+                        </section>
+                        <section>
+                            <div class="set_label" style="flex: 1; margin-right: 45px">
+                                <label for="elemID2">ID</label>
+                                <input type="text" id="elemID2" name="elemID2">
+                            </div>
+                            <div class="set_label" style="flex: 2;">
+                                <label for="actualData2">Data</label>
+                                <input type="text" id="actualData2" name="actualData2" class="contentInput">
+                            </div>
+                        </section>
+                        <section>
+                            <div class="set_label" style="flex: 1; margin-right: 45px">
+                                <label for="elemID3">ID</label>
+                                <input type="text" id="elemID3" name="elemID3">
+                            </div>
+                            <div class="set_label" style="flex: 2;">
+                                <label for="actualData3">Data</label>
+                                <input type="text" id="actualData3" name="actualData3" class="contentInput">
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                <p class="title">Print setting: </p>
+                <div class="options border">
+                    <div class="label">
+                        <input type="checkbox" id="TID" name="TID" value="TID" style=" margin-left: 55px;">
+                        <label for="TID">Read TID first</label>
+                    </div>
+                    <div class="label">
+                        <input type="checkbox" id="EPC" name="EPC" value="EPC">
+                        <label for="EPC">Read EPC first</label>
+                    </div>
+                    <div class="label">
+                        <label for="printCount">Printing frequency</label>
+                        <input type="number" id="printCount" name="printCount" value="1">
+                    </div>
+
+                </div>
+
+                <div class="data_set border">
+                    <div class="wrap">                                        
+                        <section>   
+                            <label for="EMU_SEL" style=" margin-right: 50px;">Set emulation</label>    
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ZPL_EMU" value="1" name="EMU_RADIO" checked>
+                                <label for="ZPL" name="ZPL">ZPL</label>
+                            </div>                         
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="TSPL_EMU" value="2" name="EMU_RADIO" >
+                                <label for="TSPL" name="TSPL">TSPL</label>
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ESCPOS_EMU" value="3" name="EMU_RADIO">
+                                <label for="ESCPOS" name="ESCPOS">ESCPOS</label>
+                            </div>                            
+                        </section>
+                    </div>
+                </div>
+
+                <div class="btn"><button class="success" onclick="handlePrint()">Print</button></div>
+                <div class="terminal_wrap">
+                    <div class="top">
+                        <p class="title">Message output: </p>
+                        <button onclick="clearLog()">Clear message</button>
+                    </div>
+                    <div class="terminal border">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="popup_tips" style="display: none;">
+        <div class="popup_tips_mask"></div>
+        <div class="popup_tips_content"></div>
+    </div>
+
+</body>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/common.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {    //Refresh
+        $(window).scrollTop(0)
+    }
+
+    //Print start
+    async function handlePrint() {
+        var data = {};
+        $("input[name]").each(function () {
+            var name = $(this).attr("name");
+            var isFile = $(this).attr("type") == "file";
+            var isRadio = $(this).attr("type") == "radio";
+            var isCheckBox = $(this).attr("type") == "checkbox";
+            if (isFile) {
+                data[name] = $("input[name=" + name + "]").get(0).files[0] || "";
+            } else if (isCheckBox) {
+                data[name] = $(this).is(":checked")
+            } else if (isRadio) {
+                data[name] = $("input[name=" + name + "]:checked").val()
+            } else {
+                data[name] = $("input[name=" + name + "]").val() || "";
+            }
+        });
+
+
+        if (!data.tmplFileSrc) {
+            openMask("Please select template file", true)
+            return
+        }
+
+        print(await handleParams(data))
+    }
+    async function handleParams(data) {
+        if (data.EPC && data.TID) {
+            data.rfidType = "3"
+        } else if (data.TID) {
+            data.rfidType = "1"
+        } else if (data.EPC) {
+            data.rfidType = "2"
+        } else {
+            data.rfidType = "0"
+        }
+
+        data.tmplFileSrc = await fileToBase64(data.tmplFileSrc)
+
+        return data
+    }
+
+    //Print start
+    async function print(params) {
+        console.log(params);
+        try {
+            await sendPostRequest("web_DSTP2x_SetLibLang", "Set Language", { "language":"1" })
+            
+            //List devices
+            const devRes = await sendPostRequest("web_DSTP2x_EnumDev", "List devices", { "enumType": "1" })
+            
+            let index = devRes.enumList.indexOf(",")
+            if(index != -1)
+            {
+                const devList = devRes.enumList.split(",")
+                devRes.enumList = devList[0]
+            }
+
+            //Connected Device
+            const connectRes = await sendPostRequest("web_DSTP2x_ConnEnumeratedDev", "Connected Device", { "devName": devRes.enumList })
+
+            //Get printing status
+            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtStatus", "Get printing status", { "devHdl": connectRes.devHdl })
+            if (statusRes.isReady != "1") {
+                openMask("Printer status abnormal", true)
+                //Disconnect
+                await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": connectRes.devHdl })
+                return
+            }
+            //Set emulation
+            await sendPostRequest("web_DSTP2x_SetPrnEmulation", "Set emulation", { "devHdl": connectRes.devHdl, "emulation": params.EMU_RADIO })
+
+            //Set timeout period
+            await sendPostRequest("web_DSTP2x_SetCommTimeout", "Set timeout period", {
+                "devHdl": connectRes.devHdl, "commType": "1", "sendTimeout": "20000", "recvTimeout": "20000"
+            })
+
+            //Load template
+            const tempRes = await sendPostRequest("web_DSTP2x_LoadLabelTmpl", "Load template", { "tmplFileSrcType": "1", "tmplFileSrc": params.tmplFileSrc })
+
+            if (params.elemID1 && params.actualData1) {
+                await sendPostRequest("web_DSTP2x_SetTmplPrnData", "Set template data", {
+                    "tmplHdl": tempRes.tmplHdl, "elemID": params.elemID1, "actualData": params.actualData1
+                })
+            }
+            if (params.elemID2 && params.actualData2) {
+                await sendPostRequest("web_DSTP2x_SetTmplPrnData", "Set template data", {
+                    "tmplHdl": tempRes.tmplHdl, "elemID": params.elemID2, "actualData": params.actualData2
+                })
+            }
+            if (params.elemID3 && params.actualData3) {
+                await sendPostRequest("web_DSTP2x_SetTmplPrnData", "Set template data", {
+                    "tmplHdl": tempRes.tmplHdl, "elemID": params.elemID3, "actualData": params.actualData3
+                })
+            }
+            printTemp(connectRes, tempRes, params, 1)
+        } catch (error) {
+            let errText = error ? error : "Request failure"
+            openMask(errText, true)
+        }
+    }
+
+    //Loop printing
+    async function printTemp(connectRes, tempRes, params, count) {
+        try {
+            if (count <= params.printCount) {
+                if (params.rfidType != "0") {
+                    //Read RFID data
+                    await sendPostRequest("web_DSTP2x_RFID_ReadData", `The ${count} th in read RFID data`, { "devHdl": connectRes.devHdl, "rfidType": params.rfidType })
+                }
+                //Print
+                await sendPostRequest("web_DSTP2x_PrintTmpl", `The ${count} th print`, { "devHdl": connectRes.devHdl, "tmplHdl": tempRes.tmplHdl, "outFileType": "0"})
+                count++
+                printTemp(connectRes, tempRes, params, count)
+            } else {
+                //Delete template handle
+                await sendPostRequest("web_DSTP2x_DeleteTmpl", "Delete template handle", { "tmplHdl": tempRes.tmplHdl })
+                //Disconnect
+                await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": connectRes.devHdl })
+                openMask("Print successful", true)
+                // reset()
+            }
+        } catch (error) {
+            let errText = error ? error : "Request failure"
+            openMask(errText, true)
+        }
+    }
+</script>
+
+</html>

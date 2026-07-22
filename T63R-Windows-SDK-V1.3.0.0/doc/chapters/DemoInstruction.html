@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x7b2c;&#x4e94;&#x7ae0;&#x3001;DSTP2xDemo &#x4f7f;&#x7528;&#x8bf4;&#x660e;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* 右侧内容区域 */
+        .content {
+            margin-left: 10px; /* 内容区域左侧留出导航栏空间 */
+            padding: 20px;
+            flex: 1; /* 内容区域填充剩余空间 */
+            background-color: #f9f9f9;
+        }
+
+        /* 响应式：当屏幕宽度小于768px时，导航栏变为可折叠 */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* 在小屏幕上缩小导航栏宽度 */
+            }
+
+            .content {
+                margin-left: 0; /* 内容区域不再留出导航栏空间 */
+            }
+        }
+       
+/* 子菜单样式 */
+.submenu {
+    display: none; /* 默认隐藏子菜单 */
+    list-style: none;
+    padding-left: 30px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* 鼠标悬停时显示子菜单 */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* 设置基础样式*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* 左侧导航栏样式 */
+.sidebar {
+    position: sticky;  /* 粘性定位 */
+    top: 0;             /* 当滚动到顶部时，固定 */
+    width: 300px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<!-- </head> -->
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">目录</p>      
+<ul>
+<a href="../index-CN.html" class="active">第一章、概述</a>
+        <a href="./FunctionList.html">第二章、功能清单</a>
+<li>
+<a href="#">第三章、功能示例代码</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP.html">C++示例</a></li>
+         <li><a href="./Samplecode-Charp.html">C#示例</a></li>
+         <li><a href="./Samplecode-java.html">java示例</a></li>
+         <li><a href="./Samplecode-javascript.html">javascript示例</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">第四章、功能接口</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef.html">C接口函数原型</a></li>
+                <li><a href="./WebApiDef.html">web端接口定义</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction.html">第五章、DSTP2xDemo使用说明</a>
+                <a href="./WebPrtServerInstruction.html">第六章、DSTP2xWebPrtServer使用说明</a>
+                <li>
+                  <a href="#">第七章、相关返回码列表</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode.html">SDK接口返回码</a></li>
+                    <li><a href="./PrtStatusCode.html">打印机状态码</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ.html">第八章、常见问题</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+	  body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+<center>
+<b style="font-size:18pt">
+<h1 id="第五章dstp2xdemo-使用说明">第五章、DSTP2xDemo 使用说明</h1>
+</b>
+</center>
+<ul>
+<li><a href="#%E7%AC%AC%E4%BA%94%E7%AB%A0dstp2xdemo-%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E">第五章、DSTP2xDemo 使用说明</a>
+<ul>
+<li><a href="#1%E8%BD%AF%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83">1、软件系统环境</a></li>
+<li><a href="#2%E8%BF%90%E8%A1%8C%E8%AF%B4%E6%98%8E">2、运行说明</a></li>
+<li><a href="#3dstp2xdemo%E5%8A%9F%E8%83%BD%E4%BB%8B%E7%BB%8D">3、DSTP2xDemo功能介绍</a>
+<ul>
+<li><a href="#31%E6%A8%A1%E6%9D%BF%E5%8A%9F%E8%83%BD%E4%BB%8B%E7%BB%8D">3.1、模板功能介绍</a>
+<ul>
+<li><a href="#311%E6%A6%82%E8%A7%88">3.1.1、概览</a></li>
+<li><a href="#312%E8%BF%9E%E6%8E%A5%E8%AE%BE%E5%A4%87">3.1.2、连接设备</a></li>
+<li><a href="#313%E9%80%89%E6%8B%A9%E9%A2%84%E8%AE%BE%E6%A8%A1%E6%9D%BF%E6%88%96%E8%80%85%E8%87%AA%E8%A1%8C%E7%BC%96%E8%BE%91%E6%96%B0%E6%A8%A1%E6%9D%BF">3.1.3、选择预设模板或者自行编辑新模板</a></li>
+<li><a href="#314%E6%8C%89%E5%AE%9E%E9%99%85%E9%9C%80%E8%A6%81%E7%BC%96%E8%BE%91%E6%89%93%E5%8D%B0%E5%8F%8Arfid%E5%86%85%E5%AE%B9">3.1.4、按实际需要编辑打印及RFID内容</a></li>
+<li><a href="#315%E7%BC%96%E8%BE%91%E6%A8%A1%E6%9D%BF%E5%90%8E%E9%80%89%E6%8B%A9%E6%89%93%E5%8D%B0%E5%BE%AA%E7%8E%AF%E6%AC%A1%E6%95%B0%E7%82%B9%E5%87%BB%E8%BF%9B%E8%A1%8C%E6%89%93%E5%8D%B0">3.1.5、编辑模板后选择打印循环次数点击进行打印</a></li>
+</ul>
+</li>
+<li><a href="#32%E5%85%B6%E4%BB%96%E5%8A%9F%E8%83%BD%E4%BB%8B%E7%BB%8D">3.2、其他功能介绍</a></li>
+</ul>
+</li>
+<li><a href="#4dstp2xdemo%E4%BD%BF%E7%94%A8%E6%B5%81%E7%A8%8B">4、DSTP2xDemo使用流程</a>
+<ul>
+<li><a href="#41%E6%89%93%E5%BC%80%E6%A8%A1%E6%9D%BF">4.1、打开模板</a></li>
+</ul>
+</li>
+<li><a href="#42%E6%96%B0%E5%BB%BA%E6%A0%87%E7%AD%BE">4.2、新建标签</a>
+<ul>
+<li><a href="#421%E5%88%9B%E5%BB%BA%E6%A8%A1%E6%9D%BF">4.2.1、创建模板</a>
+<ul>
+<li><a href="#%E4%BF%AE%E6%94%B9%E6%A0%87%E7%AD%BE%E5%B1%9E%E6%80%A7">修改标签属性</a></li>
+</ul>
+</li>
+<li><a href="#422%E6%B7%BB%E5%8A%A0%E6%96%87%E6%9C%AC">4.2.2、添加文本</a>
+<ul>
+<li><a href="#%E4%BF%AE%E6%94%B9%E6%96%87%E6%9C%AC%E5%B1%9E%E6%80%A7%E5%8F%82%E6%95%B0">修改文本属性参数</a></li>
+<li><a href="#%E6%96%87%E6%9C%AC%E8%87%AA%E5%8A%A8%E6%8D%A2%E8%A1%8C">文本自动换行</a></li>
+</ul>
+</li>
+<li><a href="#423%E6%B7%BB%E5%8A%A0%E6%9D%A1%E7%A0%81">4.2.3、添加条码</a>
+<ul>
+<li><a href="#%E4%BF%AE%E6%94%B9%E6%9D%A1%E7%A0%81%E5%B1%9E%E6%80%A7%E5%8F%82%E6%95%B0">修改条码属性参数</a></li>
+</ul>
+</li>
+<li><a href="#424%E6%B7%BB%E5%8A%A0%E4%BA%8C%E7%BB%B4%E7%A0%81">4.2.4、添加二维码</a>
+<ul>
+<li><a href="#%E4%BF%AE%E6%94%B9%E6%9D%A1%E7%A0%81%E5%B1%9E%E6%80%A7%E5%8F%82%E6%95%B0-1">修改条码属性参数</a></li>
+</ul>
+</li>
+<li><a href="#425%E6%B7%BB%E5%8A%A0%E5%9B%BE%E7%89%87">4.2.5、添加图片</a></li>
+<li><a href="#426%E6%B7%BB%E5%8A%A0%E8%A1%A8%E6%A0%BC">4.2.6、添加表格</a>
+<ul>
+<li><a href="#%E4%BF%AE%E6%94%B9%E8%A1%A8%E6%A0%BC%E5%B1%9E%E6%80%A7%E5%8F%82%E6%95%B0">修改表格属性参数</a></li>
+<li><a href="#%E8%B0%83%E6%95%B4%E8%A1%A8%E6%A0%BC%E8%A1%8C%E9%AB%98">调整表格行高</a></li>
+<li><a href="#%E8%B0%83%E6%95%B4%E8%A1%A8%E6%A0%BC%E5%88%97%E5%AE%BD">调整表格列宽</a></li>
+<li><a href="#%E5%90%88%E5%B9%B6%E5%8D%95%E5%85%83%E6%A0%BC">合并单元格</a></li>
+<li><a href="#%E5%8F%96%E6%B6%88%E5%90%88%E5%B9%B6%E5%8D%95%E5%85%83%E6%A0%BC">取消合并单元格</a></li>
+<li><a href="#%E8%A1%A8%E6%A0%BC%E6%B7%BB%E5%8A%A0%E6%96%87%E6%9C%AC">表格添加文本</a></li>
+<li><a href="#%E8%A1%A8%E6%A0%BC%E6%B7%BB%E5%8A%A0%E6%9D%A1%E7%A0%81">表格添加条码</a></li>
+<li><a href="#%E8%A1%A8%E6%A0%BC%E6%B7%BB%E5%8A%A0%E4%BA%8C%E7%BB%B4%E7%A0%81">表格添加二维码</a></li>
+<li><a href="#%E8%A1%A8%E6%A0%BC%E6%B7%BB%E5%8A%A0%E5%9B%BE%E7%89%87">表格添加图片</a></li>
+</ul>
+</li>
+<li><a href="#427%E6%A0%87%E7%AD%BE%E6%B7%BB%E5%8A%A0rfid">4.2.7、标签添加RFID</a>
+<ul>
+<li><a href="#%E6%B7%BB%E5%8A%A0epc">添加EPC</a></li>
+<li><a href="#%E6%B7%BB%E5%8A%A0user">添加USER</a></li>
+<li><a href="#%E6%B7%BB%E5%8A%A0tid">添加TID</a></li>
+<li><a href="#%E6%89%93%E5%8D%B0%E6%95%88%E6%9E%9C">打印效果</a></li>
+</ul>
+</li>
+<li><a href="#428%E4%BF%9D%E5%AD%98%E6%A8%A1%E6%9D%BF">4.2.8、保存模板</a></li>
+<li><a href="#429%E6%8B%96%E6%8B%89%E7%BC%A9%E6%94%BE%E6%A8%A1%E6%9D%BF%E9%A2%84%E8%A7%88%E5%9B%BE">4.2.9、拖拉缩放模板预览图</a></li>
+<li><a href="#4210rfid%E6%A0%87%E7%AD%BE%E9%94%81%E5%AE%9A%E8%A7%A3%E9%94%81">4.2.10、RFID标签锁定解锁</a>
+<ul>
+<li><a href="#%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E5%B9%B6%E9%94%81%E5%AE%9A%E6%A0%87%E7%AD%BE">修改密码并锁定标签</a></li>
+<li><a href="#%E8%A7%A3%E9%94%81%E5%B9%B6%E9%87%8D%E5%86%99rfid%E6%A0%87%E7%AD%BE">解锁并重写RFID标签</a></li>
+</ul>
+</li>
+<li><a href="#4211%E6%89%93%E5%BC%80%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6%E8%B7%AF%E5%BE%84">4.2.11、打开日志文件路径</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+<h2 id="1软件系统环境">1、软件系统环境</h2>
+<p>1.该 demo 支持系统 Windows/linux 系统，Windows 需要 XP 及以上的系统，其主要目的是模板编辑。<br>
+2.如需打印 PDF 可在 sdkcfg.xml 文件中配置，目前我们支持两种形式打印 PDF，内部逻辑处理 PDF 在 sdkcfg.xml 文件中设置为“0”，如需 PDF 插件则需先插件配置路径；</p>
+<h2 id="2运行说明">2、运行说明</h2>
+<p><b>Windows：</b><br>
+1.解压压缩包（版本会不断升级，具体名称以实际为准）；<br>
+2.解压后，选择进入 对应架构系统开发包 文件夹；<br>
+3.解压后，进入 bin\Win32 或 bin\x64 的文件夹；<br>
+4.最后双击运行 DSTP2xDemo.exe；</p>
+<p><b>Linux：</b><br>
+1.解压压缩包（版本会不断升级，具体名称以实际为准）；<br>
+2.解压后，选择进入 对应架构系统开发包 文件夹；<br>
+3.解压后，进入 bin 文件夹；<br>
+4.空白处鼠标右键点击“打开终端”；<br>
+5.输入命令：sudo su 输入密码，切换到root用户，如权限不足输入chmod -R 777 * 再执行；<br>
+6.输入命令运行：./map.ds，用于给予权限运行基于SDK的程序来操控USB连接方式的打印机；<br>
+7.输入命令运行：./DSTP2xDemo.out；</p>
+<h2 id="3dstp2xdemo功能介绍">3、DSTP2xDemo功能介绍</h2>
+<h3 id="31模板功能介绍">3.1、模板功能介绍</h3>
+<h4 id="311概览">3.1.1、概览</h4>
+<p>启动界面如图 1.1 所示，启动界面有模版选择、模板编辑、模板参数输入设置、清除输出框输出信息、打印功能、实时返回打印机状态等。
+<img src="../res/Demo-3.1.1.png"></img></p>
+<h4 id="312连接设备">3.1.2、连接设备</h4>
+<p>左上方点击进入设备连接选择【枚举/连接打印机】，根据打印机实际仿真类型已经需要的连接方式进行连接；<br>
+<img src="../res/Demo-3.1.2.png"></img><br>
+1.仿真选择：打印机所能识别打印语言，根据打印机设置选择对应仿真类型，目前已支持ZPL、TSPL、ESCPOS，可打印自检页确认当前机器仿真类型；<br>
+2.打印机连接方式：根据实际应用场景选择对应连接，目前支持USB枚举、网口同网段枚举、IP直连、串口直连；<br>
+<br></p>
+<h4 id="313选择预设模板或者自行编辑新模板">3.1.3、选择预设模板或者自行编辑新模板</h4>
+<p><img src="../res/Demo-3.1.3.png"></img><br>
+1.预设模板：默认路径下预编辑的模板，选择后看查看相关参数属性；<br>
+2.新建模板：新建一个空白模板，根据实际打印需求添加元素进行编辑；<br>
+3.保存模板：保存正在编辑的模板；<br>
+4.模板另存为：保存正在编辑的模板到指定目录；<br>
+5.打开预设模板路径：打印demo默认存放模板内目录；<br>
+6.打开日志路径：打开调用接口日志，以便分析，一般默认路径为：C:\Users\用户名\AppData\Local\Temp\DSSDKTemp\ThermalLog<br>
+<br></p>
+<h4 id="314按实际需要编辑打印及rfid内容">3.1.4、按实际需要编辑打印及RFID内容</h4>
+<p><img src="../res/Demo-3.1.4.png"></img><br>
+1.左侧Lebel树状图：显示当前模板内所有打印元素以及RFID数据编辑；<br>
+2.中间部分为模板预览图，编辑参数后需要点击回车或点到其他参数后才能刷新预览；<br>
+3.右侧为具体元素的参数属性设置，根据实际打印进行编辑；<br>
+<br></p>
+<h4 id="315编辑模板后选择打印循环次数点击进行打印">3.1.5、编辑模板后选择打印循环次数点击进行打印</h4>
+<p><img src="../res/Demo-3.1.5.png"></img><br>
+1.先读TID/EPC：勾选后先返回相应数据再执行打印(暂不支持两个同时勾选返回)；<br>
+2.图像DPI：设置为实际打印机印头DPI（目前机器有203dpi、300dpi.600dpi）转换为对应打印尺寸；<br>
+<br></p>
+<h3 id="32其他功能介绍">3.2、其他功能介绍</h3>
+<p>其他功能界面如图1.2所示，普通常用的获取功能、RFID功能、PDF打印、以及数据直传功能等。
+所有操作均需要连接设备后执行
+<img src="../res/Demo-3.2.png"></img><br>
+(1)常用功能<br>
+1.普通定位标签：定位校验普通标签或黑标纸；<br>
+2.打印自检页：点击后打印打印机自检页信息；<br>
+3.清除打印机缓存：点击后清除打印机缓存，无需重启恢复无数据状态；<br>
+4.获取版本号：获取当前连接机器的固件版本信息；<br>
+5.获取厂商机型：获取当前连接机器的厂商机型信息；<br>
+6.获取机号：获取当前连接机器的机号信息；<br>
+7.立即切纸：用于控制机器切纸模板，操作后立即执行切纸动作；（需机器安装切刀模块）；<br>
+8.开启切刀：开启打印机切刀功能；<br>
+9.关闭切刀：关闭打印机切刀功能；<br>
+<br></p>
+<p>(2)RFID功能<br>
+1.RFID标签：定位校验RFID标签【机器会缓慢走纸，耐心等待定位完成】；<br>
+2.读取EPC：直接读取当前标签EPC数据；<br>
+3.读取TID：直接读取当前标签TID数据；<br>
+4.获取写入功率：获取当前连接机器的写入功率；<br>
+5.获取读取功率：获取当前连接机器的读取功率；<br>
+6.设置写入功率：手动设置当前连接机器的写入功率【定位校验时会自动检验最为合适的数值，非必要无需修改】；<br>
+7.设置读取功率：手动设置当前连接机器的读取功率【定位校验时会自动检验最为合适的数值，非必要无需修改】；<br>
+<br></p>
+<p>(3)PDF打印<br>
+1.打印偏移位置、宽高、旋转角度为根据实际打印尺寸输入数值；<br>
+2.写入RFID数据：如需要写入数据打印勾选后显示数据输入框，输入需要写入的数据；<br>
+3.选择PDF文件，输入打印页码进行打印；<br>
+如需打印PDF可在sdkcfg.xml文件中配置，目前支持两种形式打印PDF，内部逻辑处理PDF在sdkcfg.xml文件中设置为“0”，如需PDF插件则需先插件配置路径；<br>
+<br></p>
+<p>(4)数据直传<br>
+1.用于直接传数据文件进行打印；<br>
+<br></p>
+<h2 id="4dstp2xdemo使用流程">4、DSTP2xDemo使用流程</h2>
+<h3 id="41打开模板">4.1、打开模板</h3>
+<p>双击运行打开“DSTP2xDemo.exe”,点击左上角下拉框选择模板<br>
+预设模板（dlt文件）路径：DSTP2xDemo.exe根目录下的./Template文件夹；<br>
+如果需要打开自定义路径下的模板文件，可以选择“打开更多模板”进行选择。<br>
+<img src="../res/Demo-4.1.1.png"></img><br>
+<br>
+选中现有模板，demo会刷新出模板对应的预览图。<br>
+<img src="../res/Demo-4.1.2.png"></img><br>
+<br></p>
+<h2 id="42新建标签">4.2、新建标签</h2>
+<h3 id="421创建模板">4.2.1、创建模板</h3>
+<p>在demo界面中，点击“新建模板”
+<img src="../res/Demo-4.2.1-1.png"></img><br>
+<img src="../res/Demo-4.2.1-2.png"></img><br>
+<br></p>
+<h4 id="修改标签属性">修改标签属性<br></h4>
+<p>步骤：点击左侧树状图“print”-&gt;demo右侧显示标签元素属性栏-&gt;修改对应画布宽高参数-&gt;按enter键或点击右侧任意空白处便可修改成功-&gt;查看预览图刷新后的效果。（如果预览图没变化，则需要检查一下是否修改成功。）<br>
+<img src="../res/Demo-4.2.1-3.png"></img><br>
+<br>
+如标签类型是带侧边距的标签，如下图：该标签侧边距9mm不纳入画布宽计算，新建模板标签宽高设置为50*50mm即可。<br>
+<img src="../res/Demo-4.2.1-4.png"></img><br>
+<br>
+带侧边距的标签，如果左侧内容打印不全，则根据侧边距对应调整一下横向偏移参数，如下图：<br>
+<img src="../res/Demo-4.2.1-5.png"></img><br>
+<br>
+注：<br>
+①目前新建模板默认都是203dpi，如需要切换其它dpi预览打印，需要先连接打印机再进行切换dpi。<br>
+②默认换算单位都为mm。<br>
+<br></p>
+<h3 id="422添加文本">4.2.2、添加文本</h3>
+<p>鼠标右键点击“print”-&gt;点击“添加文本”<br>
+<img src="../res/Demo-4.2.2-1.png"></img><br></p>
+<h4 id="修改文本属性参数">修改文本属性参数<br></h4>
+<p>默认文本内容为“ ”，在右侧文本属性栏中可以设置坐标、字体、大小、内容、自动换行、字间距和其它效果等等。<br>
+<img src="../res/Demo-4.2.2-2.png"></img><br>
+<br></p>
+<h4 id="文本自动换行">文本自动换行</h4>
+<p>修改自动换行属性参数-选“是”,输入一行显示的宽度，当文本内容数据超过给定的宽度，便会自动换到下一行显示。<br>
+<img src="../res/Demo-4.2.2-3.png"></img><br>
+<br>
+以宋体打印一个中文字体为示例，字号大小如下图：<br>
+<img src="../res/Demo-4.2.2-4.png"></img><br></p>
+<p>综上，字号增大一号，宽度增加0.25-0.4mm；高度增加0.25-0.5mm。<br>
+<br></p>
+<h3 id="423添加条码">4.2.3、添加条码</h3>
+<p>鼠标右键点击“print”-&gt;点击“添加条码”<br>
+<img src="../res/Demo-4.2.3-1.png"></img><br>
+<br></p>
+<h4 id="修改条码属性参数">修改条码属性参数<br></h4>
+<p>默认条码类型为 Code 128 码，条码内容为“1234”，在右侧条形码栏属性中，可以修改条形码的内容、宽高、类型、是否显示注释、旋转角度等等。<br>
+<img src="../res/Demo-4.2.3-2.png"></img><br></p>
+<h3 id="424添加二维码">4.2.4、添加二维码</h3>
+<p>鼠标右键点击“print”-&gt;点击“添加二维码”<br>
+<img src="../res/Demo-4.2.4-1.png"></img><br></p>
+<h4 id="修改条码属性参数-1">修改条码属性参数</h4>
+<p>默认二维码类型为 QRCode，二维码内容为“1234”，在右侧二维码属性栏中，可以修改二维码码的内容、宽高、类型、容错等级、旋转角度等等。容错等级分为四个等级，分别对应容错率分别为：L-7%、M-15%、Q-25%、H-30%。<br>
+<img src="../res/Demo-4.2.4-2.png"></img><br>
+<br></p>
+<h3 id="425添加图片">4.2.5、添加图片</h3>
+<p>鼠标右键点击“print”-&gt;点击“添加图片”<br>
+<img src="../res/Demo-4.2.5-1.png"></img><br>
+<br>
+图片可以选择本地图片和base64图片数据（txt格式）两种方式。文件后缀选“base64 TXT file”会显示所有图片和txt文件。<br>
+选择本地图片导入，步骤如下：<br>
+<img src="../res/Demo-4.2.5-2.png"></img><br>
+<br>
+选择本地图片（png、jpg和bmp以外格式）或base64图片数据导入，
+步骤如下：<br>
+<img src="../res/Demo-4.2.5-3.png"></img><br>
+<br>
+修改图片属性参数<br>
+导入图片后，在右侧图片属性栏中，可以修改图片的坐标、宽高、算法、旋转角度等等。<br>
+<img src="../res/Demo-4.2.5-4.png"></img><br>
+<br></p>
+<h3 id="426添加表格">4.2.6、添加表格</h3>
+<p>鼠标右键点击“print”-&gt;点击“添加表格”<br>
+<img src="../res/Demo-4.2.6-1.png"></img><br>
+<br></p>
+<h4 id="修改表格属性参数">修改表格属性参数</h4>
+<p>默认表格为1行1列，在右侧表格属性栏中，可以修改表格的坐标、宽高、行列数、行列边界线位置等等。<br>
+左侧树状导航栏中，每个Bcell对应一个单元格。每个单元格的初始宽高，都是根据表格总宽高和行列数进行平均划分。<br>
+<img src="../res/Demo-4.2.6-2.png"></img><br>
+<img src="../res/Demo-4.2.6-3.png"></img><br>
+<br></p>
+<h4 id="调整表格行高">调整表格行高</h4>
+<p>可以通过调整行边界线来对应调整行高。<br>
+行边界线：表格中，每一条横线定义为行边界线，从表格最顶端横线往下数：行边界线0、行边界线1、行边界线2····，表格y坐标限制了行边界线0，因此，行边界线调整只能从行边界线1开始调整。<br>
+调整行高：通过行边界线调整行高，某一行行高减小表格会整体往上移，增大表格会整体往下移；<br>
+<img src="../res/Demo-4.2.6-4.png"></img><br>
+<br>
+行边界线增大2mm，整个表格高度整体增加2mm，表格整体下移。<br>
+<img src="../res/Demo-4.2.6-5.png"></img><br>
+<br></p>
+<h4 id="调整表格列宽">调整表格列宽</h4>
+<p>可以通过调整列边界线来对应调整列宽。<br>
+列边界线：表格中，每一条竖线定义为列边界线，从表格最左侧竖线往右数：列边界线0、列边界线1、列边界线2····，表格x坐标限制了列边界线0，因此，列边界线调整只能从列边界线1开始调整。<br>
+调整列宽：通过调整某一列边界线，该列边界线相邻两个格子列宽呈现此消彼长的关系。例如：5行3列的表格，调整列边界1增大5mm，那么第一列列宽增加5mm，第二列列宽就会对应减少5mm，第3列列宽不变；如果调整该表格最右边的列边界线3，那么只会影响第3列列宽，列边界线3增大，表格往右延伸，如果列边界线3减小，表格往左缩小。<br>
+调整列边界线1，表格列宽变化如下图：<br>
+<img src="../res/Demo-4.2.6-6.png"></img><br>
+<br>
+调整列边界线3，表格变化如下图：<br>
+<img src="../res/Demo-4.2.6-7.png"></img><br>
+<br></p>
+<h4 id="合并单元格">合并单元格</h4>
+<p>按住Ctrl键，鼠标点击选中要合并的单元格，鼠标右键-合并单元格。相邻几个BCell单元格合并后，会生成一个新的单元格MCell。
+注：一定要相邻的单元格才能进行合并。<br>
+<img src="../res/Demo-4.2.6-8.png"></img><br>
+<img src="../res/Demo-4.2.6-9.png"></img><br>
+<br></p>
+<h4 id="取消合并单元格">取消合并单元格</h4>
+<p>合并后想还原，可以鼠标右键选中对应的MCell单元格，点击取消合并单元格，便可还原如初。<br>
+<img src="../res/Demo-4.2.6-10.png"></img><br>
+<br></p>
+<h4 id="表格添加文本">表格添加文本</h4>
+<p>鼠标右键选中某个单元格（BCell/MCell）-&gt;添加文本<br>
+在表格中添加文本，初始坐标为单元格左上角，文本框宽高为该单元格的宽高，选中垂直、水平对齐方式，会进行自动计算，效果如下图：<br>
+<img src="../res/Demo-4.2.6-11.png"></img><br>
+<br></p>
+<h4 id="表格添加条码">表格添加条码</h4>
+<p>鼠标右键选中某个单元格（BCell/MCell）-&gt;添加条码<br>
+在表格中添加条码，初始坐标为单元格左上角，条码宽高为该单元格的宽高，条码类型为code128，可根据实际打印需求修改条码属性参数，效果如下图：<br>
+<img src="../res/Demo-4.2.6-12.png"></img><br>
+<br></p>
+<h4 id="表格添加二维码">表格添加二维码</h4>
+<p>鼠标右键选中某个单元格（BCell/MCell）-&gt;添加二维码<br>
+在表格中添加二维码，初始坐标为单元格左上角，二维码宽高为该单元格的宽高，二维码容错等级为1，可根据实际打印需求修改二维码属性参数，效果如下图：<br>
+<img src="../res/Demo-4.2.6-13.png"></img><br>
+<br></p>
+<h4 id="表格添加图片">表格添加图片</h4>
+<p>鼠标右键选中某个单元格（BCell/MCell）-&gt;添加图片<br>
+在表格中添加图片，初始坐标为单元格左上角，图片宽高为该单元格的宽高，算法为阈值模式，可根据实际打印需求修改对应图片属性参数，效果如下图：<br>
+<img src="../res/Demo-4.2.6-14.png"></img><br>
+<br></p>
+<h3 id="427标签添加rfid">4.2.7、标签添加RFID</h3>
+<h4 id="添加epc">添加EPC</h4>
+<p>鼠标右键点击左侧标签模板导航栏中的“RFID”-添加EPC。<br>
+<img src="../res/Demo-4.2.7-2.0.png"></img><br>
+数据类型：有HexStr和ASCII两种<br>
+<br>
+Epc数据写入规则：<br>
+①写入的epc数据一定要是2个字节的整数倍数长度，<br>
+ASCII类型，一个数占一个字节，所以用ASCII类型写入的数据长度需要是2的整数倍数长度。<br>
+示例：<br>
+ASCII：1234abcd，实际写入到标签芯片数据为：31 32 33 34 61 62 63 64（因为ASCII方式会转成ASCII码表对应的十六进制数据再写入）。<br>
+<br>
+HexStr类型，2个数占一个字节，所以HexStr类型写入的数据长度需要是4的整数倍数长度。<br>
+示例：<br>
+HexStr：1234abcd，实际写入到标签芯片数据为：12 34 ab cd。<br></p>
+<p>②epc长度不能超标签芯片规格，例如：标签芯片规格是96bits，那么epc只能写96/8=12字节，超出长度就写不进去；用HexStr能写24个数；ASCII方式只能写12个数。<br></p>
+<p>③ASCII类型能写ASCII码表里面的任一字符数据，HexStr类型只能写0-9和字母a-f。<br></p>
+<p>读写模式：WR、W、R三种；<br>
+WR，流程为：写epc-打印-读epc。<br>
+W，流程为：写epc-打印。<br>
+R，流程为：打印-只读epc。<br>
+EPC属性栏如下图：<br>
+<img src="../res/Demo-4.2.7-1.png"></img><br>
+<br></p>
+<h4 id="添加user">添加USER</h4>
+<p>鼠标右键点击左侧标签模板导航栏中的“RFID”-添加USER。<br>
+<img src="../res/Demo-4.2.7-2.png"></img><br>
+数据类型：有HexStr和ASCII两种<br>
+USER数据写入规则：<br>
+①写入的user数据一定要是2个字节的整数倍数长度，<br>
+ASCII类型，一个数占一个字节，所以用ASCII类型写入的数据长度需要是2的整数倍数长度。<br>
+示例：<br>
+ASCII：1234abcd，实际写入到标签芯片数据为：31 32 33 34 61 62 63 64（因为ASCII方式会转成ASCII码表对应的十六进制数据再写入）。
+<br>
+<br>
+HexStr类型，2个数占一个字节，所以HexStr类型写入的数据长度需要是4的整数倍数长度。<br>
+示例：<br>HexStr：1234abcd，实际写入到标签芯片数据为：12 34 ab cd。<br></p>
+<p>②user长度不能超标签芯片规格，例如：标签芯片规格是96bits，那么user只能写96/8=12字节，超出长度就写不进去；用HexStr能写24个数；ASCII方式只能写12个数。<br></p>
+<p>③ASCII类型能写ASCII码表里面的任一字符数据，HexStr类型只能写0-9和字母a-f。<br></p>
+<p>读写模式：WR、W、R三种；<br>
+WR，流程为：写USER-打印-读USER。<br>
+X，流程为：写USER-打印。<br>
+S，流程为：打印-只读USER。<br>
+USER属性栏如下图：<br>
+<img src="../res/Demo-4.2.7-3.png"></img><br>
+<br></p>
+<h4 id="添加tid">添加TID</h4>
+<p>鼠标右键点击左侧标签模板导航栏中的“RFID”-添加TID。<br>
+<img src="../res/Demo-4.2.7-4.png"></img><br>
+<br>
+TID数据无法修改，读写模式只有R（只读）。<br>
+TID属性栏如下图：<br>
+<img src="../res/Demo-4.2.7-5.png"></img><br>
+<br>
+<br></p>
+<h4 id="打印效果">打印效果</h4>
+<p><img src="../res/Demo-4.2.7-6.png"></img><br>
+<br></p>
+<h3 id="428保存模板">4.2.8、保存模板</h3>
+<p>新建模板保存步骤：模板编辑好后-&gt;点击“模板另存为”-&gt;选择目标文件夹路径-&gt;命名模板名称-保存。<br>
+<img src="../res/Demo-4.2.8-1.png"></img><br>
+<br></p>
+<p>修改已有的模板保存步骤：模板修改后-&gt;点击“保存模板”保存<br>
+<img src="../res/Demo-4.2.8-2.png"></img><br>
+<br></p>
+<h3 id="429拖拉缩放模板预览图">4.2.9、拖拉缩放模板预览图</h3>
+<p>当预览图中内容看不清或显示不全时，可对预览图进行缩放拖拉移动。<br>
+缩放：把鼠标放在要放大的内容上，滚动鼠标轮（或通过移动预览图上方的游标）可进行缩放。<br>
+拖拉：鼠标左键按住预览图，可进行拖拉进行上下左右移动。<br>
+<img src="../res/Demo-4.2.9.png"></img><br>
+<br></p>
+<h3 id="4210rfid标签锁定解锁">4.2.10、RFID标签锁定解锁</h3>
+<h4 id="修改密码并锁定标签">修改密码并锁定标签</h4>
+<p>具体流程：修改新密码-带密码写epc-锁标签-打印
+设置：点击左侧导航栏RFID-“密码模式”改为“修改模式”，
+修改密码：
+输入原密码（通常为00000000）
+设置新密码（不能为00000000）<br>
+如下图：
+<img src="../res/Demo-4.2.10-1.png"></img><br>
+点击左侧导航栏EPC-“锁定动作”改为“锁定”，最后点击打印；如下图：<br>
+<img src="../res/Demo-4.2.10-2.png"></img><br></p>
+<h4 id="解锁并重写rfid标签">解锁并重写RFID标签</h4>
+<p>具体流程：解锁标签-带密码写epc-打印（适用于已锁定标签）
+设置：点击左侧导航栏RFID-“密码模式”改为“修改模式”，“密码”栏输入标签正确密码，如下图：
+可选：如需重新锁定标签，需集成的时候自行调用“锁定标签”接口即可。参考流程：解锁标签-带对密码写epc-锁定标签-打印。（适用于出厂已修改密码且锁定的标签，按需决定是否重新锁定。）<br>
+<img src="../res/Demo-4.2.10-3.png"></img><br>
+点击左侧导航栏EPC-“锁定动作”改为“解锁”，最后点击打印；如下图：<br>
+<img src="../res/Demo-4.2.10-4.png"></img><br></p>
+<h3 id="4211打开日志文件路径">4.2.11、打开日志文件路径</h3>
+<p>如果使用“DSTP2xDemo.exe”中出现问题，且无法明确排查问题，麻烦提供对应日志文件给相关技术人员帮忙分析排查，直接点击“日志路径”按钮跳转到日志目录。<br>
+<img src="../res/Demo-4.2.11.png"></img><br>
+<br></p>
+</div>
+
+            
+            
+        </body>
+        </html>

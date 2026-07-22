@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DirectConnection</title>
+    <link rel="stylesheet" type="text/css" href="./css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+</head>
+
+<body>
+    <div class="header">
+        <img src="./images/tp.png" height="32px" style="margin-top:16px;" />
+    </div>
+    <div class="main">
+        <span class="tag">
+            DirectConnection
+        </span>
+        <div class="content_wrap">
+            <div class="setting">
+                <p class="title">打印机网口直连</p>
+                <div class="file_input border">
+                    <label for="IPPortLab" style="width:300px;">IP和Port (格式：192.168.0.7:9100)</label>
+                    <input style="display: none;" id="IPPort" />
+                    <input type="text"  style="width:60%;" name="IPPort" id="ipPortDisplay" />
+                    <button onclick="DirCon(1)" style="width:160px;height:60px;margin-left:auto;">连接</button>
+                </div>
+                
+                <p class="title">打印机串口直连</p>
+                <div class="file_input border">
+                    <label for="SerialPortNum" style="width:150px;">串口号 (格式：3)</label>
+                    <input style="display: none;"  id="SerialNum" />
+                    <input type="text"  style="width:10%;margin-right:60px;"  name="SerialNum" id="serialNumDisplay" />
+
+                    <label for="BaudRateNum" style="width:210px;">波特率 (格式：115200)</label>
+                    <input style="display: none;" id="BaudRate" />
+                    <input type="text"  style="width:40%;"  name="BaudRate"  id="baudRateDisplay" />
+                    <button onclick="DirCon(2)" style="width:160px;height:60px;margin-left:auto;">连接</button>
+                </div>                            
+
+                <div class="terminal_wrap">
+                    <div class="top">
+                        <p class="title">信息输出：</p>
+                        <button onclick="clearLog()">清空输出</button>
+                    </div>
+                    <div class="terminal border">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="popup_tips" style="display: none;">
+        <div class="popup_tips_mask"></div>
+        <div class="popup_tips_content"></div>
+    </div>
+
+</body>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/common.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {    //刷新后回到顶部
+        $(window).scrollTop(0)
+    }
+
+      //处理参数
+    function handleParams() {
+        let data = {}
+        $("input[name]").each(function () {
+            var name = $(this).attr("name");
+            var isFile = $(this).attr("type") == "file";
+            var isRadio = $(this).attr("type") == "radio";
+            var isCheckBox = $(this).attr("type") == "checkbox";
+
+            if (isFile) {
+                data[name] = $("input[name=" + name + "]").get(0).files[0] || "";
+            } else if (isRadio) {
+                data[name] = $("input[name=" + name + "]:checked").val()
+            } else if (isCheckBox) {
+                data[name] = $(this).is(":checked")
+            } else {
+                data[name] = $("input[name=" + name + "]").val() || "";
+            }
+        });
+
+        return data
+    }
+
+    async function DirCon(infoType) {        
+        let params = handleParams()
+        console.log(params);
+        try {
+
+            let connectRes;
+
+            await sendPostRequest("web_DSTP2x_SetLibLang", "设置语言", { "language":"0" })
+
+            if(infoType == 1) {
+	            connectRes = await sendPostRequest("web_DSTP2x_ConnNetworkDev", "根据IP和端口号进行网口直连", { "ipPort": params.IPPort })
+	            if (connectRes.devHdl) {
+	                	creatLog("网口连接成功!")
+	            }    
+                else
+                {
+                    creatLog("网口连接失败!")
+                }
+            }
+            else if(infoType == 2) {            	
+	            connectRes = await sendPostRequest("web_DSTP2x_ConnSerialDev", "根据串口号和波特率进行串口直连", { "serialNo": params.SerialNum, "baudRate": params.BaudRate})
+	            if (connectRes.devHdl) {
+	                	creatLog("串口连接成功!")
+	            } 
+                else
+                {
+                    creatLog("串口连接失败!")
+                }  
+            }           
+            
+              
+            //断开连接
+            await sendPostRequest("web_DSTP2x_DisconnDev", "断开连接", { "devHdl": connectRes.devHdl })
+            openMask("获取成功", true)
+
+        } catch (error) {
+            let errText = error ? error : "请求失败"
+            openMask(errText, true)
+        }
+    }
+
+</script>
+
+</html>

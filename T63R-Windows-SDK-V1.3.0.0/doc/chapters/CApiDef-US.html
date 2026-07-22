@@ -1,0 +1,2151 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>C language interface description</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* Content area on the right */
+        .content {
+            margin-left: 10px; /* Leave space on the left side of the content area */
+            padding: 20px;
+            flex: 1; /* Content area fills the remaining space */
+            background-color: #f9f9f9;
+        }
+        .content pre{
+width: 1400px;
+        }
+        /* Responsive: When the screen width is less than 768px, the navigation bar becomes foldable */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* Reduce the navigation bar width on a small screen */
+            }
+
+            .content {
+                margin-left: 0; /* No more space for navigation bar in the content area */
+            }
+        }
+       
+/* Submenu style */
+.submenu {
+    display: none; /* Default hidden submenu */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* Show submenu when mouse hover */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* Set basic styles*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Left navigation bar style */
+.sidebar {
+    position: sticky;  /* Adhesive positioning */
+    top: 0;             /* When scrolling to the top, fixed */
+    width: 300px;
+    max-width: 350px;   /* The maximum width is 350px */
+    min-width: 250px;   /* The maximum width is 250px */
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<!-- </head> -->
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">Table of contents</p>      
+<ul>
+<a href="../index-US.html" class="active">Chapter 1, Overview</a>
+        <a href="./FunctionList-US.html">Chapter 2, Function List</a>
+<li>
+<a href="#">Chapter 3, Function Sample Code</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP-US.html">C++ sample</a></li>
+         <li><a href="./Samplecode-Charp-US.html">C# sample</a></li>
+         <li><a href="./Samplecode-java-US.html">java sample</a></li>
+         <li><a href="./Samplecode-javascript-US.html">javascript sample</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">Chapter 4, Functional Interface</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef-US.html">C interface function prototype</a></li>
+                <li><a href="./WebApiDef-US.html">Web-end interface definition</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction-US.html">Chapter 5, DSTP2xDemo instructions</a>
+                <a href="./WebPrtServerInstruction-US.html">Chapter 6, DSTP2xWebPrtServer User Instructions</a>
+                <li>
+                  <a href="#">Chapter 7, Related Return Code List</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode-US.html">SDK interface return code</a></li>
+                    <li><a href="./PrtStatusCode-US.html">Printer status code</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ-US.html">Chapter 8, Frequently Asked Questions</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+    body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+<center>
+<b style="font-size:18pt">
+<h1 id="c-language-interface-description">C language interface description</h1>
+</b>
+</center>
+<ul>
+<li><a href="#c-language-interface-description">C language interface description</a></li>
+<li><a href="#basic-operation-interfaces-of-the-library">Basic operation interfaces of the library</a>
+<ul>
+<li><a href="#dstp2x_apirtncodetomsg-parsing-the-error-code-returned-by-the-sdk-interface">DSTP2x_ApiRtnCodeToMsg (Parsing the error code returned by the SDK interface)</a></li>
+<li><a href="#dstp2x_getlibversion-get-library-version">DSTP2x_GetLibVersion (Get library version)</a></li>
+<li><a href="#dstp2x_getlibinfo-get-library-information">DSTP2x_GetLibInfo (Get library information)</a></li>
+<li><a href="#dstp2x_lib_init-dynamic-library-initialization">DSTP2x_Lib_Init (Dynamic library initialization)</a></li>
+<li><a href="#dstp2x_lib_clear-dynamic-library-cleaning">DSTP2x_Lib_Clear (Dynamic library cleaning)</a></li>
+<li><a href="#dstp2x_setliblang-set-library-language">DSTP2x_SetLibLang (Set library language)</a></li>
+</ul>
+</li>
+<li><a href="#device-connection">Device connection</a>
+<ul>
+<li><a href="#dstp2x_connenumerateddev-connect-device-via-enumeration">DSTP2x_ConnEnumeratedDev (Connect device via enumeration)</a></li>
+<li><a href="#dstp2x_connnetworkdev-connect-via-ip-and-port">DSTP2x_ConnNetworkDev (Connect via ip and port)</a></li>
+<li><a href="#dstp2x_connserialdev-connect-the-device-through-serial-number-and-baud-rate">DSTP2x_ConnSerialDev (Connect the device through serial number and baud rate)</a></li>
+<li><a href="#dstp2x_disconndev-disconnect-the-device">DSTP2x_DisconnDev (Disconnect the device)</a></li>
+<li><a href="#dstp2x_enumdev-search-online-devices">DSTP2x_EnumDev (Search online devices)</a></li>
+<li><a href="#dstp2x_setcommtimeout-set-the-communication-timeout-for-the-connection">DSTP2x_SetCommTimeout (Set the communication timeout for the connection)</a></li>
+<li><a href="#dstp2x_setnetenumrecvtimes-set-the-number-of-consecutive-times-that-no-data-can-be-read-when-the-network-port-enumerates-the-printer-response">DSTP2x_SetNetEnumRecvTimes (Set the number of consecutive times that no data can be read when the network port enumerates the printer response.)</a></li>
+<li><a href="#dstp2x_setnetenumsubnets-when-enumerating-printers-via-the-network-interface-multiple-subnet-segments-that-need-to-be-enumerated">DSTP2x_SetNetEnumSubNets (When enumerating printers via the network interface, multiple subnet segments that need to be enumerated.)</a></li>
+<li><a href="#dstp2x_setnetworkreconnectpar-set-the-network-port-connection-retry">DSTP2x_SetNetworkReconnectPar (Set the network port connection retry.)</a></li>
+</ul>
+</li>
+<li><a href="#common-functions">Common functions</a>
+<ul>
+<li><a href="#dstp2x_cutpaper-instant-paper-cutting">DSTP2x_CutPaper (Instant paper cutting)</a></li>
+<li><a href="#dstp2x_locateblackmark-continuous-paper-black-mark-positioning">DSTP2x_LocateBlackMark (Continuous paper black mark positioning)</a></li>
+<li><a href="#dstp2x_locatelabel-general-label-positioning">DSTP2x_LocateLabel (General label positioning)</a></li>
+<li><a href="#dstp2x_movepaper-move-the-label">DSTP2x_MovePaper (Move the label)</a></li>
+<li><a href="#dstp2x_printselfcheckpage-print-the-self-check-page">DSTP2x_PrintSelfCheckPage (Print the self-check page)</a></li>
+<li><a href="#dstp2x_restartprt-clear-the-cache-of-the-device">DSTP2x_RestartPrt (Clear the cache of the device)</a></li>
+<li><a href="#dstp2x_transrecvdata-directly-transfer-data-to-the-printer">DSTP2x_TransRecvData (Directly transfer data to the printer)</a></li>
+</ul>
+</li>
+<li><a href="#device-information-query">Device information query</a>
+<ul>
+<li><a href="#dstp2x_getprtfwver-query-the-printer-firmware-version-number">DSTP2x_GetPrtFWVer (Query the printer firmware version number)</a></li>
+<li><a href="#dstp2x_getprtmotortraveldistance-query-the-rotation-distance-of-the-printer-motor">DSTP2x_GetPrtMotorTravelDistance (Query the rotation distance of the printer motor.)</a></li>
+<li><a href="#dstp2x_getprtsn-query-the-printer-serial-number">DSTP2x_GetPrtSN (Query the printer serial number)</a></li>
+<li><a href="#dstp2x_getprtstatus-query-the-printer-status">DSTP2x_GetPrtStatus (Query the printer status)</a></li>
+<li><a href="#dstp2x_getprtname-query-the-printer-model-name">DSTP2x_GetPrtName (Query the printer model name)</a></li>
+</ul>
+</li>
+<li><a href="#function-settings">Function settings</a>
+<ul>
+<li><a href="#dstp2x_setimgdpi-set-the-resolution-of-the-image-to-be-drawn">DSTP2x_SetImgDpi (Set the resolution of the image to be drawn)</a></li>
+<li><a href="#dstp2x_setprnemulation-set-the-simulation-type">DSTP2x_SetPrnEmulation (Set the simulation type)</a></li>
+<li><a href="#dstp2x_setprnoffset-set-the-print-offset">DSTP2x_SetPrnOffset (Set the print offset)</a></li>
+<li><a href="#dstp2x_setrtstatus-set-the-real---time-performance-of-obtaining-the-status">DSTP2x_SetRTStatus (Set the real - time performance of obtaining the status)</a></li>
+<li><a href="#dstp2x_turnoffcutter-turn-off-the-cutter-function">DSTP2x_TurnOffCutter (Turn off the cutter function)</a></li>
+<li><a href="#dstp2x_turnoncutter-turn-on-the-cutter-function">DSTP2x_TurnOnCutter (Turn on the cutter function)</a></li>
+</ul>
+</li>
+<li><a href="#rfid-function">RFID function</a>
+<ul>
+<li><a href="#dstp2x_rfid_getreadpower-get-the-rfid-read-power">DSTP2x_RFID_GetReadPower (Get the RFID read power)</a></li>
+<li><a href="#dstp2x_rfid_getwritepower-get-the-rfid-write-power">DSTP2x_RFID_GetWritePower (Get the RFID write power)</a></li>
+<li><a href="#dstp2x_rfid_locatelabel-rfid-tag-positioning">DSTP2x_RFID_LocateLabel (RFID tag positioning)</a></li>
+<li><a href="#dstp2x_rfid_readdata-read-rfid-data">DSTP2x_RFID_ReadData (Read RFID data)</a></li>
+<li><a href="#dstp2x_rfid_setreadpower-set-rfid-read-power">DSTP2x_RFID_SetReadPower (Set RFID read power)</a></li>
+<li><a href="#dstp2x_rfid_setwritepower-set-rfid-write-power">DSTP2x_RFID_SetWritePower (Set RFID write power)</a></li>
+<li><a href="#dstp2x_rfid_changeaccesspassword-modify-the-access-password-of-the-rfid-tag">DSTP2x_RFID_ChangeAccessPassword (Modify the access password of the RFID tag)</a></li>
+<li><a href="#dstp2x_rfid_setdestructionpassword-set-the-destruction-password-of-the-rfid-tag">DSTP2x_RFID_SetDestructionPassword (Set the destruction password of the RFID tag)</a></li>
+<li><a href="#dstp2x_rfid_lockoperate-lock-a-specific-rfid-area">DSTP2x_RFID_LockOperate (Lock a specific RFID area)</a></li>
+<li><a href="#dstp2x_rfid_unlockoperate-unlock-a-specific-rfid-area">DSTP2x_RFID_UnlockOperate (Unlock a specific RFID area)</a></li>
+<li><a href="#dstp2x_setpasswordwithwrite-write-to-a-specific-rfid-area-with-a-password">DSTP2x_SetPasswordWithWrite (Write to a specific RFID area with a password.)</a></li>
+<li><a href="#dstp2x_rfid_locktypesetting-set-the-rfid-locking-type">DSTP2x_RFID_LockTypeSetting (Set the RFID locking type)</a></li>
+<li><a href="#dstp2x_rfid_getproto-obtain-rfid-protocol">DSTP2x_RFID_GetProto (Obtain RFID protocol)</a></li>
+<li><a href="#dstp2x_rfid_setproto-set-rfid-protocol">DSTP2x_RFID_SetProto (Set RFID protocol))</a></li>
+</ul>
+</li>
+<li><a href="#pdf-print">PDF print</a>
+<ul>
+<li><a href="#dstp2x_deletepdf-delete-the-pdf-handle">DSTP2x_DeletePdf (Delete the PDF handle)</a></li>
+<li><a href="#dstp2x_loadpdf-load-pdf-data">DSTP2x_LoadPdf (Load PDF data)</a></li>
+<li><a href="#dstp2x_printpdf-print-pdf">DSTP2x_PrintPdf (Print PDF)</a></li>
+<li><a href="#dstp2x_setpdfprnmode-set-the-pdf-printing-mode">DSTP2x_SetPdfPrnMode (Set the PDF printing mode)</a></li>
+<li><a href="#dstp2x_setpdfprnrotate-set-the-target-printing-rotation-angle-for-the-pdf">DSTP2x_SetPdfPrnRotate (Set the target printing rotation angle for the PDF)</a></li>
+<li><a href="#dstp2x_setpdfprnsize-set-the-current-printing-size-of-the-pdf">DSTP2x_SetPdfPrnSize (Set the current printing size of the PDF)</a></li>
+<li><a href="#dstp2x_setpdfhalftonealgo-set-the-halftone-processing-algorithm-for-the-pdf-image">DSTP2x_SetPdfHalftoneAlgo (Set the halftone processing algorithm for the PDF image)</a></li>
+<li><a href="#dstp2x_setpdfprnsynctype-when-enumerating-printers-via-the-network-interface-multiple-subnet-segments-that-need-to-be-enumerated">DSTP2x_SetPdfPrnSyncType (When enumerating printers via the network interface, multiple subnet segments that need to be enumerated)</a></li>
+<li><a href="#dstp2x_setpdfprntimeout-set-the-maximum-timeout-for-a-single-call-of-dstp2x_printpdf">DSTP2x_SetPdfPrnTimeout (Set the maximum timeout for a single call of DSTP2x_PrintPdf)</a></li>
+<li><a href="#dstp2x_setpdfrfiddata-set-the-rfid-data-to-be-written-during-the-pdf-printing-process">DSTP2x_SetPdfRFIDData (Set the RFID data to be written during the PDF printing process)</a></li>
+</ul>
+</li>
+<li><a href="#label-template-printing-function">Label template printing function</a>
+<ul>
+<li><a href="#dstp2x_deletetmpl-delete-the-file-handle-of-the-label-template">DSTP2x_DeleteTmpl (Delete the file handle of the label template)</a></li>
+<li><a href="#dstp2x_loadlabeltmpl-load-the-predefined-label-template">DSTP2x_LoadLabelTmpl (Load the predefined label template)</a></li>
+<li><a href="#dstp2x_printtmpl-print-the-label-template">DSTP2x_PrintTmpl (Print the label template)</a></li>
+<li><a href="#dstp2x_settmplprndata-set-the-actual-printing-replacement-data-for-the-elements-with-specified-ids-in-the-label-template">DSTP2x_SetTmplPrnData (Set the actual printing replacement data for the elements with specified IDs in the label template)</a></li>
+<li><a href="#dstp2x_settmplvalbykey-set-the-replacement-attribute-values-for-the-elements-with-specified-ids-in-the-label-template-based-on-the-existing-key---value-pairs">DSTP2x_SetTmplValByKey (Set the replacement attribute values for the elements with specified IDs in the label template based on the existing key - value pairs)</a></li>
+<li><a href="#dstp2x_getbacktmpl-return-the-template-file-of-the-current-label-templatedlt">DSTP2x_GetBackTmpl (Return the template file of the current label template(.dlt))</a></li>
+<li><a href="#dstp2x_gettmplallidvalues-obtain-all-id-values-of-the-current-label-template">DSTP2x_GetTmplAllIDValues (Obtain all ID values of the current label template)</a></li>
+<li><a href="#dstp2x_settmplprnmode-set-the-printing-mode-of-the-label-template">DSTP2x_SetTmplPrnMode (Set the printing mode of the label template)</a></li>
+<li><a href="#dstp2x_settmplprnsynctype-set-whether-to-print-the-synchronous-result-when-calling-dstp2x_printtmpl-once">DSTP2x_SetTmplPrnSyncType (Set whether to print the synchronous result when calling DSTP2x_PrintTmpl once)</a></li>
+<li><a href="#dstp2x_settmplprntimeout-set-the-maximum-timeout-for-a-single-call-of-dstp2x_printtmpl">DSTP2x_SetTmplPrnTimeout (Set the maximum timeout for a single call of DSTP2x_PrintTmpl)</a></li>
+<li><a href="#dstp2x_settmplrfiddata-set-the-actual-rfid-write-replacement-data-for-the-element-with-the-specified-id-in-the-label-template">DSTP2x_SetTmplRFIDData (Set the actual RFID write replacement data for the element with the specified ID in the label template)</a></li>
+</ul>
+</li>
+<li><a href="#label-drawing-and-printing-function">Label drawing and printing function</a>
+<ul>
+<li><a href="#dstp2x_createlabelcontext-create-a-label-canvas">DSTP2x_CreateLabelContext (Create a label canvas)</a></li>
+<li><a href="#dstp2x_createtable-create-a-table">DSTP2x_CreateTable (Create a table)</a></li>
+<li><a href="#dstp2x_deletelabelcontext-delete-the-handle-of-the-label-canvas">DSTP2x_DeleteLabelContext (Delete the handle of the label canvas)</a></li>
+<li><a href="#dstp2x_deletetable-delete-the-table-handle">DSTP2x_DeleteTable (Delete the table handle)</a></li>
+<li><a href="#dstp2x_lbl_drawbarcode-draw-a-barcode-on-the-specified-label-canvas">DSTP2x_Lbl_DrawBarCode (Draw a barcode on the specified label canvas)</a></li>
+<li><a href="#dstp2x_lbl_drawimage-draw-an-image-on-the-specified-label-canvas">DSTP2x_Lbl_DrawImage (Draw an image on the specified label canvas)</a></li>
+<li><a href="#dstp2x_lbl_drawtext-draw-text-on-the-specified-label-canvas">DSTP2x_Lbl_DrawText (Draw text on the specified label canvas)</a></li>
+<li><a href="#dstp2x_lcdraw_setbarcodeeclvl-label-canvas-drawing-settings---set-the-error-correction-level-for-the-qr-code-to-be-drawn">DSTP2x_LcDraw_SetBarCodeEcLvl (Label canvas drawing settings - Set the error correction level for the QR code to be drawn)</a></li>
+<li><a href="#dstp2x_lcdraw_setbarcodeexpl-label-canvas-drawing-settings---set-whether-to-print-the-annotation-line-for-the-to---be---printed-one---dimensional-barcode">DSTP2x_LcDraw_SetBarCodeExpl (Label canvas drawing settings - Set whether to print the annotation line for the to - be - printed one - dimensional barcode)</a></li>
+<li><a href="#dstp2x_lcdraw_setbarcoderotation-label-canvas-drawing-settings---set-the-rotation-parameter-for-the-one---dimensional-and-two---dimensional-barcodes-to-be-drawn">DSTP2x_LcDraw_SetBarCodeRotation (Label canvas drawing settings - Set the rotation parameter for the one - dimensional and two - dimensional barcodes to be drawn)</a></li>
+<li><a href="#dstp2x_lcdraw_setimagehalftonealgo-label-canvas-drawing-settings---set-the-halftone-processing-algorithm-for-the-image-to-be-drawn">DSTP2x_LcDraw_SetImageHalftoneAlgo (Label canvas drawing settings - Set the halftone processing algorithm for the image to be drawn)</a></li>
+<li><a href="#dstp2x_lcdraw_setimagerotation-label-canvas-drawing-settings---set-the-rotation-parameter-for-the-image-to-be-drawn">DSTP2x_LcDraw_SetImageRotation (Label canvas drawing settings - Set the rotation parameter for the image to be drawn)</a></li>
+<li><a href="#dstp2x_lcdraw_settextautolinefeed-label-canvas-drawing-settings---set-whether-the-text-to-be-drawn-should-wrap-automatically">DSTP2x_LcDraw_SetTextAutoLineFeed (Label canvas drawing settings - Set whether the text to be drawn should wrap automatically)</a></li>
+<li><a href="#dstp2x_lcdraw_settextbold-label-canvas-drawing-settings---set-whether-the-text-to-be-drawn-is-bold-or-not">DSTP2x_LcDraw_SetTextBold (Label canvas drawing settings - Set whether the text to be drawn is bold or not)</a></li>
+<li><a href="#dstp2x_lcdraw_settextcharspacing-label-canvas-drawing-settings---set-the-letter-spacing-of-the-text-to-be-drawn">DSTP2x_LcDraw_SetTextCharSpacing (Label canvas drawing settings - Set the letter-spacing of the text to be drawn)</a></li>
+<li><a href="#dstp2x_lcdraw_settextfontname-label-canvas-drawing-settings---set-the-font-name-of-the-text-content-to-be-drawn">DSTP2x_LcDraw_SetTextFontName (Label canvas drawing settings - Set the font name of the text content to be drawn)</a></li>
+<li><a href="#dstp2x_lcdraw_settextfontsize-label-canvas-drawing-settings---set-the-font-size-of-the-text-content-to-be-drawn">DSTP2x_LcDraw_SetTextFontSize (Label canvas drawing settings - Set the font size of the text content to be drawn)</a></li>
+<li><a href="#dstp2x_lcdraw_settexthalign-label-canvas-drawing-settings---set-the-horizontal-alignment-mode-of-the-text-to-be-drawn">DSTP2x_LcDraw_SetTextHAlign (Label canvas drawing settings - Set the horizontal alignment mode of the text to be drawn)</a></li>
+<li><a href="#dstp2x_lcdraw_settextitalic-label-canvas-drawing-settings---set-whether-the-text-to-be-drawn-is-in-italic-style">DSTP2x_LcDraw_SetTextItalic (Label canvas drawing settings - Set whether the text to be drawn is in italic style)</a></li>
+<li><a href="#dstp2x_lcdraw_settextlinespacing-label-canvas-drawing-settings---set-the-line-spacing-of-the-text-to-be-drawn">DSTP2x_LcDraw_SetTextLineSpacing (Label canvas drawing settings - Set the line spacing of the text to be drawn)</a></li>
+<li><a href="#dstp2x_lcdraw_settextrotation-label-canvas-drawing-settings---set-the-rotation-parameter-of-the-text-to-be-drawn">DSTP2x_LcDraw_SetTextRotation (Label canvas drawing settings - Set the rotation parameter of the text to be drawn)</a></li>
+<li><a href="#dstp2x_lcdraw_settextvalign-label-canvas-drawing-settings---set-the-vertical-alignment-of-the-text-to-be-drawn">DSTP2x_LcDraw_SetTextVAlign (Label canvas drawing settings - Set the vertical alignment of the text to be drawn)</a></li>
+<li><a href="#dstp2x_lcrfid_setdata-set-the-rfid-data-that-needs-to-be-written-during-the-printing-process-of-the-label-canvas">DSTP2x_LcRfid_SetData (Set the RFID data that needs to be written during the printing process of the label canvas)</a></li>
+<li><a href="#dstp2x_printlc-print-the-label">DSTP2x_PrintLc (Print the label)</a></li>
+<li><a href="#dstp2x_setlcprnmode-set-the-printing-mode-of-the-label-canvas">DSTP2x_SetLcPrnMode (Set the printing mode of the label canvas)</a></li>
+<li><a href="#dstp2x_setlcprnrotate-set-the-rotation-angle-of-the-entire-label-canvas">DSTP2x_SetLcPrnRotate (Set the rotation angle of the entire label canvas)</a></li>
+<li><a href="#dstp2x_setlcprnsynctype-set-whether-the-single-call-of-dstp2x_printlc-prints-the-synchronization-result">DSTP2x_SetLcPrnSyncType (Set whether the single call of DSTP2x_PrintLc prints the synchronization result)</a></li>
+<li><a href="#dstp2x_setlcprntimeout-set-the-maximum-timeout-for-a-single-call-of-dstp2x_printlc">DSTP2x_SetLcPrnTimeout (Set the maximum timeout for a single call of DSTP2x_PrintLc)</a></li>
+<li><a href="#dstp2x_tbl_drawbarcode-draw-one---dimensional-and-two---dimensional-barcodes-on-the-specified-cells-of-the-table">DSTP2x_Tbl_DrawBarCode (Draw one - dimensional and two - dimensional barcodes on the specified cells of the table)</a></li>
+<li><a href="#dstp2x_tbl_drawimage-draw-an-image-on-the-specified-cell-of-the-table">DSTP2x_Tbl_DrawImage (Draw an image on the specified cell of the table)</a></li>
+<li><a href="#dstp2x_tbl_drawtext-draw-text-on-the-specified-cell-of-the-table">DSTP2x_Tbl_DrawText (Draw text on the specified cell of the table)</a></li>
+<li><a href="#dstp2x_tbl_drawline-draw-a-line-segment-on-the-specified-cell-of-the-table">DSTP2x_Tbl_DrawLine (Draw a line segment on the specified cell of the table)</a></li>
+<li><a href="#dstp2x_tbl_drawline-draw-line-segments-on-specified-cells-in-the-table">DSTP2x_Tbl_DrawLine (Draw line segments on specified cells in the table)</a></li>
+<li><a href="#dstp2x_tbl_drawellipse-draw-an-ellipse-on-a-specified-cell-in-the-table">DSTP2x_Tbl_DrawEllipse (Draw an ellipse on a specified cell in the table)</a></li>
+<li><a href="#dstp2x_tbl_drawrectangle-draw-an-rectangle-on-a-specified-cell-in-the-table">DSTP2x_Tbl_DrawRectangle (Draw an Rectangle on a specified cell in the table)</a></li>
+<li><a href="#dstp2x_tbl_mergegrids-merge-cells">DSTP2x_Tbl_MergeGrids (Merge cells)</a></li>
+<li><a href="#dstp2x_tbl_revertmergedgrid-restore-the-merged-cells">DSTP2x_Tbl_RevertMergedGrid (Restore (the merged) cells)</a></li>
+<li><a href="#dstp2x_tbl_movecolboundary-change-the-column-width-of-the-table-by-moving-the-boundary-lines-of-the-columns">DSTP2x_Tbl_MoveColBoundary (Change the column width of the table by moving the boundary lines of the columns)</a></li>
+<li><a href="#dstp2x_tbl_moverowboundary-change-the-row-height-of-the-table-by-moving-the-boundary-lines-of-the-columns">DSTP2x_Tbl_MoveRowBoundary (Change the row height of the table by moving the boundary lines of the columns)</a></li>
+<li><a href="#dstp2x_lbl_drawline-draw-a-line-segment-on-the-specified-label-canvas">DSTP2x_Lbl_DrawLine (Draw a line segment on the specified label canvas)</a></li>
+<li><a href="#dstp2x_lcdraw_setellipserotation-label-context-drawing-settings---set-rotation-parameters-for-the-ellipse-to-be-drawn">DSTP2x_LcDraw_SetEllipseRotation (Label Context Drawing Settings - Set Rotation Parameters for the Ellipse to be Drawn)</a></li>
+<li><a href="#dstp2x_lbl_drawellipse-draw-an-ellipse-in-the-specified-label-context">DSTP2x_Lbl_DrawEllipse (Draw an ellipse in the specified label context)</a></li>
+<li><a href="#dstp2x_lcdraw_setrectanglerotation-label-context-drawing-settings---set-rotation-parameters-for-the-rectangle-to-be-drawn">DSTP2x_LcDraw_SetRectangleRotation (Label context drawing settings - Set rotation parameters for the rectangle to be drawn)</a></li>
+<li><a href="#dstp2x_lbl_drawrectangle-draw-a-rectangle-in-the-specified-label-context">DSTP2x_Lbl_DrawRectangle (Draw a rectangle in the specified label context)</a></li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+<h1 id="basic-operation-interfaces-of-the-library">Basic operation interfaces of the library</h1>
+<h2 id="dstp2x_apirtncodetomsg-parsing-the-error-code-returned-by-the-sdk-interface">DSTP2x_ApiRtnCodeToMsg (Parsing the error code returned by the SDK interface)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_ApiRtnCodeToMsg(unsigned int unSDKErrCode, char *szDesc, int *pLen)
+
+illustrate:
+  Translate the error code returned by the SDK interface into the corresponding explanation
+
+parameter:
+  [in]        unSDKErrCode    Error code returned by SDK interface
+  [out]       szDesc          Output string buffer (minimum 1024 bytes, UTF-8 encoded)
+  [in,out]    pLen            When entering the argument: the buffer size pointed to by szDesc, when exiting the argument: the string length of the buffer pointed to by szDesc is actually written.
+
+Return:
+  0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_getlibversion-get-library-version">DSTP2x_GetLibVersion (Get library version)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetLibVersion(char *pLibVer, int *pLibVerLen)
+
+illustrate：
+  The version number of this thermal library is five sets of numbers.
+
+parameter：
+  [out]       pLibVer         Used to store the version number information of the Return, it is recommended that the buffer pre-allocation is not less than 16 bytes.
+  [in,out]    pLibVerLen      When entering the parameter, it indicates the buffer size of pLibVer. When exiting the parameter, it indicates the actual data length of pLibVer stored.
+
+Return：
+  0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_getlibinfo-get-library-information">DSTP2x_GetLibInfo (Get library information)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetLibInfo(char *pLibInfo, int *pLibInfoLen) 
+
+parameter：
+  [out]       pLibInfo         Used to store the library information of Return, it is recommended that the buffer pre-allocation is no less than 256 bytes
+  [in,out]    pLibInfoLen      Indicates the buffer size of pLibInfo when entering the parameter
+
+Return：
+  0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lib_init-dynamic-library-initialization">DSTP2x_Lib_Init (Dynamic library initialization)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lib_Init(char *pSzInitInfo, int nInitInfoLen, char *pSzResult, int *pResultLen)
+
+illustrate：
+  Used to initialize the SDK library resources; when this dynamic library is loaded, this interface must and only be successfully called in the process. It is helpful to view the description of the content of pSzResult when the call fails.
+
+Notice：
+  If the interface in the process has not been successfully called, other interfaces will not be used normally.！！！
+
+parameter：
+  [in]        pSzInitInfo        Custom description information (default pass &quot;&quot;)
+  [in]        nInitInfoLen       Custom description information length
+  [out]       pSzResult          Return to the illustrate information that is successfully initialized or the error information that is failed to initialize, character encoding: utf-8, it is recommended to allocate space of no less than 1024 bytes.
+
+Return：
+  0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lib_clear-dynamic-library-cleaning">DSTP2x_Lib_Clear (Dynamic library cleaning)</h2>
+<pre><code>unsigned int DSSDK  DSTP2x_GetLibInfo(char * pLibInfo, int * 	pLibInfoLen)
+
+illustrate：
+  The dynamic library must be called before it is uninstalled, and the process can be called once.
+
+Return：
+  0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setliblang-set-library-language">DSTP2x_SetLibLang (Set library language)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetLibLang 	(	int 	nLanguage	)	
+
+illustrate：
+  Can be set to Chinese or English 
+
+parameter:
+  [in]        nLanguage]       language 
+                               0 - Chinese（default） 
+                               1 - English 
+  
+Return:
+  0表示成功，非零失败 
+</code></pre>
+<br>
+<br>
+<h1 id="device-connection">Device connection</h1>
+<h2 id="dstp2x_connenumerateddev-connect-device-via-enumeration">DSTP2x_ConnEnumeratedDev (Connect device via enumeration)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_ConnEnumeratedDev(const char *szDevName, DEV_HDL *pDevHdl)
+
+illustrate：
+	According to the DSTP2x_EnumDev interface enumeration, the device is connected to the
+
+parameter：
+  [in]        szDevName        The name of a device in szEnumList from DSTP2x_EnumDevReturn
+  [out]       pDevHdl          DEVICE ADDRESS
+
+Return：
+	0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_connnetworkdev-connect-via-ip-and-port">DSTP2x_ConnNetworkDev (Connect via ip and port)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_ConnNetworkDev(const char *szIpPort, DEV_HDL *pDevHdl)
+
+illustrate：
+  Connect to the device directly through IP and ports and obtain the device handle.
+
+parameter：
+  [in]        szIpPort         Directly connect to the device by passing in IP address and port number, such as passing in &quot;165.469.2.23:9100&quot; 
+  [out]       pDevHdl          DEVICE ADDRESS
+
+Return：
+  0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_connserialdev-connect-the-device-through-serial-number-and-baud-rate">DSTP2x_ConnSerialDev (Connect the device through serial number and baud rate)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_ConnSerialDev( int nSerialNo, int nBaudRate, DEV_HDL *pDevHdl)
+
+illustrate:
+ Directly connect the device through the serial port number and baud rate, and obtain the device address.
+
+parameter:
+  [in]        nSerialNo        Serial number
+  [in]        nBaudRate        Baud rate
+  [out]       pDevHdl          DEVICE ADDRESS
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_disconndev-disconnect-the-device">DSTP2x_DisconnDev (Disconnect the device)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_DisconnDev(DEV_HDL ullDevHdl)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_enumdev-search-online-devices">DSTP2x_EnumDev (Search online devices)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_EnumDev(int nEnumType, char *szEnumList, int *pDevSize, int *pDevNum)
+
+illustrate：
+ Make sure the device is powered on and connected to the PC.
+
+parameter:
+  [in]        nEnumType        Enumeration type 
+                               1 - Enumerate USB online devices
+                               2 - Enumerate TCP online devices
+  [out]       szEnumList       Enumerate list, separated by &quot;\\n&quot; if there are multiple devices
+  [in,out]    pDevSize         When entering the parameter, it indicates the size of szEnumList. When exiting the parameter, it indicates the length of the string that actually filled in the szEnumList.
+  [out]       pDevNum          Enumerated number of online devices
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setcommtimeout-set-the-communication-timeout-for-the-connection">DSTP2x_SetCommTimeout (Set the communication timeout for the connection)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetCommTimeout(DEV_HDL ullDevHdl, int nCommType, unsigned int unSendTimeout, unsigned int unRecvTimeout)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS 
+                 
+  [in]        nCommType        Set communication timeout type
+                               1 - Set USB timeout
+                               2 - Set TCP timeout
+                               3 - Set the serial port timeout  
+  [in]        unSendTimeout    Data sending timeout, unit: milliseconds
+  [in]        unRecvTimeout    Data reception timeout, unit: milliseconds
+ 
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setnetenumrecvtimes-set-the-number-of-consecutive-times-that-no-data-can-be-read-when-the-network-port-enumerates-the-printer-response">DSTP2x_SetNetEnumRecvTimes (Set the number of consecutive times that no data can be read when the network port enumerates the printer response.)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetNetEnumRecvTimes(int nTimes)
+
+illustrate：
+ It needs to be dynamically adjusted according to the current local area network environment.
+
+parameter:
+  [in]        nTimes           The number of times that data cannot be read consecutively is allowed. If the network is relatively congested, it can be set to 10; if the network is relatively idle, it can be set to 5.  
+ 
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setnetenumsubnets-when-enumerating-printers-via-the-network-interface-multiple-subnet-segments-that-need-to-be-enumerated">DSTP2x_SetNetEnumSubNets (When enumerating printers via the network interface, multiple subnet segments that need to be enumerated.)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetNetEnumSubNets(const char *szSubNets)
+
+parameter:
+  [in]        szSubNets        Multiple subnet segments that need to be enumerated, and the two subnet segments are separated by &quot;|&quot;; the format is like: 192.168.1.*|172.10.*.* 
+ 
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setnetworkreconnectpar-set-the-network-port-connection-retry">DSTP2x_SetNetworkReconnectPar (Set the network port connection retry.)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetNetworkReconnectPar(const char *szIp, int iTryConnNum, int iTryInterval);
+
+illustrate：
+ When this interface is not called, the default number of retries is 1, and the retry interval is 3000 milliseconds. 
+
+parameter:
+  [in]        szIp             Device IP address. When an empty string &quot;&quot; is passed, it refers to printing all the printers connected to the network ports of the needle printer.  
+  [in]        iTryConnNum      The number of network reconnection attempts
+  [in]        iTryInterval     The time interval for network reconnection, unit: ms.
+ 
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<br>
+<br>
+<h1 id="common-functions">Common functions</h1>
+<h2 id="dstp2x_cutpaper-instant-paper-cutting">DSTP2x_CutPaper (Instant paper cutting)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_CutPaper(DEV_HDL ullDevHdl)
+
+illustrate：
+ Usage conditions: The current printer has a built-in paper cutter module and the paper cutter function has been enabled. 
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+ 
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_locateblackmark-continuous-paper-black-mark-positioning">DSTP2x_LocateBlackMark (Continuous paper black mark positioning)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LocateBlackMark(DEV_HDL ullDevHdl)
+
+illustrate：
+ Usage condition: The current printer paper mode is set to label paper.
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+ 
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_locatelabel-general-label-positioning">DSTP2x_LocateLabel (General label positioning)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LocateLabel(DEV_HDL ullDevHdl)
+
+illustrate：
+ Usage condition: The current paper mode of the printer is set to label paper. 
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+ 
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_movepaper-move-the-label">DSTP2x_MovePaper (Move the label)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LocateLabel(DEV_HDL ullDevHdl)
+
+illustrate：
+ Usage condition: The current printer has a built-in RFID module and it has been turned on. 
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        nDir             Paper moving direction
+                               0 - forward
+                               1 - backward 
+  [in]        dbDistance       Paper moving distance, unit: mm
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_printselfcheckpage-print-the-self-check-page">DSTP2x_PrintSelfCheckPage (Print the self-check page)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_PrintSelfCheckPage(DEV_HDL ullDevHdl)
+
+illustrate：
+ Print out the basic information of the device, including the manufacturer, model, machine number, print emulation type and other information. 
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_restartprt-clear-the-cache-of-the-device">DSTP2x_RestartPrt (Clear the cache of the device)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RestartPrt(DEV_HDL ullDevHdl)
+
+illustrate：
+ The effect achieved is equivalent to that of a hard reset of the printer, which of course includes clearing the cache.
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_transrecvdata-directly-transfer-data-to-the-printer">DSTP2x_TransRecvData (Directly transfer data to the printer)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_TransRecvData(DEV_HDL ullDevHdl, const char *pInData, int nInDataSize, char *pOutData, int *nOutDataSize)
+
+illustrate：
+ It supports direct instruction or hexadecimal data communication; it also supports unidirectional instruction data. In this case, pOutData can be set to 0, indicating that the program does not need to receive the response data from the printer subsequently.  
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        pInData 	       The data to be sent can be in the form of a string type or ordinary hexadecimal data. 
+  [in]        nInDataSize 	   It represents the length corresponding to the data of pInData. 
+  [out]       pOutData 	       The buffer is used to store the response data returned by the printer. Please determine the length of the response data according to the sent request data. It is recommended that the buffer be pre-allocated with no less than 1024 bytes. 
+  [in,out] 	  nOutDataSize     When used as an input parameter, it represents the buffer size of pOutData. When used as an output parameter, it represents the actual length of the data stored in pOutData. 
+  
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<br>
+<br>
+<h1 id="device-information-query">Device information query</h1>
+<h2 id="dstp2x_getprtfwver-query-the-printer-firmware-version-number">DSTP2x_GetPrtFWVer (Query the printer firmware version number)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetPrtFWVer(DEV_HDL ullDevHdl, char *szPrtFWVer, int *pPrtFWVerSize)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [out]       szPrtFWVer       A buffer used to store the printer serial number string. The character encoding is ASCII, and the format is like &quot;01.08.00.0a&quot;. It is recommended that the buffer be pre - allocated with no less than 32 bytes. 
+  [in]        pPrtFWVerSize    When used as an input parameter, it represents the buffer size of szPrtFWVer. When used as an output parameter, it represents the actual length of the string stored in szPrtFWVer (excluding the null terminator '\0'). 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_getprtmotortraveldistance-query-the-rotation-distance-of-the-printer-motor">DSTP2x_GetPrtMotorTravelDistance (Query the rotation distance of the printer motor.)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetPrtMotorTravelDistance(DEV_HDL ullDevHdl, unsigned int *pDistance)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [out]       pDistance        Return the rotation distance of the printer motor, with the unit of mm. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_getprtsn-query-the-printer-serial-number">DSTP2x_GetPrtSN (Query the printer serial number)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetPrtSN(DEV_HDL ullDevHdl, char *szPrtSN, int *pPrtSNSize)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [out]       szPrtSN          A buffer for storing the printer serial number string. The character encoding is ASCII, and the format is, for example, 228022200001. It is recommended to pre - allocate a buffer of no less than 32 bytes. 
+  [out]       pPrtSNSize       When passed as an input parameter, it indicates the buffer size of `szPrtSN`. When used as an output parameter, it represents the actual length of the string stored in `szPrtSN` (excluding the null terminator `'\0'`).
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_getprtstatus-query-the-printer-status">DSTP2x_GetPrtStatus (Query the printer status)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetPrtStatus(DEV_HDL ullDevHdl, int *pIsReady, int *pMainStatus, int *pMainStatusNum, int *pWarning, int *pWarningNum, int *pError, int *pErrorNum, char* pDesc, int *pDescLen)
+
+illustrate：
+ Since there may be situations where the printer has multiple statuses, warnings, and errors occurring simultaneously at the same moment, the number of pieces of information actually stored in pMainStatus, pWarning, and pError when this function returns may be more than one.  
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [out]       pIsReady         Determine whether the printer can continue to work normally. Return 1 for yes and 0 for no. If 0 is passed in, it means that the parameter is not used.
+
+  [out]       pMainStatus      An array used to store the main status when the function returns. It is recommended to pre-allocate 8 array elements. If 0 is passed in, it means that the parameter is not used.
+  [in,out]    pMainStatusNum   When passed in as an input parameter, it represents the size of the pMainStatus array. When passed out as an output parameter, it represents the number of main statuses actually stored in pMainStatus. If 0 is passed in, it means that the parameter is not used.
+  [out]       pWarning         An array used to store warnings when the function returns. It is recommended to pre-allocate 8 array elements. If 0 is passed in, it means that the parameter is not used.
+  [in,out]    pWarningNum      When passed in as an input parameter, it represents the size of the pWarning array. When passed out as an output parameter, it represents the number of warning messages actually stored in pWarnings. If 0 is passed in, it means that the parameter is not used.
+  [out]       pError           An array used to store error messages when the function returns. It is recommended to pre-allocate 8 array elements. If 0 is passed in, it means that the parameter is not used.
+  [in,out]    pErrorNum        When passed in as an input parameter, it represents the size of the pError array. When passed out as an output parameter, it represents the number of error messages actually stored in pError. If 0 is passed in, it means that the parameter is not used.
+  [out]       pDesc            Detailed descriptions of status, warnings, and errors, etc. The returned string format is like: \nMain status: xxx, xxx|Warning: None|Error: xxx, xxx|Paper type|Print mode|Cutter status|Peeler status|Sensor status; \nIf 0 is passed in, it means that the parameter is not used.
+  [in,out]    pDescLen         When passed in as an input parameter, it represents the length of the pDesc buffer. When passed out as an output parameter, it represents the length of the actual returned pDesc content. If 0 is passed in, it means that the parameter is not used. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_getprtname-query-the-printer-model-name">DSTP2x_GetPrtName (Query the printer model name)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetPrtName(DEV_HDL ullDevHdl, char *szPrtName, int *pPrtNameSize)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [out]       szPrtName        A buffer used to store the printer model name string. The character encoding is ASCII, and it is recommended to pre-allocate a buffer of no less than 64 bytes.
+  [in,out]    pPrtNameSize     When passed in as an input parameter, it represents the buffer size of szPrtName. When passed out as an output parameter, it represents the actual length of the string stored in szPrtName (excluding the null terminator '\0'). 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<br>
+<br>
+<h1 id="function-settings">Function settings</h1>
+<h2 id="dstp2x_setimgdpi-set-the-resolution-of-the-image-to-be-drawn">DSTP2x_SetImgDpi (Set the resolution of the image to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetImgDpi(DEV_HDL ullDevHdl, int nDpi)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        nDpi             The resolution of the image to be drawn
+                               1 - 203dpi
+                               2 - 300dpi
+                               3 - 600dpi
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setprnemulation-set-the-simulation-type">DSTP2x_SetPrnEmulation (Set the simulation type)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPrnEmulation(DEV_HDL ullDevHdl, int nEmulation)
+
+illustrate：
+ 设置打印数据使用的仿真类型
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        nEmulation       Simulation type
+                               0 - Automatically adapt to the current simulation of the printer (reserved) 
+                               1 - ZPL
+                               2 - TSPL
+                               3 - ESCPOS
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setprnoffset-set-the-print-offset">DSTP2x_SetPrnOffset (Set the print offset)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPrnOffset(DEV_HDL ullDevHdl, double dbXOffset, double dbYOffset)
+
+illustrate:
+ Since there are substrates with unequal distances around some labels, in order to accurately print the printed content to the designated position of the label, the user should select whether to call this function according to the actual situation of the label.
+
+Parameters:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        dbXOffset        The offset relative to the starting position of printing in the horizontal direction, with the unit: mm (millimeters)
+  [in]        dbYOffset        The offset relative to the starting position of printing in the vertical direction, with the unit: mm (millimeters) 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setrtstatus-set-the-real---time-performance-of-obtaining-the-status">DSTP2x_SetRTStatus (Set the real - time performance of obtaining the status)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetRTStatus(DEV_HDL ullDevHdl, int nRealtime)
+
+illustrate:
+ If this function is not called, then DSTP2x_GetPrtStatus will be non-real-time.
+
+Parameters:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        nRealtime        Real-time performance
+                               0 - Non-real-time;
+By default, the printer (USB port, network port, serial port) all support non-real-time status acquisition. At this time, the printer executes the instructions issued by the host serially, and the status acquisition request will not be preferentially and real-timely processed.
+                               1 - Real-time;
+Currently, the printer only supports real-time status acquisition when connected via the USB port. At this time, the status acquisition request will be preferentially and real-timely processed.   
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_turnoffcutter-turn-off-the-cutter-function">DSTP2x_TurnOffCutter (Turn off the cutter function)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_TurnOffCutter(DEV_HDL ullDevHdl)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_turnoncutter-turn-on-the-cutter-function">DSTP2x_TurnOnCutter (Turn on the cutter function)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_TurnOnCutter(DEV_HDL ullDevHdl)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<br>
+<br>
+<h1 id="rfid-function">RFID function</h1>
+<h2 id="dstp2x_rfid_getreadpower-get-the-rfid-read-power">DSTP2x_RFID_GetReadPower (Get the RFID read power)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_GetReadPower(DEV_HDL ullDevHdl, double *pdbPower)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        pdbPower         A pointer to a double variable for obtaining the RFID read power, with the unit of dBm. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_getwritepower-get-the-rfid-write-power">DSTP2x_RFID_GetWritePower (Get the RFID write power)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_GetWritePower(DEV_HDL ullDevHdl, double *pdbPower)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        pdbPower         A pointer to a double variable used to obtain the RFID write power, with the unit: dBm. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_locatelabel-rfid-tag-positioning">DSTP2x_RFID_LocateLabel (RFID tag positioning)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_LocateLabel(DEV_HDL ullDevHdl)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_readdata-read-rfid-data">DSTP2x_RFID_ReadData (Read RFID data)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_GetWritePower(DEV_HDL ullDevHdl, double *pdbPower)
+
+illustrate:
+ This interface function is suitable for directly reading TID, EPC, and USER without printing.
+
+Parameters:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [out]       pTid             A buffer for receiving the TID data read back from the RFID tag. The returned data is a hexadecimal string. If there is no need to read TID data, pass 0 for this parameter.
+  [in,out]    pTidSize         When used as an input parameter, it represents the buffer size of pTid. When used as an output parameter, it represents the length of the hexadecimal string of the actual pTid data. If there is no need to read TID data, pass 0 for this parameter.
+  [out]       pEpc             A buffer for receiving the EPC data read back from the RFID tag. The returned data is a hexadecimal string. If there is no need to read EPC data, pass 0 for this parameter.
+  [in,out]    pEpcSize         When used as an input parameter, it represents the buffer size of pEpc. When used as an output parameter, it represents the length of the hexadecimal string of the actual pEpc data. If there is no need to read EPC data, pass 0 for this parameter.
+  [out]       pUser            A buffer for receiving the USER data read back from the RFID tag. The returned data is a hexadecimal string. If there is no need to read USER data, pass 0 for this parameter.
+  [in,out]    pUserSize        When used as an input parameter, it represents twice the actual length of the USER data in the tag (for example, if the buffer size of the passed pUser is 8, only 4 bytes of user data are actually read). When used as an output parameter, it represents the length of the hexadecimal string of the actual pUser data. If there is no need to read USER data, pass 0 for this parameter. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_setreadpower-set-rfid-read-power">DSTP2x_RFID_SetReadPower (Set RFID read power)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_SetReadPower(DEV_HDL ullDevHdl, double dbPower)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        dbPower          RFID read power, unit: dBm
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_setwritepower-set-rfid-write-power">DSTP2x_RFID_SetWritePower (Set RFID write power)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_SetWritePower(DEV_HDL ullDevHdl, double dbPower)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        dbPower          RFID write power, unit: dBm
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_changeaccesspassword-modify-the-access-password-of-the-rfid-tag">DSTP2x_RFID_ChangeAccessPassword (Modify the access password of the RFID tag)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_ChangeAccessPassword(DEV_HDL ullDevHdl, const char* szOldPw, const char* szNewPw)
+
+illustrate:
+ Call it before printing, and it is valid for a single label.
+ The password modification will take effect during printing. 
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        szOldPw          The initial password of the RFID tag is an 8 - digit hexadecimal string.
+  [in]        szNewPw          Set a new password for the RFID tag. The password should be an 8 - digit hexadecimal string, and note that it cannot be all zeros.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_setdestructionpassword-set-the-destruction-password-of-the-rfid-tag">DSTP2x_RFID_SetDestructionPassword (Set the destruction password of the RFID tag)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_SetDestructionPassword(DEV_HDL ullDevHdl, const char* szPw)
+
+illustrate:
+ Call this function before printing, and it is valid for a single label.
+ The password modification takes effect during printing.
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        szPw             The destruction password of the RFID tag is an 8 - digit hexadecimal string. Note that it cannot be all zeros.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_lockoperate-lock-a-specific-rfid-area">DSTP2x_RFID_LockOperate (Lock a specific RFID area)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_LockOperate(DEV_HDL ullDevHdl, int nRFIDArea, const char* szPw)
+
+illustrate:
+ It supports the locking of the EPC area, USER area, access password area, and destruction password area.
+ Call this function before printing, and it is only valid for a single label.  
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        nRFIDArea        The RFID areas (or relationships) are as follows: 1 represents the EPC area, 2 represents the USER area, 4 represents the TID area, 8 represents the access password area, and 16 represents the destruction password area.
+  [in]        szPw             The password of the RFID tag is an 8-digit hexadecimal string.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_unlockoperate-unlock-a-specific-rfid-area">DSTP2x_RFID_UnlockOperate (Unlock a specific RFID area)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_UnlockOperate(DEV_HDL ullDevHdl, int nRFIDArea, const char* szPw)
+
+illustrate:
+ It supports the locking of the EPC area, USER area, access password area, and destruction password area. It is called before printing and is valid for a single label.
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        nRFIDArea        The RFID areas (or relationships) are as follows: 1 represents the EPC area, 2 represents the USER area, 4 represents the TID area, 8 represents the access password area, and 16 represents the destruction password area. 
+  [in]        szPw             The password of the RFID tag is an 8-digit hexadecimal string.
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setpasswordwithwrite-write-to-a-specific-rfid-area-with-a-password">DSTP2x_SetPasswordWithWrite (Write to a specific RFID area with a password.)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_SetPasswordWithWrite(DEV_HDL ullDevHdl, int nRFIDArea, const char* szPw)
+
+illustrate:
+ Call this function before printing, and it is valid for a single label.
+ If this interface is not called, the write operation will be carried out without a password. In this case, if the password has already been modified, the write operation will not succeed.
+ If there is already a password field in the template, it will be replaced. 
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        nRFIDArea        The RFID areas (or relationships): 1 represents the EPC area, and 2 represents the USER area.  
+  [in]        szPw             The password of the RFID tag is an 8 - digit hexadecimal string. Note that the password is the same for the same tag.
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_locktypesetting-set-the-rfid-locking-type">DSTP2x_RFID_LockTypeSetting (Set the RFID locking type)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_LockTypeSetting(DEV_HDL ullDevHdl, int nRFIDArea, int nLockType, int nTemporary)
+
+illustrate:
+ It supports repeated calls before printing. For example, if the EPC area and the USER area were originally permanently locked, and then the USER area is set to be temporarily locked, the permanent locking of the EPC area will still be effective.
+ When making repeated calls, the value of nTemporary shall be subject to the last call.
+ When this interface is not called, it is set as a temporary lock by default. 
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [in]        nRFIDArea        RFID areas (or logical OR relationships): 1 represents the EPC area, 2 represents the USER area, 8 represents the access password area, and 16 represents the destruction password area.
+  [in]        nLockType        0：Permanent lock，1：Temporary lock
+  [in]        nTemporary       Indicates whether this setting is temporary
+                               0 - Persistent until the ullDevHdl becomes invalid, unless modified again.
+                               1 - Temporary. This setting will be restored after the next call to the printing interface (such as PrintXXX)
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_getproto-obtain-rfid-protocol">DSTP2x_RFID_GetProto (Obtain RFID protocol)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_GetProto(DEV_HDL ullDevHdl, int *pProto)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [out]       pProto           Return protocol value 
+                               0: ISO14443A protocol, (High Frequency Module)
+                               1: ISO15693 protocol, (High Frequency Module)
+                               5: ISO18000-6C protocol, (Ultra High Frequency Module)
+                               9: ISO18000-63 protocol, (Military Standard Module)
+                               10: GB/T 29768 protocol, (Military Standard Module)
+                               11: GJB 7377.1 protocol, (Military Standard Module)
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_rfid_setproto-set-rfid-protocol">DSTP2x_RFID_SetProto (Set RFID protocol))</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_SetProto(DEV_HDL ullDevHdl, int nProto)
+
+parameter:
+  [in]        ullDevHdl        DEVICE ADDRESS
+  [out]       nProto           Set protocol value 
+                               0: ISO14443A protocol, (High Frequency Module)
+                               1: ISO15693 protocol, (High Frequency Module)
+                               5: ISO18000-6C protocol, (Ultra High Frequency Module)
+                               9: ISO18000-63 protocol, (Military Standard Module)
+                               10: GB/T 29768 protocol, (Military Standard Module)
+                               11: GJB 7377.1 protocol, (Military Standard Module)
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<br>
+<br>
+<h1 id="pdf-print">PDF print</h1>
+<h2 id="dstp2x_deletepdf-delete-the-pdf-handle">DSTP2x_DeletePdf (Delete the PDF handle)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_DeletePdf(PDF_HDL ullPdfHdl)
+
+parameter:
+  [in]        ullPdfHdl        The PDF file handle returned by the DSTP2x_LoadPdf function
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_loadpdf-load-pdf-data">DSTP2x_LoadPdf (Load PDF data)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LoadPdf(int nPdfDataType, const char *szPdfData, int nPdfDataSize, PDF_HDL *pPdfHdl, int *pPageCount)
+
+parameter:
+  [in]        nPdfDataType        PDF data type
+                                  1 - The PDF data is a file name (including the path).
+                                  2 - The PDF data is a string in base64 format.
+
+  [in]        szPdfData           PDF data, character encoding: UTF-8
+  [in]        nPdfDataSize        Represents the length of the string of szPdfData (excluding &quot;\0&quot;), unit: bytes
+  [out]       pPdfHdl             The address of the PDF file handle
+  [out]       pPageCount          The total number of pages of the current PDF file 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_printpdf-print-pdf">DSTP2x_PrintPdf (Print PDF)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_PrintPdf(DEV_HDL ullDevHdl, PDF_HDL ullPdfHdl, int nPageNo, char *szOutFile, int *pOutFileSize, int nRfidReadType, char *szOutRFID, int *pOutRFIDSize);
+
+illustrate：
+ The local files in the format of.png or.prn will be generated for the szOutFile parameter only when the DSTP2x_SetPdfPrnMode function is called and the value of nPrnMode is either 1 or 2.
+ In order to enable the RFID function, the DSTP2x_SetPdfPrnMode function needs to be set to 0.
+ For the requirement that the RFID has both writing and reading functions simultaneously, the DSTP2x_SetPdfRFIDData function needs to be called first, and the reading type in nRfidReadType should be set and the memory of szOutRFID should be allocated.
+ For the requirement of the RFID's read-only function, there is no need to call the DSTP2x_SetPdfRFIDData interface, but the memory of szOutRFID needs to be allocated.
+ If the RFID reading function is not required, both nRfidReadType and szOutRFID need to be set to 0. 
+
+parameter:
+  [in]        ullDevHdl           DEVICE ADDRESS
+  [in]        ullPdfHdl           The PDF file handle returned by the DSTP2x_LoadPdf function.
+  [in]        nPageNo             The page number of the PDF file to be printed.
+  [out]       szOutFile           Used to store the file name (including the path) of the local data (either.prn or.png) generated by this printing operation. 
+                                  It is recommended to pre - allocate a space of no less than 1024 bytes. 
+                                  If there is no need to obtain the file name of the local data generated by this printing operation, just pass 0 for this parameter.
+  [in,out]    pOutFileSize        As an input parameter, it represents the buffer size of szOutFile. As an output parameter, it represents the length of the string actually stored in szOutFile. If szOutFile is 0, this parameter will be ignored.
+  [in]        nRfidReadType       nRfidReadType Indicates whether to read and how to read RFID data during the process of printing the current page data.
+                                  0 - Do not read
+                                  1 - Read TID
+                                  2 - Read EPC
+                                  4 - Read USER
+  [out]        szOutRFID          A buffer used to store the RFID data read during the printing process. Please determine the pre - allocated buffer space size according to the (combined) type of nRfidReadType. 
+                                  The read RFID data is returned after the dynamic execution of RFID operations and is represented as a hexadecimal string. 
+                                  The content format is, for example: &quot;TID:82309360|EPC:0123456789| USER:abcdef&quot;. 
+                                  If there is no need to obtain the RFID data read during the printing process, just pass 0 for this parameter.
+  [in,out]    pOutRFIDSize        入参时表示szOutRFID的缓冲区大小，出参时表示实际存入szOutRFID的数据长度；如szOutRFID为0，本parameter将被忽略
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setpdfprnmode-set-the-pdf-printing-mode">DSTP2x_SetPdfPrnMode (Set the PDF printing mode)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfPrnMode(PDF_HDL ullPdfHdl, int nPrnMode)
+
+illustrate:
+ This is valid for the current handle. If this function is not called, the default printing mode is 0. 
+
+parameter:
+  [in]        ullPdfHdl           The PDF file handle returned by the DSTP2x_LoadPdf function.
+  [in]        nPrnMode            Printing mode; if this function is not called, the default printing mode is to print via the printer.
+                                  0 - Print via the printer
+                                  1 - Print to a.prn file
+                                  2 - Generate a preview image file in PNG format for the effect.
+                                  3 - Generate the Base64 data of the preview image.  
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setpdfprnrotate-set-the-target-printing-rotation-angle-for-the-pdf">DSTP2x_SetPdfPrnRotate (Set the target printing rotation angle for the PDF)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfPrnRotate(PDF_HDL ullPdfHdl, int nAngle)
+
+illustrate:
+ This is valid for the current handle.
+
+parameter:
+  [in]        ullPdfHdl           The PDF file handle returned by the DSTP2x_LoadPdf function.
+  [in]        nAngle              Rotation angle, with a range of [0, 90, 180, 270] 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setpdfprnsize-set-the-current-printing-size-of-the-pdf">DSTP2x_SetPdfPrnSize (Set the current printing size of the PDF)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfPrnSize(PDF_HDL ullPdfHdl, double dbWidth, double dbHeight)
+
+illustrate:
+ This is valid for the current handle.
+
+parameter:
+  [in]        ullPdfHdl           The PDF file handle returned by the DSTP2x_LoadPdf function
+  [in]        dbWidth             dbWidth Printing width, unit: mm
+  [in]        dbHeight            dbHeight Printing height, unit: mm
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setpdfhalftonealgo-set-the-halftone-processing-algorithm-for-the-pdf-image">DSTP2x_SetPdfHalftoneAlgo (Set the halftone processing algorithm for the PDF image)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfHalftoneAlgo(PDF_HDL ullPdfHdl, int nAlgorithm, int nThreshold)
+
+illustrate:
+ This is valid for the current handle.
+
+parameter:
+  [in]        ullPdfHdl           The label context handle returned by the DSTP2x_LoadPdf function. 
+  [in]        nAlgorithm          Image algorithm
+                                  1 - Error diffusion
+                                  2 - Ordered dithering algorithm
+                                  3 - Threshold operation algorithm (default)
+  [in]        nThreshold          Threshold value, which takes effect when nAlgorithm is 3, with a range of [0, 255]
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setpdfprnsynctype-when-enumerating-printers-via-the-network-interface-multiple-subnet-segments-that-need-to-be-enumerated">DSTP2x_SetPdfPrnSyncType (When enumerating printers via the network interface, multiple subnet segments that need to be enumerated)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfPrnSyncType(PDF_HDL ullPdfHdl, int nSyncType)
+
+illustrate：
+ This is valid for the current handle. If this function is not called, the result of a single PDF print will be synchronized.
+
+parameter:
+  [in]        ullPdfHdl           The PDF file handle returned by the DSTP2x_LoadPdf function. 
+  [in]        nSyncType           Whether to print the synchronized result
+                                  0 - Do not synchronize the printing result. As long as the printing data of the current page is sent out, this function will return immediately. At this time, the RFID reading operation of DSTP2x_PrintPdf is not supported.
+                                  1 - Synchronize the printing result. After the printing data of the current page is sent out, this function will continuously monitor the printing status internally until the printing is successfully completed before returning. If there is an error reported by the printer, the function will return immediately.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setpdfprntimeout-set-the-maximum-timeout-for-a-single-call-of-dstp2x_printpdf">DSTP2x_SetPdfPrnTimeout (Set the maximum timeout for a single call of DSTP2x_PrintPdf)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfPrnTimeout(PDF_HDL ullPdfHdl, int nTimeout)
+
+illustrate：
+ This is valid for the current handle. If this function is not called, the maximum timeout for a single PDF print is set to 15000 milliseconds by default. 
+
+parameter:
+  [in]        ullPdfHdl           The PDF file handle returned by the DSTP2x_LoadPdf function.
+  [in]        nTimeout            Timeout duration, unit: milliseconds; it takes effect only when a single call to DSTP2x_PrintPdf is for a synchronized result.
+                                  -1 - In the absence of any (software/hardware or communication) errors during the printing process, DSTP2x_PrintPdf will wait indefinitely until the printing completion condition is met before returning.
+                                  &gt;0 - It means that if there are no (software/hardware or communication) errors during the printing process, while waiting for the printing end condition to be met, DSTP2x_PrintPdf will simultaneously check whether the total elapsed time is greater than or equal to nTimeout.
+                                  If so, it will return &quot;Operation execution timed out&quot;.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setpdfrfiddata-set-the-rfid-data-to-be-written-during-the-pdf-printing-process">DSTP2x_SetPdfRFIDData (Set the RFID data to be written during the PDF printing process)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfRFIDData(PDF_HDL ullPdfHdl, int nPageNo, int nRfidRgnType, int nRfidDataFmt, const char *pData, int nDataSize);
+
+illustrate：
+ If this function is not called, the default maximum timeout for a single PDF print is 15000 milliseconds.
+
+parameter:
+  [in]        ullPdfHdl           The PDF file handle returned by the DSTP2x_LoadPdf function.
+  [in]        nPageNo             The page number of the PDF file to be printed.
+  [in]        nRfidRgnType        The types of areas where RFID data needs to be written during the printing process.
+                                  1 - EPC area
+                                  2 - USER area
+  [in]        nRfidDataFmt        The format of the RFID data to be written during the printing process.
+                                  1 - ASCII-encoded string
+                                  2 - Hexadecimal string
+                                  3 - Hexadecimal byte data 
+  [in]        pData               The RFID data to be written during the printing process.
+  [in]        nDataSize           The length of the RFID data to be written during the printing process, in bytes. If `nRfidDataFmt` is 1 or 2, this parameter represents the actual string length of `pData` (excluding the `\0` character).
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<br>
+<br>
+<h1 id="label-template-printing-function">Label template printing function</h1>
+<h2 id="dstp2x_deletetmpl-delete-the-file-handle-of-the-label-template">DSTP2x_DeleteTmpl (Delete the file handle of the label template)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_DeleteTmpl(LABEL_TEMP_HDL ullLTHdl)
+
+parameter:
+  [in]        ullLTHdl        The file handle of the label template file returned by the DSTP2x_LoadLabelTmpl function. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_loadlabeltmpl-load-the-predefined-label-template">DSTP2x_LoadLabelTmpl (Load the predefined label template)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LoadLabelTmpl(const char *szFileName, LABEL_TEMP_HDL *pLTHdl)
+
+illustrate:
+ szFileNameparameter It must be generated by the DSTP2xDemo.exe in the SDK package. 
+
+parameter:
+  [in]        szFileName          The file name of the predefined label template (including the path), with the character encoding of UTF-8, or the in-memory data of the template file. 
+  [out]       pLTHdl              The address of the handle of the label template file.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_printtmpl-print-the-label-template">DSTP2x_PrintTmpl (Print the label template)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_PrintTmpl(DEV_HDL ullDevHdl, LABEL_TEMP_HDL ullLTHdl, char *szOutFile, int *pOutFileSize, char *szOutRFID, int *pOutRFIDSize)
+
+parameter:
+  [in]        ullDevHdl           DEVICE ADDRESS
+  [in]        ullLTHdl            The label template file handle returned by the DSTP2x_LoadLabelTmpl function.
+  [out]       szOutFile           It is used to store the local data file names (including the path) of the generated files (either.prn or.png) during this printing operation. It is recommended that the pre-allocated space should not be less than 256 bytes. If there is no need to obtain the local data file names generated by this printing operation, simply pass in 0 for this parameter.  
+  [in,out]    pOutFileSize        When passing in parameters, it represents the buffer size of szOutRFID. When outputting parameters, it represents the actual length of the data stored in szOutRFID. If szOutRFID is 0, this parameter will be ignored. 
+  [out]       szOutRFID           It is a buffer used to store the RFID data read during the printing process. Please determine the pre-allocated buffer space size according to the (combined) type of nRfidReadType.
+                                  The content format is like: &quot;TID:82309360|EPC:0123456789|USER:abcdef&quot;, and the RFID content data is represented as a hexadecimal string.
+                                  If there is no need to obtain the RFID data read during the printing process, simply pass in 0 for this parameter.
+  [in,out]    pOutRFIDSize        When passing in parameters, it represents the buffer size of szOutRFID. When outputting parameters, it represents the actual length of the data stored in szOutRFID. If szOutRFID is 0, this parameter will be ignored. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_settmplprndata-set-the-actual-printing-replacement-data-for-the-elements-with-specified-ids-in-the-label-template">DSTP2x_SetTmplPrnData (Set the actual printing replacement data for the elements with specified IDs in the label template)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplPrnData(LABEL_TEMP_HDL ullLTHdl, const char *szElemID, const char *szActualData)
+
+illustrate：
+ If this function is not called to set the real replacement data for the elements with already created IDs in the label template, then during the subsequent printing process, the original values of the elements with created IDs in the template will be printed using the preset values.  
+
+parameter:
+  [in]        ullLTHdl            The label template file handle returned by the DSTP2x_LoadLabelTmpl function.
+  [in]        szElemID            It represents the ID of a specific element in the label template that needs to be printed with actual data.
+  [in]        szActualData        The actual data that needs to be printed (in UTF-8 encoding) 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_settmplvalbykey-set-the-replacement-attribute-values-for-the-elements-with-specified-ids-in-the-label-template-based-on-the-existing-key---value-pairs">DSTP2x_SetTmplValByKey (Set the replacement attribute values for the elements with specified IDs in the label template based on the existing key - value pairs)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplValByKey(LABEL_TEMP_HDL ullLTHdl, const char *szElemID, const char *szKey, const char *szValue)
+
+illustrate：
+ If this function is not called to set the real replacement data for the elements with already created IDs in the label template, then during the subsequent printing process, the original values of the elements with created IDs in the template will be printed using the preset values.  
+
+parameter:
+  [in]        ullLTHdl            The label template file handle returned by the DSTP2x_LoadLabelTmpl function.
+  [in]        szElemID            It represents the ID of a specific element in the label template that needs to be printed with actual data.
+  [in]        szKey               The index key to which the data value belongs.
+  [in]        szValue             The actual data value that needs to be printed (in UTF-8 encoding)
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_getbacktmpl-return-the-template-file-of-the-current-label-templatedlt">DSTP2x_GetBackTmpl (Return the template file of the current label template(.dlt))</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetBackTmpl(LABEL_TEMP_HDL ullLTHdl, char * pFileName, int *pFileNameLen)
+
+illustrate：
+ If you have previously modified some content or attribute data of the label template through the DSTP2x_SetTmplxxx interface and then want to obtain the modified DLT template file, call this interface. 
+
+parameter:
+  [in]        ullLTHdl            The label template file handle returned by the DSTP2x_LoadLabelTmpl function.
+  [out]       pFileName           If successful, return the template file path.
+  [in,out]    pFileNameLen        When it is an input parameter, it represents the buffer size of pFileName. When it is an output parameter, it represents the actual length of the data stored in pFileName. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_gettmplallidvalues-obtain-all-id-values-of-the-current-label-template">DSTP2x_GetTmplAllIDValues (Obtain all ID values of the current label template)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetTmplAllIDValues(LABEL_TEMP_HDL ullLTHdl, char cInterval, char *pIDValues, int *pIDValuesLen)
+
+parameter:
+  [in]        ullLTHdl            The label template file handle returned by the DSTP2x_LoadLabelTmpl function.
+  [in]        cInterval           Set the delimiter character between all ID values in the return result. 
+  [in]        nType				      	Get the ID value according to the type. 0: All ID values; 1: ID values that can be dynamically modified; 2: ID values that cannot be dynamically modified. 
+  [out]       pIDValues           If it is successful, return all ID values, with the values separated by the character specified in cInterval.    
+  [in,out]    pIDValuesLen        When it is an input parameter, it represents the buffer size of pIDValues. When it is an output parameter, it represents the actual length of the data stored in pIDValues. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_settmplprnmode-set-the-printing-mode-of-the-label-template">DSTP2x_SetTmplPrnMode (Set the printing mode of the label template)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplPrnMode(LABEL_TEMP_HDL ullLTHdl, int nPrnMode)
+
+illustrate：
+ If this function is not called, the default printing mode is 0.
+
+parameter:
+  [in]        ullLTHdl            The label template file handle returned by the DSTP2x_LoadLabelTmpl function.
+  [in]        nPrnMode            Printing mode; if this function is not called, the default printing mode is to print via the printer.
+                                  0 - Print via the printer.
+                                  1 - Print to a.prn file.
+                                  2 - Generate a preview image file in PNG format for the visual effect. 
+                                  3 - Generate the Base64 data of the preview image. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_settmplprnsynctype-set-whether-to-print-the-synchronous-result-when-calling-dstp2x_printtmpl-once">DSTP2x_SetTmplPrnSyncType (Set whether to print the synchronous result when calling DSTP2x_PrintTmpl once)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplPrnSyncType(LABEL_TEMP_HDL ullLTHdl, int nSyncType)
+
+illustrate：
+ If this function is not called, the result of a single template printing will be synchronized. 
+
+parameter:
+  [in]        ullLTHdl            The label template file handle returned by the DSTP2x_LoadLabelTmpl function.
+  [in]        nSyncType           Whether to print the synchronous result.
+                                  0 - Do not synchronously print the result. This function will return once the printing data of the current page has been sent. At this time, the RFID reading operation of DSTP2x_PrintTmpl is not supported. 
+                                  1 - Synchronously print the result. After the printing data of the current page has been sent, this function will continuously monitor the printing status internally and will only return until the printing is successfully completed. If there is an error reported by the printer, the function will return immediately. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_settmplprntimeout-set-the-maximum-timeout-for-a-single-call-of-dstp2x_printtmpl">DSTP2x_SetTmplPrnTimeout (Set the maximum timeout for a single call of DSTP2x_PrintTmpl)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplPrnTimeout(LABEL_TEMP_HDL ullLTHdl, int nTimeout)
+
+illustrate：
+ If this function is not called, the default maximum timeout for a single template printing is 15,000 milliseconds.
+
+parameter:
+  [in]        ullLTHdl            The label template file handle returned by the DSTP2x_LoadLabelTmpl function.
+  [in]        nTimeout            Timeout duration, unit: milliseconds; it will only take effect when a single call of DSTP2x_PrintTmpl returns a synchronous result. 
+                                  -1 - It means that in the absence of any (software/hardware or communication) errors during the printing process, DSTP2x_PrintTmpl will wait indefinitely until the printing end condition is met before returning.
+                                  &gt;0 - It means that if there are no (software/hardware or communication) errors during the printing process, DSTP2x_PrintTmpl will check whether the overall elapsed time is greater than or equal to nTimeout while waiting for the printing end condition to be met.；
+                                  If so, return &quot;Operation execution timed out&quot;.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_settmplrfiddata-set-the-actual-rfid-write-replacement-data-for-the-element-with-the-specified-id-in-the-label-template">DSTP2x_SetTmplRFIDData (Set the actual RFID write replacement data for the element with the specified ID in the label template)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplRFIDData(LABEL_TEMP_HDL ullLTHdl, const char *szElemID, const char *pActualData, int nActualDataSize)
+
+illustrate：
+ If this function is not called to set the real replacement data for some elements with already created IDs in the label template, then during the subsequent printing process, the original values of the elements with created IDs in the template will be used to perform RFID writing with the preset values.  
+
+parameter:
+  [in]        ullLTHdl            The label template file handle returned by the DSTP2x_LoadLabelTmpl function.
+  [in]        szElemID            It represents the ID of a specific element in the label template that requires the use of actual data for RFID writing.
+  [in]        pActualData         The actual RFID data that needs to be written during the printing process.
+  [in]        nActualDataSize     The length of the RFID data that needs to be written during the printing process, unit: bytes.
+                                  If pActualData is a string, this parameter represents the actual length of the string of pActualData (excluding the null terminator &quot;\0&quot;). 
+                                  If pActualData is hexadecimal byte data, this parameter represents the actual length of the data to be written in pActualData.
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<br>
+<br>
+<h1 id="label-drawing-and-printing-function">Label drawing and printing function</h1>
+<h2 id="dstp2x_createlabelcontext-create-a-label-canvas">DSTP2x_CreateLabelContext (Create a label canvas)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_CreateLabelContext(double dbWidth, double dbHeight, LC_HDL *pLCHdl)
+
+parameter:
+  [in]        dbWidth         The width of the target label to be printed, unit: mm. 
+  [in]        dbHeight        The height of the target label to be printed, unit: mm.
+  [out]       pLCHdl          The handle address of the label canvas.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_createtable-create-a-table">DSTP2x_CreateTable (Create a table)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_CreateTable(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, int nRowCount, int nColCount, int nLineWidth, TABLE_HDL *pTblHdl)
+
+illustrate:
+ 1. If the function is executed successfully, the handle of the newly created table will be returned through pTblHdlReturn.
+ 2. Once the table is created, the number of its rows and columns cannot be changed.
+ 3. The table supports operations such as modifying the table width, table height, column width, row height, merging/restoring cells, and drawing text, one-dimensional and two-dimensional barcodes, pictures, etc. within the cells.
+ 4. The arrangement of the cell names of the created table, for example, in the case of a 3x2 table, will be represented in the following form: 
+ 0-0 0-1 0-2 
+ 1-0 1-1 1-2
+
+parameter:
+  [in]        ullLcHdl            The handle of the label canvas returned by the DSTP2x_CreateLabelContext function.
+  [in]        dbX                 The abscissa of the top - left corner of the table, unit: mm (millimeters).
+  [in]        dbY                 The ordinate of the top - left corner of the table, unit: mm (millimeters).
+  [in]        dbW                 he width of the table, a non - negative floating - point number. If it is 0, this parameter is ignored. Unit: mm (millimeters).
+  [in]        dbH                 The height of the table, a non - negative floating - point number. If it is 0, this parameter is ignored. Unit: mm (millimeters).
+  [in]        nRowCount           The number of rows of the table to be created.
+  [in]        nColCount           The number of columns of the table to be created.
+  [in]        nLineWidth          The line width of the frame of the table to be created, unit: dot. The value range is [1, 50].
+  [out]       pTblHdl             The handle address of the table.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_deletelabelcontext-delete-the-handle-of-the-label-canvas">DSTP2x_DeleteLabelContext (Delete the handle of the label canvas)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_DeleteLabelContext(LC_HDL ullLcHdl)
+
+illustrate:
+ If this function is not called, the default printing mode will be 0. 
+
+parameter:
+  [in]        ullLcHdl            The handle of the label canvas returned by the DSTP2x_CreateLabelContext function.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_deletetable-delete-the-table-handle">DSTP2x_DeleteTable (Delete the table handle)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_DeleteTable(TABLE_HDL ullTblHdl)
+
+parameter:
+  [in]        ullTblHdl            The table handle returned by the DSTP2x_CreateTable function.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lbl_drawbarcode-draw-a-barcode-on-the-specified-label-canvas">DSTP2x_Lbl_DrawBarCode (Draw a barcode on the specified label canvas)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawBarCode(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, int nCodeType, const char *szData)
+
+parameter:
+  [in]        ullLcHdl            The handle of the label canvas returned by the DSTP2x_CreateLabelContext function.
+  [in]        dbX                 The abscissa of the image content block relative to the top - left corner of the label, unit: mm (millimeters).
+  [in]        dbY                 The ordinate of the image content block relative to the top - left corner of the label, unit: mm (millimeters).
+  [in]        dbW                 The width of the image content block, a non - negative floating - point number, unit: mm (millimeters).
+  [in]        dbH                 The height of the image content block, a non - negative floating - point number, unit: mm (millimeters).
+  [in]        nCodeType           The encoding type for generating barcodes.
+                                  8 - CODE39
+                                  20 - CODE128
+                                  25 - CODE93
+                                  34 - UPCA
+                                  37 - UPCE
+                                  55 - PDF417
+                                  58 - QRCode
+                                  71 - DataMatrix
+                                  72 - EAN14
+                                  84 - MicroPDF417
+                                  116 - HanXin
+                                  142 - GridMatrix
+  [in]        szData              The barcode data to be drawn on the drawing canvas.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lbl_drawimage-draw-an-image-on-the-specified-label-canvas">DSTP2x_Lbl_DrawImage (Draw an image on the specified label canvas)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawImage(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, double dbScale, int nImgDataType, const char *szImage, unsigned int unImgDataSize)
+
+parameter:
+  [in]        ullLcHdl            The handle of the label canvas returned by the DSTP2x_CreateLabelContext function.
+  [in]        dbX                 The abscissa of the image content block relative to the top - left corner of the label, unit: mm (millimeters).
+  [in]        dbY                 The ordinate of the image content block relative to the top - left corner of the label, unit: mm (millimeters).
+  [in]        dbW                 The width of the image content block, a non - negative floating - point number, unit: mm (millimeters).
+  [in]        dbH                 The height of the image content block, a non - negative floating - point number, unit: mm (millimeters).
+  [in]        dbScale             The scaling factor relative to the original image size, a non - negative floating - point number. If it is 0, this parameter is ignored. The value range must be between 1 and 3.
+  [in]        nImgDataType        The type of image data.
+                                  0 - Local image file.
+                                  1 - Image memory data.
+                                  2 - Image data in base64 format.
+  [in]        szImage             The image data.
+  [in]        unImgDataSize       The size of the image data.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lbl_drawtext-draw-text-on-the-specified-label-canvas">DSTP2x_Lbl_DrawText (Draw text on the specified label canvas)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawText(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, const char *szText);
+
+parameter:
+  [in]        ullLcHdl            The handle of the label canvas returned by the DSTP2x_CreateLabelContext function.
+  [in]        dbX                 The abscissa of the text content block relative to the top - left corner of the label, unit: mm (millimeters).
+  [in]        dbY                 The ordinate of the text content block relative to the top - left corner of the label, unit: mm (millimeters).
+  [in]        dbW                 The width of the text content block, a non - negative floating - point number. If it is 0, this parameter is ignored. Unit: mm (millimeters).
+  [in]        dbH                 The height of the text content block, a non - negative floating - point number. If it is 0, this parameter is ignored. Unit: mm (millimeters).
+  [in]        szText              The text content to be drawn in the drawing context, with character encoding: UTF - 8.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_setbarcodeeclvl-label-canvas-drawing-settings---set-the-error-correction-level-for-the-qr-code-to-be-drawn">DSTP2x_LcDraw_SetBarCodeEcLvl (Label canvas drawing settings - Set the error correction level for the QR code to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetBarCodeEcLvl(LC_HDL ullLcHdl, int nTemporary, int nErrorCorrectLevel)
+
+illustrate：
+ This setting is applicable to 2D barcode types such as PDC417, MicroPDF417, and QRCode.
+
+parameter:
+  [in]        ullLcHdl            The handle of the label canvas returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - Persistent until the ullLcHdl becomes invalid, unless it is modified again.
+                                  1 - Temporary. After the next call of DSTP2x_Lbl_DrawBarCode or DSTP2x_Tbl_DrawBarCode, this setting item will be restored.
+  [in]        nErrorCorrectLevelnErrorCorrectLevel                Error correction level. The specific value range depends on the `nCodeType` parameter of the `DSTP2x_DrawCode` function.
+                                                                  When `nCodeType` is `QRCode`, the value range of the `nErrorCorrectLevel` parameter is [1, 4]. If it is not set, there is no error - correction level by default.
+                                                                  When `nCodeType` is `PDF417`, the value range of the `nErrorCorrectLevel` parameter is [0, 8]. If it is not set, the default error - correction level is 2.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_setbarcodeexpl-label-canvas-drawing-settings---set-whether-to-print-the-annotation-line-for-the-to---be---printed-one---dimensional-barcode">DSTP2x_LcDraw_SetBarCodeExpl (Label canvas drawing settings - Set whether to print the annotation line for the to - be - printed one - dimensional barcode)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetBarCodeExpl(LC_HDL ullLcHdl, int nTemporary, int nExplanation)
+
+illustrate：
+ This setting applies to various one-dimensional barcode types such as CODE39, CODE128, CODE93, UPC-A, UPC-E, EAN-8, EAN-13, EAN-14, DataMatrix, HanXin, and GridMatrix.
+
+parameter:
+  [in]        ullLcHdl            The handle of the label canvas returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - Persistent until the ullLcHdl becomes invalid, unless it is modified again.
+                                  1 - Temporary. After the next call of DSTP2x_Lbl_DrawBarCode or DSTP2x_Tbl_DrawBarCode, this setting item will be restored.
+  [in]        nExplanation        Whether to generate annotations for the barcode
+                                  0 - Do not generate annotations.
+                                  1 - Generate annotations.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_setbarcoderotation-label-canvas-drawing-settings---set-the-rotation-parameter-for-the-one---dimensional-and-two---dimensional-barcodes-to-be-drawn">DSTP2x_LcDraw_SetBarCodeRotation (Label canvas drawing settings - Set the rotation parameter for the one - dimensional and two - dimensional barcodes to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetBarCodeRotation(LC_HDL ullLcHdl, int nTemporary, int nAngle, int nAnchorPoint)
+
+illustrate：
+ This setting applies to various one-dimensional barcode types such as CODE39, CODE128, CODE93, UPC-A, UPC-E, EAN-8, EAN-13, EAN-14, DataMatrix, HanXin, and GridMatrix.
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It's temporary. This setting will be restored after the next call of `DSTP2x_Lbl_DrawBarCode` or `DSTP2x_Tbl_DrawBarCode`. 
+  [in]        nAngle              Rotation angle, range: [-360, 360]
+  [in]        nAnchorPoint        Set the rotation reference center
+                                  0 - Top-left corner
+                                  1 - Middle point on the left side
+                                  2 - Bottom - left corner
+                                  3 - Center point
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_setimagehalftonealgo-label-canvas-drawing-settings---set-the-halftone-processing-algorithm-for-the-image-to-be-drawn">DSTP2x_LcDraw_SetImageHalftoneAlgo (Label canvas drawing settings - Set the halftone processing algorithm for the image to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetImageHalftoneAlgo(LC_HDL ullLcHdl, int nTemporary, int nAlgorithm, int nThreshold)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It is temporary. After the next call of `DSTP2x_Lbl_DrawImage` or `DSTP2x_Tbl_DrawImage`, this setting item will be restored.
+  [in]        nAlgorithm          Image algorithm:
+                                  0 - No algorithm (default)
+                                  1 - Error diffusion
+                                  2 - Ordered dithering algorithm
+                                  3 - Threshold operation algorithm
+  [in]        nThreshold          Threshold, which takes effect when nAlgorithm is 3, with a range of [0, 255].
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_setimagerotation-label-canvas-drawing-settings---set-the-rotation-parameter-for-the-image-to-be-drawn">DSTP2x_LcDraw_SetImageRotation (Label canvas drawing settings - Set the rotation parameter for the image to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetImageRotation(LC_HDL ullLcHdl, int nTemporary, int nAngle, int nAnchorPoint)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It is temporary. After the next call of `DSTP2x_Lbl_DrawImage` or `DSTP2x_Tbl_DrawImage`, this setting item will be restored.
+  [in]        nAngle              Rotation angle, range: [-360, 360]
+  [in]        nAnchorPoint        Set the rotation reference center
+                                  0 - Top-left corner
+                                  1 - Middle point on the left side
+                                  2 - Bottom - left corner
+                                  3 - Center point
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextautolinefeed-label-canvas-drawing-settings---set-whether-the-text-to-be-drawn-should-wrap-automatically">DSTP2x_LcDraw_SetTextAutoLineFeed (Label canvas drawing settings - Set whether the text to be drawn should wrap automatically)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextAutoLineFeed(LC_HDL ullLcHdl, int nTemporary, int nIsAutoLineFeed)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It is temporary. This setting item will be restored after the next call of either DSTP2x_Lbl_DrawText or DSTP2x_Tbl_DrawText. 
+  [in]        nIsAutoLineFeed     Whether it wraps automatically, value range：[0,1]
+                                  0 - Do not wrap automatically.
+                                  1 - Wrap automatically.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextbold-label-canvas-drawing-settings---set-whether-the-text-to-be-drawn-is-bold-or-not">DSTP2x_LcDraw_SetTextBold (Label canvas drawing settings - Set whether the text to be drawn is bold or not)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextBold(LC_HDL ullLcHdl, int nTemporary, int nIsBold)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It is temporary. This setting item will be restored after the next call of either DSTP2x_Lbl_DrawText or DSTP2x_Tbl_DrawText.
+  [in]        nIsBold             Whether it is bold. Valid values are 0 and 1. When values in the range of [2, 5] are set, it represents the degree of boldness.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextcharspacing-label-canvas-drawing-settings---set-the-letter-spacing-of-the-text-to-be-drawn">DSTP2x_LcDraw_SetTextCharSpacing (Label canvas drawing settings - Set the letter-spacing of the text to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextCharSpacing(LC_HDL ullLcHdl, int nTemporary, double dSpacing)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It's temporary. This setting will be restored after the next call of `DSTP2x_Lbl_DrawText` or `DSTP2x_Tbl_DrawText`.
+  [in]        dSpacing            Letter-spacing, unit: point.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextfontname-label-canvas-drawing-settings---set-the-font-name-of-the-text-content-to-be-drawn">DSTP2x_LcDraw_SetTextFontName (Label canvas drawing settings - Set the font name of the text content to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextFontName(LC_HDL ullLcHdl, int nTemporary, const char *szFontName)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It's temporary. This setting will be restored after the next call of `DSTP2x_Lbl_DrawText` or `DSTP2x_Tbl_DrawText`.
+  [in]        szFontName          Font name, character encoding: UTF - 8
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextfontsize-label-canvas-drawing-settings---set-the-font-size-of-the-text-content-to-be-drawn">DSTP2x_LcDraw_SetTextFontSize (Label canvas drawing settings - Set the font size of the text content to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextFontSize(LC_HDL ullLcHdl, int nTemporary, double dbFontSize)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It's temporary. This setting will be restored after the next call of `DSTP2x_Lbl_DrawText` or `DSTP2x_Tbl_DrawText`.
+  [in]        dbFontSize          Font size, unit: point
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_settexthalign-label-canvas-drawing-settings---set-the-horizontal-alignment-mode-of-the-text-to-be-drawn">DSTP2x_LcDraw_SetTextHAlign (Label canvas drawing settings - Set the horizontal alignment mode of the text to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextHAlign(LC_HDL ullLcHdl, int nTemporary, double dbX, int nAlign)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It's temporary. This setting will be restored after the next call of `DSTP2x_Lbl_DrawText` or `DSTP2x_Tbl_DrawText`.
+  [in]        dbX                 The abscissa of the alignment line
+  [in]        nAlign              Alignment mode
+                                  0 - No alignment feature
+                                  1: Align left
+                                  2: Align center
+                                  3: Align right
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextitalic-label-canvas-drawing-settings---set-whether-the-text-to-be-drawn-is-in-italic-style">DSTP2x_LcDraw_SetTextItalic (Label canvas drawing settings - Set whether the text to be drawn is in italic style)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextItalic(LC_HDL ullLcHdl, int nTemporary, int nIsItalic)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It's temporary. This setting will be restored after the next call of `DSTP2x_Lbl_DrawText` or `DSTP2x_Tbl_DrawText`.
+  [in]        nIsItalic           Whether it is italic, value range：[0,1]
+                                  0 - Do not use italic style.
+                                  1 - Use italic style.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextlinespacing-label-canvas-drawing-settings---set-the-line-spacing-of-the-text-to-be-drawn">DSTP2x_LcDraw_SetTextLineSpacing (Label canvas drawing settings - Set the line spacing of the text to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextLineSpacing(LC_HDL ullLcHdl, int nTemporary, double dSpacing)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It's temporary. This setting will be restored after the next call of `DSTP2x_Lbl_DrawText` or `DSTP2x_Tbl_DrawText`.
+  [in]        dSpacing            Line spacing, unit: point
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextrotation-label-canvas-drawing-settings---set-the-rotation-parameter-of-the-text-to-be-drawn">DSTP2x_LcDraw_SetTextRotation (Label canvas drawing settings - Set the rotation parameter of the text to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextRotation(LC_HDL ullLcHdl, int nTemporary, int nAngle, int nAnchorPoint)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It's temporary. This setting will be restored after the next call of `DSTP2x_Lbl_DrawText` or `DSTP2x_Tbl_DrawText`.
+  [in]        nAngle              Rotation angle, with a range of[-360,360]
+  [in]        nAnchorPoint        Set the rotation reference center
+                                  0 - Top-left corner
+                                  1 - Middle point on the left side
+                                  2 - Bottom-left corner
+                                  3 - Center point
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextvalign-label-canvas-drawing-settings---set-the-vertical-alignment-of-the-text-to-be-drawn">DSTP2x_LcDraw_SetTextVAlign (Label canvas drawing settings - Set the vertical alignment of the text to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextVAlign(LC_HDL ullLcHdl, int nTemporary, double dbY, int nAlign)
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTemporary          Is this setting item temporary
+                                  0 - It is persistent until the `ullLcHdl` becomes invalid, unless it is modified again.
+                                  1 - It's temporary. This setting will be restored after the next call of `DSTP2x_Lbl_DrawText` or `DSTP2x_Tbl_DrawText`.
+  [in]        dbY                 The ordinate of the alignment line
+  [in]        nAlign              Alignment mode
+                                  0: No alignment feature
+                                  1: Align top
+                                  2: Align center vertically
+                                  3: Align bottom
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcrfid_setdata-set-the-rfid-data-that-needs-to-be-written-during-the-printing-process-of-the-label-canvas">DSTP2x_LcRfid_SetData (Set the RFID data that needs to be written during the printing process of the label canvas)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcRfid_SetData(LC_HDL ullLcHdl, int nRfidRgnType, int nRfidDataFmt, const char *pData, int nDataSize)
+
+illustrate:
+ If this function is not called, no RFID reading/writing will be performed during the printing process.
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nRfidRgnType        Region type of RFID data to be written during the printing process
+                                  1 - EPC area
+                                  2 - USER area
+  [in]        nRfidDataFmt        Format of the RFID data to be written during the printing process
+                                  1 - ASCII - encoded string
+                                  2 - Hexadecimal string
+                                  3 - Hexadecimal byte data
+  [in]        pData               RFID data to be written during the printing process
+  [in]        nDataSize           Length of the RFID data to be written during the printing process, unit: byte
+                                  If pData is a string, this parameter represents the actual length of the string in pData (excluding &quot;\0&quot;).
+                                  If pData is hexadecimal byte data, this parameter represents the actual length of the data to be written in pData.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_printlc-print-the-label">DSTP2x_PrintLc (Print the label)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_PrintLc(DEV_HDL ullDevHdl, LC_HDL ullLcHdl, char *szOutFile, int *pOutFileSize, int nRfidReadType, char *szOutRFID, int *pOutRFIDSize)
+
+illustrate:
+ The szOutFile parameter will generate a local file with the extension of either &quot;.png&quot; or &quot;.prn&quot; only when the DSTP2x_SetLcPrnMode function is called and the value of nPrnMode is either 1 or 2.
+ In order to enable the RFID function, the DSTP2x_SetLcPrnMode should be set to 0.
+ For the scenario where the RFID needs to have both write and read functions simultaneously, the DSTP2x_LcRfid_SetData function needs to be called first, and the reading type in nRfidReadType should be set, and the memory for szOutRFID should be allocated.
+ For the scenario where the RFID only needs the read function, there is no need to call the DSTP2x_LcRfid_SetData interface, but the memory for szOutRFID still needs to be allocated.
+ If the RFID read function is not required, both nRfidReadType and szOutRFID should be set to 0. 
+
+parameter:
+  [in]        ullDevHdl           DEVICE ADDRESS
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [out]       szOutFile           It is used to store the local data file name (including the path) of the generated file (either &quot;.prn&quot; or &quot;.png&quot;) in this printing operation. It is recommended that the pre-allocated space should be no less than 256 bytes. If there is no need to obtain the local data file name generated by this printing operation, just pass in 0 for this parameter. 
+  [in,out]    pOutFileSize        When it is an input parameter, it represents the buffer size of szOutFile. When it is an output parameter, it represents the actual length of the string stored in szOutFile. If szOutFile is 0, this parameter will be ignored. 
+  [in]        nRfidReadType       Whether to read RFID data and how to read it during the process of printing the current page of data.
+                                  0 - Do not read
+                                  1 - read TID
+                                  2 - read EPC
+                                  4 - read USER
+ [out]        szOutRFID           This is a buffer used to store the RFID data read during the printing process. Please determine the pre - allocated buffer space size according to the (combined) type of nRfidReadType.
+                                  The read RFID data is returned after the dynamic execution of RFID operations and is represented as a hexadecimal string. The content format is, for example: &quot;TID:82309360|EPC:0123456789|USER:abcdef&quot;.
+                                  If there is no need to obtain the RFID data read during the printing process, just pass 0 for this parameter. 
+ [in,out]    pOutRFIDSize         When it is an input parameter, it represents the buffer size of szOutRFID. When it is an output parameter, it represents the actual length of the data stored in szOutRFID. If szOutRFID is 0, this parameter will be ignored. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setlcprnmode-set-the-printing-mode-of-the-label-canvas">DSTP2x_SetLcPrnMode (Set the printing mode of the label canvas)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetLcPrnMode(LC_HDL ullLcHdl, int nPrnMode)
+
+illustrate:
+ If this function is not called, the default printing mode is 0.
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nPrnMode            Printing mode; If this function is not called, the default printing mode is: printing via the printer. 
+                                  0 - Print through the printer.
+                                  1 - Print to a .prn file.
+                                  2 - Generate a preview image file in PNG format. 
+                                  3 - Generate the Base64 data of the preview image. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setlcprnrotate-set-the-rotation-angle-of-the-entire-label-canvas">DSTP2x_SetLcPrnRotate (Set the rotation angle of the entire label canvas)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetLcPrnMode(LC_HDL ullLcHdl, int nPrnMode)
+
+illustrate:
+ If this function is not called, the default printing mode is 0.
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nPrnMode            The rotation angles are within the range of [0, 90, 180, 270]
+
+illustrate:
+If this function is not called, the default printing mode is 0.
+</code></pre>
+<h2 id="dstp2x_setlcprnsynctype-set-whether-the-single-call-of-dstp2x_printlc-prints-the-synchronization-result">DSTP2x_SetLcPrnSyncType (Set whether the single call of DSTP2x_PrintLc prints the synchronization result)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetLcPrnSyncType(LC_HDL ullLcHdl, int nSyncType)
+
+illustrate:
+ If this function is not called, the single printing of the template will return the synchronization result.  
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nSyncType           Whether to print the synchronization result.
+                                  0- Non synchronous printing results, as long as the printing data of the current page is sent, this function returns; At this time, RFID read operations for DSTP2x-PrintLc are not supported
+                                  1- Synchronize printing results. After the printing data of the current page is sent, this function continuously monitors the printing status internally until the printing is successfully completed before returning; If the printer encounters an error, the function returns immediately 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_setlcprntimeout-set-the-maximum-timeout-for-a-single-call-of-dstp2x_printlc">DSTP2x_SetLcPrnTimeout (Set the maximum timeout for a single call of DSTP2x_PrintLc)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetLcPrnTimeout(LC_HDL ullLcHdl, int nTimeout)
+
+illustrate:
+ If this function is not called, the default maximum timeout for a single template printing is 15000 milliseconds. 
+
+parameter:
+  [in]        ullLcHdl            The label canvas handle returned by the DSTP2x_CreateLabelContext function.
+  [in]        nTimeout            Timeout period, unit: milliseconds; it only takes effect when a single call to DSTP2x_PrintLc is for a synchronous result.
+                                  -1 - A value of 0 indicates that in the absence of any (software/hardware or communication) errors during the printing process, DSTP2x_PrintTmpl will wait indefinitely for the printing end condition to be met before returning.
+                                  &gt;0 - It means that if there are no (software/hardware or communication) errors during the printing process, while waiting for the printing end condition to be met, DSTP2x_PrintTmpl will simultaneously check whether the total elapsed time is greater than or equal to nTimeout.
+                                  If so, it will return &quot;Operation execution timed out&quot;.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_drawbarcode-draw-one---dimensional-and-two---dimensional-barcodes-on-the-specified-cells-of-the-table">DSTP2x_Tbl_DrawBarCode (Draw one - dimensional and two - dimensional barcodes on the specified cells of the table)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawBarCode(TABLE_HDL ullTblHdl, const char *szGridName, double dbX, double dbY, double dbW, double dbH, int nCodeType, const char *szData)
+
+parameter:
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_CreateTable function.
+  [out]       szGridName          The name of the cell, with character encoding in UTF - 8. For example, the names of basic cells are &quot;0 - 0&quot;, &quot;0 - 1&quot;, &quot;1 - 0&quot;, &quot;1 - 1&quot;, etc.; the names of merged cells are &quot;Merged - 0&quot;, &quot;Merged - 1&quot;, etc.
+  [in]        dbX                 The horizontal coordinate of the upper-left corner of the text content block relative to the upper-left corner of the cell, with the unit being mm (millimeters). 
+  [in]        dbY                 The vertical coordinate of the upper - left corner of the text content block relative to the upper - left corner of the cell, with the unit being mm (millimeters).
+  [in]        dbW                 The width of the text content block, which is a non - negative floating - point number. If it is 0, it means this parameter is ignored. Unit: mm (millimeters).
+  [in]        dbH                 The height of the text content block, which is a non-negative floating-point number. If it is 0, it indicates that this parameter is to be ignored. The unit is mm (millimeters). 
+  [in]        nCodeType           The encoding type for generating barcodes.
+                                  8 - CODE39
+                                  20 - CODE128
+                                  25 - CODE93
+                                  34 - UPCA
+                                  37 - UPCE
+                                  55 - PDF417
+                                  58 - QRCode
+                                  71 - DataMatrix
+                                  72 - EAN14
+                                  84 - MicroPDF417
+                                  116 - HanXin
+                                  142 - GridMatrix
+  [in]        szData              The barcode data that needs to be drawn on the drawing canvas.                                   
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_drawimage-draw-an-image-on-the-specified-cell-of-the-table">DSTP2x_Tbl_DrawImage (Draw an image on the specified cell of the table)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawImage(TABLE_HDL ullTblHdl, const char *szGridName, double dbX, double dbY, double dbW, double dbH, double dbScale, int nImgDataType, const char *szImage, unsigned int unImgDataSize)
+
+parameter:
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_CreateTable function.
+  [out]       szGridName          The name of the cell, with the character encoding in UTF-8. For example, basic cells are named as &quot;0-0&quot;, &quot;0-1&quot;, &quot;1-0&quot;, &quot;1-1&quot;, etc.; merged cells are named as &quot;Merged-0&quot;, &quot;Merged-1&quot;, etc. 
+  [in]        dbX                 The horizontal coordinate of the upper-left corner of the content block relative to the upper-left corner of the cell, with the unit being millimeters (mm). 
+  [in]        dbY                 The vertical coordinate of the upper - left corner of the text content block relative to the upper - left corner of the cell, with the unit being mm (millimeters).
+  [in]        dbW                 The width of the text content block, which is a non - negative floating - point number. If it is 0, it means this parameter is ignored. Unit: mm (millimeters).
+  [in]        dbH                 The height of the text content block, which is a non-negative floating-point number. If it is 0, it indicates that this parameter is to be ignored. The unit is mm (millimeters). 
+  [in]        dbScale             The scaling factor relative to the original image size, which is a non-negative floating-point number. If it is 0, it means this parameter is ignored. The value range must be between 1 and 3. 
+  [in]        nImgDataType        Image Data Type
+                                  0 - Local image file
+                                  1 - Image memory data
+                                  2 - Image data in base64 format
+  [in]        szImage             The image data that needs to be drawn on the drawing canvas
+  [in]        unImgDataSize       When nImgDataType is 1 and 2, the size of unImgDataSize is the actual memory size of the pointer to szImage. \n When nImgDataType is 0, the size of unImgDataSize is the length size of the pointer to szImage.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_drawtext-draw-text-on-the-specified-cell-of-the-table">DSTP2x_Tbl_DrawText (Draw text on the specified cell of the table)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawText(TABLE_HDL ullTblHdl, const char *szGridName, double dbX, double dbY, double dbW, double dbH, const char *szText)
+
+parameter:
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_CreateTable function.
+  [out]       szGridName          The name of the cell, with the character encoding in UTF-8. For example, basic cells are named as &quot;0-0&quot;, &quot;0-1&quot;, &quot;1-0&quot;, &quot;1-1&quot;, etc.; merged cells are named as &quot;Merged-0&quot;, &quot;Merged-1&quot;, etc. 
+  [in]        dbX                 The horizontal coordinate of the upper-left corner of the content block relative to the upper-left corner of the cell, with the unit being millimeters (mm). 
+  [in]        dbY                 The vertical coordinate of the upper - left corner of the text content block relative to the upper - left corner of the cell, with the unit being mm (millimeters).
+  [in]        dbW                 The width of the text content block, which is a non - negative floating - point number. If it is 0, it means this parameter is ignored. Unit: mm (millimeters).
+  [in]        dbH                 The height of the text content block, which is a non-negative floating-point number. If it is 0, it indicates that this parameter is to be ignored. The unit is mm (millimeters). 
+  [in]        szText              The text content that needs to be drawn on the drawing canvas, with the character encoding of UTF-8.
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_drawline-draw-a-line-segment-on-the-specified-cell-of-the-table">DSTP2x_Tbl_DrawLine (Draw a line segment on the specified cell of the table)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawLine(TABLE_HDL ullTblHdl, const char *szGridName, double dbStartX, double dbStartY, double dbEndX, double dbEndY, int nLineWidth, int nLineType);
+
+parameter:
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_CreateTable function.
+  [out]       szGridName          The name of the cell, with the character encoding in UTF-8. For example, basic cells are named as &quot;0-0&quot;, &quot;0-1&quot;, &quot;1-0&quot;, &quot;1-1&quot;, etc.; merged cells are named as &quot;Merged-0&quot;, &quot;Merged-1&quot;, etc. 
+  [in]        dbStartX            The horizontal coordinate of the starting point of the line segment with the upper-left corner of the cell as the origin, unit: mm (millimeters)
+  [in]        dbStartY            The vertical coordinate of the starting point of the line segment with the upper-left corner of the cell as the origin, unit: mm (millimeters)
+  [in]        dbEndX              The horizontal coordinate of the ending point of the line segment with the upper-left corner of the cell as the origin, unit: mm (millimeters)
+  [in]        dbEndY              The vertical coordinate of the ending point of the line segment with the upper-left corner of the cell as the origin, unit: mm (millimeters)
+  [in]        nLineWidth          The width of the line segment, unit: pixel (pixels)
+  [in]        nLineType           The type of the line segment, 0: solid line, 1: dashed line, 2: dotted line, 3: dash-dotted line, 4: double dash-dotted line
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_drawline-draw-line-segments-on-specified-cells-in-the-table">DSTP2x_Tbl_DrawLine (Draw line segments on specified cells in the table)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawLine(TABLE_HDL ullTblHdl, const char *szGridName, double dbStartX, double dbStartY, double dbEndX, double dbEndY, int nLineWidth, int nLineType);
+
+参数:
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_Create Table function
+  [out]       szGridName          Cell name, character encoding: utf-8; For example, the basic cells are &quot;0-0&quot;, &quot;0-1&quot;, &quot;1-0&quot;, &quot;1-1&quot;, etc; The merged cells are &quot;Merged-0&quot;, &quot;Merged-1&quot;, etc
+  [in]        dbStartX            The horizontal coordinate of the starting point of the line segment relative to the upper left corner of the cell as the origin, unit: mm (millimeter)
+  [in]        dbStartY            The vertical coordinate of the starting point of the line segment relative to the upper left corner of the cell as the origin, unit: mm (millimeter)
+  [in]        dbEndX              The horizontal coordinate of the endpoint of the line segment relative to the upper left corner of the cell as the origin, unit: mm (millimeter)
+  [in]        dbEndY              The vertical coordinate of the endpoint of the line segment relative to the upper left corner of the cell as the origin, unit: mm (millimeter)
+  [in]        nLineWidth          Line segment width, unit: pixel
+  [in]        nLineType           Line segment type, 0: solid line, 1: dashed line, 2: dotted line, 3: dotted line, 4: double dotted line
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_drawellipse-draw-an-ellipse-on-a-specified-cell-in-the-table">DSTP2x_Tbl_DrawEllipse (Draw an ellipse on a specified cell in the table)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawEllipse(TABLE_HDL ullTblHdl, const char *szGridName, double dbX, double dbY, double dbW, double dbH, int nLineWidth, int nLineType, int nIsFill);
+
+参数：
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_Create Table function
+  [out]       szGridName          Cell name, character encoding: utf-8; For example, the basic cells are &quot;0-0&quot;, &quot;0-1&quot;, &quot;1-0&quot;, &quot;1-1&quot;, etc; The merged cells are &quot;Merged-0&quot;, &quot;Merged-1&quot;, etc
+  [in]        dbX                 Horizontal coordinate of the upper left corner of the ellipse, unit: mm (millimeter)
+  [in]        dbY                 The vertical coordinate of the upper left corner of the ellipse, unit: mm (millimeter)
+  [in]        dbW                 The width of an ellipse, measured in millimeters (mm)
+  [in]        dbH                 The height of an ellipse, in millimeters (mm)
+  [in]        nLineWidth          The line width of an ellipse, in pixels
+  [in]        nLineType           Elliptical line type, 0: solid line, 1: dashed line
+  [in]        nIsFill             Whether to fill,  0: No,1: Yes
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_drawrectangle-draw-an-rectangle-on-a-specified-cell-in-the-table">DSTP2x_Tbl_DrawRectangle (Draw an Rectangle on a specified cell in the table)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawRectangle(TABLE_HDL ullTblHdl, const char *szGridName, double dbX, double dbY, double dbW, double dbH, int nLineWidth, int nLineType, int nIsFill);
+
+参数：
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_Create Table function
+  [out]       szGridName          Cell name, character encoding: utf-8; For example, the basic cells are &quot;0-0&quot;, &quot;0-1&quot;, &quot;1-0&quot;, &quot;1-1&quot;, etc; The merged cells are &quot;Merged-0&quot;, &quot;Merged-1&quot;, etc
+  [in]        dbX                 Horizontal coordinate of the upper left corner of the Rectangle, unit: mm (millimeter)
+  [in]        dbY                 The vertical coordinate of the upper left corner of the Rectangle, unit: mm (millimeter)
+  [in]        dbW                 The width of an Rectangle, measured in millimeters (mm)
+  [in]        dbH                 The height of an Rectangle, in millimeters (mm)
+  [in]        nLineWidth          The line width of an Rectangle, in pixels
+  [in]        nLineType           Elliptical line type, 0: solid line, 1: dashed line
+  [in]        nIsFill             Whether to fill,  0: No,1: Yes
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_mergegrids-merge-cells">DSTP2x_Tbl_MergeGrids (Merge cells)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_MergeGrids(TABLE_HDL ullTblHdl, int nRowBegin, int nRowEnd, int nColBegin, int nColEnd, char *szMergedGridName, int *pMergedGridNameSize)
+
+parameter:
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_CreateTable function.
+  [in]        nRowBegin           The starting row of the cells to be merged
+  [in]        nRowEnd             The ending row of the cells to be merged.
+  [in]        nColBegin           The starting column of the cells to be merged.
+  [in]        nColEnd             The ending column of the cells to be merged.
+  [out]       szMergedGridName    The name of the newly merged cell, with the character encoding of UTF-8. For example: &quot;Merged-0&quot;. It is recommended to allocate a space of no less than 32 bytes. 
+  [in,out]    pMergedGridNameSize The length of the returned information. When it is an input parameter, it represents the memory size of szMergedGridName. When it is an output parameter, it represents the actual length written into the memory of szMergedGridName. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_revertmergedgrid-restore-the-merged-cells">DSTP2x_Tbl_RevertMergedGrid (Restore (the merged) cells)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_RevertMergedGrid(TABLE_HDL ullTblHdl, const char *szMergedGridName)
+
+parameter:
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_CreateTable function.
+  [in,out]    szMergedGridName    The name of the newly merged cell returned by the DSTP2x_Tbl_MergeGrids function. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_movecolboundary-change-the-column-width-of-the-table-by-moving-the-boundary-lines-of-the-columns">DSTP2x_Tbl_MoveColBoundary (Change the column width of the table by moving the boundary lines of the columns)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_MoveColBoundary(TABLE_HDL ullTblHdl, int nColSepLineIdx, int nMoveDir, double dbStep)
+
+illustrate:
+1. The number of column boundary lines is one more than the number of columns.
+2. The indexes of the column boundary lines are 0, 1, 2, 3... from left to right.
+3. Since the starting position of the table is fixed, the leftmost column boundary line (with an index value of 0) cannot be moved to the left or right.
+4. Moving the rightmost column boundary line to the left or right will directly change the width of the table. When moving the boundary lines between the leftmost and the rightmost to the left or right, it will and only will change the column widths on both sides of this column boundary line, showing a relationship of one decreasing while the other increasing.  
+
+parameter:
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_CreateTable function.
+  [in]        nColSepLineIdx      The index of the column boundary line, with the value range of [1, n], where n is equal to the number of columns. 
+  [in]        nMoveDir            The moving direction of the boundary line.
+                                  1 - Move to the left.
+                                  2 - Move to the right.
+  [in]        dbStep              The stepping value for moving the boundary line, with the unit of mm (millimeters) and the precision of 0.01 mm. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_tbl_moverowboundary-change-the-row-height-of-the-table-by-moving-the-boundary-lines-of-the-columns">DSTP2x_Tbl_MoveRowBoundary (Change the row height of the table by moving the boundary lines of the columns)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_MoveRowBoundary(TABLE_HDL ullTblHdl, int nRowSepLineIdx, int nMoveDir, double dbStep);
+
+illustrate:
+1. The number of row boundary lines is one more than the number of rows.
+2. The indexes of the row boundary lines are 0, 1, 2, 3... from top to bottom.
+3. Since the starting position of the table is fixed, the topmost row boundary line (with an index value of 0) cannot be moved up or down.
+4. Moving the bottommost row boundary line up or down will directly change the height of the table. When moving the boundary lines between the topmost and the bottommost up or down, it will and only will change the row heights on both sides of this row boundary line, showing a relationship of one decreasing while the other increasing. 
+
+parameter:
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_CreateTable function.
+  [in]        nRowSepLineIdx      The index of the row boundary line, with the value range of [1, n], where n is equal to the number of rows. 
+  [in]        nMoveDir            The moving direction of the boundary line.
+                                  1 - Move upwards.
+                                  2 - Move downwards.
+  [in]        dbStep              The stepping value for moving the boundary line, with the unit of millimeters (mm), and the precision is 0.01 mm. 
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lbl_drawline-draw-a-line-segment-on-the-specified-label-canvas">DSTP2x_Lbl_DrawLine (Draw a line segment on the specified label canvas)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawLine(LC_HDL ullLcHdl, double dbStartX, double dbStartY, double dbEndX, double dbEndY, int nLineWidth, int nLineType);
+
+parameter:
+  [in]        ullTblHdl           The table handle returned by the DSTP2x_CreateTable function.
+  [in]        dbStartX            The horizontal coordinate of the starting point of the line segment relative to the origin at the top - left corner of the label, unit: mm (millimeters)
+  [in]        dbStartY            The vertical coordinate of the starting point of the line segment relative to the origin at the top - left corner of the label, unit: mm (millimeters)
+  [in]        dbEndX              The horizontal coordinate of the ending point of the line segment relative to the origin at the top - left corner of the label, unit: mm (millimeters)
+  [in]        dbEndY              The vertical coordinate of the ending point of the line segment relative to the origin at the top - left corner of the label, unit: mm (millimeters)
+  [in]        nLineWidth          The width of the line segment, unit: pixel
+  [in]        nLineType           The type of the line segment, 0: solid line, 1: dashed line, 2: dotted line, 3: dash - dot line, 4: dash - dot - dot line
+
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_setellipserotation-label-context-drawing-settings---set-rotation-parameters-for-the-ellipse-to-be-drawn">DSTP2x_LcDraw_SetEllipseRotation (Label Context Drawing Settings - Set Rotation Parameters for the Ellipse to be Drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetEllipseRotation(LC_HDL ullLcHdl, int nTemporary, int nAngle, int nAnchorPoint);
+
+参数:
+  [in]        ullLcHdl            The label context handle returned by the DSTP2x_Create LabelContext function
+  [in]        nTemporary          Is this setting temporary
+                                  0- Persistent until ullLcHdl fails, unless modified again
+                                  1- Temporary, this setting is restored after a subsequent DSTP2x_Lbl_SrawEllipse or DSTP2x_Tbl_SrawEllipse call
+  [in]        nAngle              Rotation angle, range [-360,360]
+  [in]        nAnchorPoint        Set the rotation reference center
+                                  0- Upper left corner
+                                  1- Middle point on the left
+                                  2- Bottom left corner
+                                  3- Center point
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lbl_drawellipse-draw-an-ellipse-in-the-specified-label-context">DSTP2x_Lbl_DrawEllipse (Draw an ellipse in the specified label context)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawEllipse(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, int nLineWidth, int nLineType, int nIsFill);
+
+参数：
+  [in]        ullLcHdl           The label context handle returned by the DSTP2x_Create LabelContext function
+  [in]        dbX                Horizontal coordinate of the upper left corner of the ellipse, unit: mm (millimeter)
+  [in]        dbY                The vertical coordinate of the upper left corner of the ellipse, unit: mm (millimeter)
+  [in]        dbW                The width of an ellipse, measured in millimeters (mm)
+  [in]        dbH                The height of an ellipse, in millimeters (mm)
+  [in]        nLineWidth         The line width of an ellipse, in pixels
+  [in]        nLineType          Elliptical line type, 0: solid line, 1: dashed line
+  [in]        nIsFill            Whether to fill,  0: No,1: Yes
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lcdraw_setrectanglerotation-label-context-drawing-settings---set-rotation-parameters-for-the-rectangle-to-be-drawn">DSTP2x_LcDraw_SetRectangleRotation (Label context drawing settings - Set rotation parameters for the rectangle to be drawn)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetRectangleRotation(LC_HDL ullLcHdl, int nTemporary, int nAngle, int nAnchorPoint);
+
+参数：
+  [in]         ullLcHdl           Label context drawing settings - Set rotation parameters for the rectangle to be drawn
+  [in]         nTemporary         Is this setting temporary
+                                  0- Persistent until ullLcHdl fails, unless modified again
+                                  1- Temporary, this setting is restored after a subsequent DSTP2x_Lbl_darawRectangle or DSTP2x_Tbl_darawRectangle call
+  [in]         nAngle             Rotation angle, range [-360,360]
+  [in]         nAnchorPoint       Set the rotation reference center
+                                  0- Upper left corner
+                                  1- Middle point on the left
+                                  2- Bottom left corner
+                                  3- Center point
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+<h2 id="dstp2x_lbl_drawrectangle-draw-a-rectangle-in-the-specified-label-context">DSTP2x_Lbl_DrawRectangle (Draw a rectangle in the specified label context)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawRectangle(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, int nLineWidth, int nLineType, int nIsFill);
+
+参数：
+  [in]        ullLcHdl            The label context handle returned by the DSTP2x_Create LabelContext function
+  [in]        dbX                 The horizontal axis of the top left corner of the rectangle, unit: mm (millimeter)
+  [in]        dbY                 The vertical axis of the top left corner of the rectangle, unit: mm (millimeter)
+  [in]        dbW                 Width of rectangle, unit: mm (millimeter)
+  [in]        dbH                 The height of the rectangle, in millimeters (mm)
+  [in]        nLineWidth          Line width of rectangle, unit: pixel
+  [in]        nLineType           Rectangular line type, 0: solid line, 1: dashed line
+  [in]        nIsFill             Whether to fill,  0: No,1: Yes
+
+Return:
+0 indicates success, non-zero failure
+</code></pre>
+
+            
+            
+        </body>
+        </html>

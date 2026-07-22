@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>JavaScript Example code in programming languages</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* Content area on the right */
+        .content {
+            margin-left: 10px; /* Leave space on the left side of the content area */
+            padding: 20px;
+            flex: 1; /* Content area fills the remaining space */
+            background-color: #f9f9f9;
+        }
+
+        /* Responsive: When the screen width is less than 768px, the navigation bar becomes foldable */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* Reduce the navigation bar width on a small screen */
+            }
+
+            .content {
+                margin-left: 0; /* No more space for navigation bar in the content area */
+            }
+        }
+       
+/* Submenu style */
+.submenu {
+    display: none; /* Default hidden submenu */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* Show submenu when mouse hover */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* Set basic styles*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Left navigation bar style */
+.sidebar {
+    position: sticky;  /* Adhesive positioning */
+    top: 0;             /* When scrolling to the top, fixed */
+    width: 300px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">Table of contents</p>      
+<ul>
+<a href="../index-US.html" class="active">Chapter 1, Overview</a>
+        <a href="./FunctionList-US.html">Chapter 2, Function List</a>
+<li>
+<a href="#">Chapter 3, Function Sample Code</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP-US.html">C++ sample</a></li>
+         <li><a href="./Samplecode-Charp-US.html">C# sample</a></li>
+         <li><a href="./Samplecode-java-US.html">java sample</a></li>
+         <li><a href="./Samplecode-javascript-US.html">javascript sample</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">Chapter 4, Functional Interface</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef-US.html">C interface function prototype</a></li>
+                <li><a href="./WebApiDef-US.html">Web-end interface definition</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction-US.html">Chapter 5, DSTP2xDemo instructions</a>
+                <a href="./WebPrtServerInstruction-US.html">Chapter 6, DSTP2xWebPrtServer User Instructions</a>
+                <li>
+                  <a href="#">Chapter 7, Related Return Code List</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode-US.html">SDK interface return code</a></li>
+                    <li><a href="./PrtStatusCode-US.html">Printer status code</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ-US.html">Chapter 8, Frequently Asked Questions</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+      body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+<center>
+<b style="font-size:18pt">
+<h1 id="javascript-example-code-in-programming-languages">JavaScript Example code in programming languages</h1>
+</b>
+</center>
+<ul>
+<li>Get printer information★★
+<ul>
+<li><a href="../../samplecode/javascript/GetPrtInfo/index.html">Get printer information, version number, status, etc.</a>
+<b style="font-size:14pt"></li>
+</ul>
+</li>
+<li>Template printing ★★★</b>
+<ul>
+<li><a href="../../samplecode/javascript/TemplatePrintOnly/index.html">Example of pure template printing</a></li>
+<li><a href="../../samplecode/javascript/TemplatePrint_RFID/index.html">Example of template printing for RFID tags</a></li>
+<li><a href="../../samplecode/javascript/TemplatePrint_BatPrn/index.html">Example of batch replacement of template IDs for printing</a>
+<b style="font-size:14pt"></li>
+</ul>
+</li>
+<li>RFID tag printing ★★★</b>
+<ul>
+<li><a href="../../samplecode/javascript/ReadTid_DrawPrint_RFID/index.html">Example of first reading the TID and then drawing on the canvas for printing </a></li>
+<li><a href="../../samplecode/javascript/ReadTid_PdfPrint_RFID/index.html">Example of first reading the TID and then performing PDF printing</a></li>
+<li><a href="../../samplecode/javascript/ReadTid_TemplatePrint_RFID/index.html">Example of first reading the TID and then conducting template printing</a></li>
+<li><a href="../../samplecode/javascript/RFID_Lock_Pw/index.html">Related operations such as dynamic locking and encryption of RFID. </a></li>
+</ul>
+</li>
+<li>Canvas drawing and printing
+<ul>
+<li><a href="../../samplecode/javascript/DrawPrintOnly/index.html">Example of pure drawing and printing</a></li>
+<li><a href="../../samplecode/javascript/DrawPrintOnly_websocket/index.html">Example of pure drawing and printing-websocket</a></li>
+<li><a href="../../samplecode/javascript/DrawPrint_RFID/index.html">Example of drawing and printing for RFID tags</a></li>
+</ul>
+</li>
+<li>pdf print
+<ul>
+<li><a href="../../samplecode/javascript/PdfPrintOnly/index.html">Example of pure PDF printing</a></li>
+<li><a href="../../samplecode/javascript/PdfPrint_RFID/index.html">Example of PDF printing for RFID tags</a></li>
+</ul>
+</li>
+<li>Directly transfer data
+<ul>
+<li><a href="../../samplecode/javascript/TransDataDirectly/index.html">Directly transfer data</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+            
+        </body>
+        </html>

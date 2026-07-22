@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetPrtInfo</title>
+    <link rel="stylesheet" type="text/css" href="./css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+</head>
+
+<body>
+    <div class="header">
+        <img src="./images/tp.png" height="32px" style="margin-top:16px;" />
+    </div>
+    <div class="main">
+        <span class="tag">
+            GetPrtInfo
+        </span>
+        <div class="content_wrap">
+            <div class="setting">
+                <p class="title">打印机序列号：</p>
+                <div class="file_input border">
+                    <input style="display: none;"  name="printerSN" id="printerSN" />
+                    <input type="text"  style="width:80%;"  id="snDisplay" readonly />
+                    <button onclick="getInfo(1)">获取</button>
+                </div>
+                
+                <p class="title">打印机固件版本：</p>
+                <div class="file_input border">
+                    <input style="display: none;"  name="printerFW" id="printerFW" />
+                    <input type="text"  style="width:80%;"  id="fwDisplay" readonly />
+                    <button onclick="getInfo(2)">获取</button>
+                </div>
+                
+                <p class="title">打印机状态：</p>
+                <div class="file_input border">
+                    <input style="display: none;"  name="printerStatus" id="printerStatus" />
+                    <textarea style="width:80%;height:50px;white-space:pre-wrap;"  id="statusDisplay" readonly ></textarea>              
+                    <button onclick="getInfo(3)">获取</button>
+                </div>                
+
+                <div class="terminal_wrap">
+                    <div class="top">
+                        <p class="title">信息输出：</p>
+                        <button onclick="clearLog()">清空输出</button>
+                    </div>
+                    <div class="terminal border">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="popup_tips" style="display: none;">
+        <div class="popup_tips_mask"></div>
+        <div class="popup_tips_content"></div>
+    </div>
+
+</body>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/common.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {    //刷新后回到顶部
+        $(window).scrollTop(0)
+    }
+
+    
+    async function getInfo(infoType) {
+      try {
+            await sendPostRequest("web_DSTP2x_SetLibLang", "设置语言", { "language":"0" })
+
+            //枚举设备
+            const devRes = await sendPostRequest("web_DSTP2x_EnumDev", "枚举设备", { "enumType": "1" })
+            
+            let index = devRes.enumList.indexOf(",")
+            if(index != -1)
+            {
+                const devList = devRes.enumList.split(",")
+                devRes.enumList = devList[0]
+            }
+
+            //连接设备
+            const connectRes = await sendPostRequest("web_DSTP2x_ConnEnumeratedDev", "连接设备", { "devName": devRes.enumList })
+            
+            if(infoType == 1) {
+            	//获取打印机序列号
+	            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtSN", "获取打印机序列号", { "devHdl": connectRes.devHdl })
+	            if (statusRes.prtSN) {
+	                	$("#snDisplay").val(statusRes.prtSN)
+	            }    
+            }
+            else if(infoType == 2) {
+            	//获取固件版本
+	            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtFWVer", "获取固件版本", { "devHdl": connectRes.devHdl })
+	            if (statusRes.prtFWVer) {
+	                	$("#fwDisplay").val(statusRes.prtFWVer)
+	            }    
+            }
+            else if(infoType == 3) {
+            	//获取打印状态
+	            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtStatus", "获取打印状态", { "devHdl": connectRes.devHdl })
+	            if (statusRes.prtStatusDesc) {
+                        let statusStr = getAllStatus(statusRes.mainStatusCode, statusRes.warnCode, statusRes.errorCode)
+                        
+	                	$("#statusDisplay").val(statusRes.prtStatusDesc + '\n' + statusStr)
+	            }    
+            }
+            
+              
+            //断开连接
+            await sendPostRequest("web_DSTP2x_DisconnDev", "断开连接", { "devHdl": connectRes.devHdl })
+            openMask("获取成功", true)
+
+        } catch (error) {
+            let errText = error ? error : "请求失败"
+            openMask(errText, true)
+        }
+    }
+
+</script>
+
+</html>

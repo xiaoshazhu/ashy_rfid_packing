@@ -1,0 +1,2 @@
+new font:https://supportdownloads.adobe.com/detail.jsp?ftpID=5508
+download link:http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.09/misc/FontPack11009_XtdAlf_Lang.msi

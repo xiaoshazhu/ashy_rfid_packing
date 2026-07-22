@@ -1,0 +1,2131 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>C&#x8bed;&#x8a00;&#x63a5;&#x53e3;&#x8bf4;&#x660e;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* 右侧内容区域 */
+        .content {
+            margin-left: 10px; /* 内容区域左侧留出导航栏空间 */
+            padding: 20px;
+            flex: 1; /* 内容区域填充剩余空间 */
+            background-color: #f9f9f9;
+        }
+        .content pre{
+width: 1400px;
+        }
+        /* 响应式：当屏幕宽度小于768px时，导航栏变为可折叠 */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* 在小屏幕上缩小导航栏宽度 */
+            }
+
+            .content {
+                margin-left: 0; /* 内容区域不再留出导航栏空间 */
+            }
+        }
+       
+/* 子菜单样式 */
+.submenu {
+    display: none; /* 默认隐藏子菜单 */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* 鼠标悬停时显示子菜单 */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* 设置基础样式*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* 左侧导航栏样式 */
+.sidebar {
+    position: sticky;  /* 粘性定位 */
+    top: 0;             /* 当滚动到顶部时，固定 */
+    width: 300px;
+    max-width: 350px;   /* 最大宽度为350px */
+    min-width: 250px;   /* 最小宽度为250px */
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<!-- </head> -->
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">目录</p>      
+<ul>
+<a href="../index-CN.html" class="active">第一章、概述</a>
+        <a href="./FunctionList.html">第二章、功能清单</a>
+<li>
+<a href="#">第三章、功能示例代码</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP.html">C++示例</a></li>
+         <li><a href="./Samplecode-Charp.html">C#示例</a></li>
+         <li><a href="./Samplecode-java.html">java示例</a></li>
+         <li><a href="./Samplecode-javascript.html">javascript示例</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">第四章、功能接口</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef.html">C接口函数原型</a></li>
+                <li><a href="./WebApiDef.html">web端接口定义</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction.html">第五章、DSTP2xDemo使用说明</a>
+                <a href="./WebPrtServerInstruction.html">第六章、DSTP2xWebPrtServer使用说明</a>
+                <li>
+                  <a href="#">第七章、相关返回码列表</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode.html">SDK接口返回码</a></li>
+                    <li><a href="./PrtStatusCode.html">打印机状态码</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ.html">第八章、常见问题</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+    body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+ <center>
+<b style="font-size:18pt">
+<h1 id="c语言接口说明">C语言接口说明</h1>
+</b>
+</center>
+<ul>
+<li><a href="#c%E8%AF%AD%E8%A8%80%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E">C语言接口说明</a></li>
+<li><a href="#%E5%BA%93%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C">库的基本操作</a>
+<ul>
+<li><a href="#dstp2x_apirtncodetomsg-%E8%A7%A3%E6%9E%90sdk%E6%8E%A5%E5%8F%A3%E8%BF%94%E5%9B%9E%E7%9A%84%E9%94%99%E8%AF%AF%E7%A0%81">DSTP2x_ApiRtnCodeToMsg (解析SDK接口返回的错误码)</a></li>
+<li><a href="#dstp2x_getlibversion-%E8%8E%B7%E5%8F%96%E6%9C%AC%E5%BA%93%E7%89%88%E6%9C%AC%E5%8F%B7">DSTP2x_GetLibVersion (获取本库版本号)</a></li>
+<li><a href="#dstp2x_getlibinfo-%E8%8E%B7%E5%8F%96%E6%9C%AC%E5%BA%93%E4%BF%A1%E6%81%AF">DSTP2x_GetLibInfo (获取本库信息)</a></li>
+<li><a href="#dstp2x_lib_init-%E5%8A%A8%E6%80%81%E5%BA%93%E5%88%9D%E5%A7%8B%E5%8C%96">DSTP2x_Lib_Init (动态库初始化)</a></li>
+<li><a href="#dstp2x_lib_clear-%E5%8A%A8%E6%80%81%E5%BA%93%E6%B8%85%E7%90%86">DSTP2x_Lib_Clear (动态库清理)</a></li>
+<li><a href="#dstp2x_setliblang-%E8%AE%BE%E7%BD%AE%E5%BA%93%E8%AF%AD%E8%A8%80">DSTP2x_SetLibLang (设置库语言)</a></li>
+</ul>
+</li>
+<li><a href="#%E8%AE%BE%E5%A4%87%E8%BF%9E%E6%8E%A5">设备连接</a>
+<ul>
+<li><a href="#dstp2x_connenumerateddev-%E9%80%9A%E8%BF%87%E8%AE%BE%E5%A4%87%E5%90%8D%E7%A7%B0%E8%BF%9E%E6%8E%A5%E8%AE%BE%E5%A4%87">DSTP2x_ConnEnumeratedDev (通过设备名称连接设备)</a></li>
+<li><a href="#dstp2x_connnetworkdev-%E9%80%9A%E8%BF%87ip%E5%92%8C%E7%AB%AF%E5%8F%A3%E8%BF%9E%E6%8E%A5%E8%AE%BE%E5%A4%87">DSTP2x_ConnNetworkDev (通过IP和端口连接设备)</a></li>
+<li><a href="#dstp2x_connserialdev-%E9%80%9A%E8%BF%87%E4%B8%B2%E5%8F%A3%E5%8F%B7%E5%92%8C%E6%B3%A2%E7%89%B9%E7%8E%87%E8%BF%9E%E6%8E%A5%E8%AE%BE%E5%A4%87">DSTP2x_ConnSerialDev (通过串口号和波特率连接设备)</a></li>
+<li><a href="#dstp2x_disconndev-%E6%96%AD%E5%BC%80%E8%AE%BE%E5%A4%87%E8%BF%9E%E6%8E%A5">DSTP2x_DisconnDev (断开设备连接)</a></li>
+<li><a href="#dstp2x_enumdev-%E6%90%9C%E7%B4%A2%E5%9C%A8%E7%BA%BF%E8%AE%BE%E5%A4%87">DSTP2x_EnumDev (搜索在线设备)</a></li>
+<li><a href="#dstp2x_setcommtimeout-%E8%AE%BE%E7%BD%AE%E8%BF%9E%E6%8E%A5%E7%9A%84%E9%80%9A%E8%AE%AF%E8%B6%85%E6%97%B6">DSTP2x_SetCommTimeout (设置连接的通讯超时)</a></li>
+<li><a href="#dstp2x_setnetenumrecvtimes-%E8%AE%BE%E7%BD%AE%E7%BD%91%E5%8F%A3%E6%9E%9A%E4%B8%BE%E6%89%93%E5%8D%B0%E6%9C%BA%E6%8E%A5%E6%94%B6%E5%BA%94%E7%AD%94%E6%97%B6%E5%85%81%E8%AE%B8%E8%BF%9E%E7%BB%AD%E8%AF%BB%E4%B8%8D%E5%88%B0%E6%95%B0%E6%8D%AE%E7%9A%84%E6%AC%A1%E6%95%B0">DSTP2x_SetNetEnumRecvTimes (设置网口枚举打印机接收应答时，允许连续读不到数据的次数)</a></li>
+<li><a href="#dstp2x_setnetenumsubnets-%E7%BD%91%E5%8F%A3%E6%9E%9A%E4%B8%BE%E6%89%93%E5%8D%B0%E6%9C%BA%E6%97%B6%E9%9C%80%E8%A6%81%E8%BF%9B%E8%A1%8C%E6%9E%9A%E4%B8%BE%E7%9A%84%E5%A4%9A%E4%B8%AA%E5%AD%90%E7%BD%91%E6%AE%B5">DSTP2x_SetNetEnumSubNets (网口枚举打印机时，需要进行枚举的多个子网段)</a></li>
+<li><a href="#dstp2x_setnetworkreconnectpar-%E8%AE%BE%E7%BD%AE%E7%BD%91%E5%8F%A3%E8%BF%9E%E6%8E%A5%E9%87%8D%E8%AF%95">DSTP2x_SetNetworkReconnectPar (设置网口连接重试)</a></li>
+</ul>
+</li>
+<li><a href="#%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD">常用功能</a>
+<ul>
+<li><a href="#dstp2x_cutpaper-%E5%8D%B3%E6%97%B6%E5%88%87%E7%BA%B8">DSTP2x_CutPaper (即时切纸)</a></li>
+<li><a href="#dstp2x_locateblackmark-%E8%BF%9E%E7%BB%AD%E7%BA%B8%E9%BB%91%E6%A0%87%E5%AE%9A%E4%BD%8D">DSTP2x_LocateBlackMark (连续纸黑标定位)</a></li>
+<li><a href="#dstp2x_locatelabel-%E6%99%AE%E9%80%9A%E6%A0%87%E7%AD%BE%E5%AE%9A%E4%BD%8D">DSTP2x_LocateLabel (普通标签定位)</a></li>
+<li><a href="#dstp2x_movepaper-%E7%A7%BB%E5%8A%A8%E6%A0%87%E7%AD%BE">DSTP2x_MovePaper (移动标签)</a></li>
+<li><a href="#dstp2x_printselfcheckpage-%E6%89%93%E5%8D%B0%E8%87%AA%E6%A3%80%E9%A1%B5">DSTP2x_PrintSelfCheckPage (打印自检页)</a></li>
+<li><a href="#dstp2x_restartprt-%E8%AE%BE%E5%A4%87%E6%B8%85%E7%BC%93%E5%AD%98">DSTP2x_RestartPrt (设备清缓存)</a></li>
+<li><a href="#dstp2x_transrecvdata-%E5%90%91%E6%89%93%E5%8D%B0%E6%9C%BA%E7%9B%B4%E4%BC%A0%E6%95%B0%E6%8D%AE">DSTP2x_TransRecvData (向打印机直传数据)</a></li>
+</ul>
+</li>
+<li><a href="#%E8%AE%BE%E5%A4%87%E4%BF%A1%E6%81%AF%E6%9F%A5%E8%AF%A2">设备信息查询</a>
+<ul>
+<li><a href="#dstp2x_getprtfwver-%E6%9F%A5%E8%AF%A2%E6%89%93%E5%8D%B0%E6%9C%BA%E5%9B%BA%E4%BB%B6%E7%89%88%E6%9C%AC%E5%8F%B7">DSTP2x_GetPrtFWVer (查询打印机固件版本号)</a></li>
+<li><a href="#dstp2x_getprtmotortraveldistance-%E6%9F%A5%E8%AF%A2%E6%89%93%E5%8D%B0%E6%9C%BA%E7%94%B5%E6%9C%BA%E8%BD%AC%E5%8A%A8%E8%B7%AF%E7%A8%8B">DSTP2x_GetPrtMotorTravelDistance (查询打印机电机转动路程)</a></li>
+<li><a href="#dstp2x_getprtsn-%E6%9F%A5%E8%AF%A2%E6%89%93%E5%8D%B0%E6%9C%BA%E5%BA%8F%E5%88%97%E5%8F%B7">DSTP2x_GetPrtSN (查询打印机序列号)</a></li>
+<li><a href="#dstp2x_getprtstatus-%E6%9F%A5%E8%AF%A2%E6%89%93%E5%8D%B0%E6%9C%BA%E7%8A%B6%E6%80%81">DSTP2x_GetPrtStatus (查询打印机状态)</a></li>
+<li><a href="#dstp2x_getprtname-%E6%9F%A5%E8%AF%A2%E6%89%93%E5%8D%B0%E6%9C%BA%E6%9C%BA%E5%9E%8B%E5%90%8D">DSTP2x_GetPrtName (查询打印机机型名)</a></li>
+</ul>
+</li>
+<li><a href="#%E5%8A%9F%E8%83%BD%E8%AE%BE%E7%BD%AE">功能设置</a>
+<ul>
+<li><a href="#dstp2x_setimgdpi-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E5%9B%BE%E5%83%8F%E7%9A%84%E5%88%86%E8%BE%A8%E7%8E%87">DSTP2x_SetImgDpi (设置待绘制图像的分辨率)</a></li>
+<li><a href="#dstp2x_setprnemulation-%E8%AE%BE%E7%BD%AE%E4%BB%BF%E7%9C%9F%E7%B1%BB%E5%9E%8B">DSTP2x_SetPrnEmulation (设置仿真类型)</a></li>
+<li><a href="#dstp2x_setprnoffset-%E8%AE%BE%E7%BD%AE%E6%89%93%E5%8D%B0%E5%81%8F%E7%A7%BB">DSTP2x_SetPrnOffset (设置打印偏移)</a></li>
+<li><a href="#dstp2x_setrtstatus-%E8%AE%BE%E7%BD%AE%E8%8E%B7%E5%8F%96%E7%8A%B6%E6%80%81%E7%9A%84%E5%AE%9E%E6%97%B6%E6%80%A7">DSTP2x_SetRTStatus (设置获取状态的实时性)</a></li>
+<li><a href="#dstp2x_turnoffcutter-%E5%85%B3%E9%97%AD%E5%88%87%E5%88%80%E5%8A%9F%E8%83%BD">DSTP2x_TurnOffCutter (关闭切刀功能)</a></li>
+<li><a href="#dstp2x_turnoncutter-%E5%BC%80%E5%90%AF%E5%88%87%E5%88%80%E5%8A%9F%E8%83%BD">DSTP2x_TurnOnCutter (开启切刀功能)</a></li>
+</ul>
+</li>
+<li><a href="#rfid%E5%8A%9F%E8%83%BD">RFID功能</a>
+<ul>
+<li><a href="#dstp2x_rfid_getreadpower-%E8%8E%B7%E5%8F%96rfid%E8%AF%BB%E5%8A%9F%E7%8E%87">DSTP2x_RFID_GetReadPower (获取RFID读功率)</a></li>
+<li><a href="#dstp2x_rfid_getwritepower-%E8%8E%B7%E5%8F%96rfid%E5%86%99%E5%8A%9F%E7%8E%87">DSTP2x_RFID_GetWritePower (获取RFID写功率)</a></li>
+<li><a href="#dstp2x_rfid_locatelabel-rfid%E6%A0%87%E7%AD%BE%E5%AE%9A%E4%BD%8D">DSTP2x_RFID_LocateLabel (RFID标签定位)</a></li>
+<li><a href="#dstp2x_rfid_readdata-%E8%AF%BB%E5%8F%96rfid%E6%95%B0%E6%8D%AE">DSTP2x_RFID_ReadData (读取RFID数据)</a></li>
+<li><a href="#dstp2x_rfid_setreadpower-%E8%AE%BE%E7%BD%AErfid%E8%AF%BB%E5%8A%9F%E7%8E%87">DSTP2x_RFID_SetReadPower (设置RFID读功率)</a></li>
+<li><a href="#dstp2x_rfid_setwritepower-%E8%AE%BE%E7%BD%AErfid%E5%86%99%E5%8A%9F%E7%8E%87">DSTP2x_RFID_SetWritePower (设置RFID写功率)</a></li>
+<li><a href="#dstp2x_rfid_changeaccesspassword-%E4%BF%AE%E6%94%B9rfid%E6%A0%87%E7%AD%BE%E7%9A%84%E8%AE%BF%E9%97%AE%E5%AF%86%E7%A0%81">DSTP2x_RFID_ChangeAccessPassword (修改RFID标签的访问密码)</a></li>
+<li><a href="#dstp2x_rfid_setdestructionpassword-%E8%AE%BE%E7%BD%AErfid%E6%A0%87%E7%AD%BE%E7%9A%84%E9%94%80%E6%AF%81%E5%AF%86%E7%A0%81">DSTP2x_RFID_SetDestructionPassword (设置RFID标签的销毁密码)</a></li>
+<li><a href="#dstp2x_rfid_lockoperate-%E9%94%81%E5%AE%9A%E7%89%B9%E5%AE%9Arfid%E5%8C%BA%E5%9F%9F">DSTP2x_RFID_LockOperate (锁定特定RFID区域)</a></li>
+<li><a href="#dstp2x_rfid_unlockoperate-%E8%A7%A3%E9%94%81%E7%89%B9%E5%AE%9Arfid%E5%8C%BA%E5%9F%9F">DSTP2x_RFID_UnlockOperate (解锁特定RFID区域)</a></li>
+<li><a href="#dstp2x_setpasswordwithwrite-%E5%B8%A6%E5%AF%86%E7%A0%81%E5%86%99%E7%89%B9%E5%AE%9Arfid%E5%8C%BA%E5%9F%9F">DSTP2x_SetPasswordWithWrite (带密码写特定RFID区域)</a></li>
+<li><a href="#dstp2x_rfid_locktypesetting-rfid%E9%94%81%E5%AE%9A%E7%B1%BB%E5%9E%8B%E8%AE%BE%E7%BD%AE">DSTP2x_RFID_LockTypeSetting (RFID锁定类型设置)</a></li>
+<li><a href="#dstp2x_rfid_getproto-%E8%8E%B7%E5%8F%96rfid%E5%8D%8F%E8%AE%AE">DSTP2x_RFID_GetProto (获取RFID协议)</a></li>
+<li><a href="#dstp2x_rfid_setproto-%E8%AE%BE%E7%BD%AErfid%E5%8D%8F%E8%AE%AE">DSTP2x_RFID_SetProto (设置RFID协议)</a></li>
+</ul>
+</li>
+<li><a href="#pdf%E6%89%93%E5%8D%B0">PDF打印</a>
+<ul>
+<li><a href="#dstp2x_deletepdf-%E5%88%A0%E9%99%A4pdf%E5%8F%A5%E6%9F%84">DSTP2x_DeletePdf (删除PDF句柄)</a></li>
+<li><a href="#dstp2x_loadpdf-%E5%8A%A0%E8%BD%BDpdf%E6%95%B0%E6%8D%AE">DSTP2x_LoadPdf (加载PDF数据)</a></li>
+<li><a href="#dstp2x_printpdf-%E6%89%93%E5%8D%B0pdf">DSTP2x_PrintPdf (打印PDF)</a></li>
+<li><a href="#dstp2x_setpdfprnmode-%E8%AE%BE%E7%BD%AEpdf%E6%89%93%E5%8D%B0%E6%A8%A1%E5%BC%8F">DSTP2x_SetPdfPrnMode (设置PDF打印模式)</a></li>
+<li><a href="#dstp2x_setpdfprnrotate-%E8%AE%BE%E7%BD%AEpdf%E7%9B%AE%E6%A0%87%E6%89%93%E5%8D%B0%E6%97%8B%E8%BD%AC%E8%A7%92%E5%BA%A6">DSTP2x_SetPdfPrnRotate (设置pdf目标打印旋转角度)</a></li>
+<li><a href="#dstp2x_setpdfprnsize-%E8%AE%BE%E7%BD%AEpdf%E7%9B%AE%E5%89%8D%E6%89%93%E5%8D%B0%E5%B0%BA%E5%AF%B8">DSTP2x_SetPdfPrnSize (设置PDF目前打印尺寸)</a></li>
+<li><a href="#dstp2x_setpdfhalftonealgo-%E8%AE%BE%E7%BD%AEpdf%E5%9B%BE%E5%83%8F%E7%9A%84%E5%8D%8A%E8%89%B2%E8%B0%83%E5%A4%84%E7%90%86%E7%AE%97%E6%B3%95">DSTP2x_SetPdfHalftoneAlgo (设置pdf图像的半色调处理算法)</a></li>
+<li><a href="#dstp2x_setpdfprnsynctype-%E8%AE%BE%E7%BD%AEdstp2x_printpdf%E5%8D%95%E6%AC%A1%E8%B0%83%E7%94%A8%E6%98%AF%E5%90%A6%E6%89%93%E5%8D%B0%E5%90%8C%E6%AD%A5%E7%BB%93%E6%9E%9C">DSTP2x_SetPdfPrnSyncType (设置DSTP2x_PrintPdf单次调用是否打印同步结果)</a></li>
+<li><a href="#dstp2x_setpdfprntimeout-%E8%AE%BE%E7%BD%AEdstp2x_printpdf%E5%8D%95%E6%AC%A1%E8%B0%83%E7%94%A8%E6%9C%80%E5%A4%A7%E8%B6%85%E6%97%B6%E6%97%B6%E9%97%B4">DSTP2x_SetPdfPrnTimeout (设置DSTP2x_PrintPdf单次调用最大超时时间)</a></li>
+<li><a href="#dstp2x_setpdfrfiddata-%E8%AE%BE%E7%BD%AEpdf%E6%89%93%E5%8D%B0%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%9C%80%E8%A6%81%E5%86%99%E5%85%A5%E7%9A%84rfid%E6%95%B0%E6%8D%AE">DSTP2x_SetPdfRFIDData (设置PDF打印过程中需要写入的RFID数据)</a></li>
+</ul>
+</li>
+<li><a href="#%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF%E6%89%93%E5%8D%B0%E5%8A%9F%E8%83%BD">标签模板打印功能</a>
+<ul>
+<li><a href="#dstp2x_deletetmpl-%E5%88%A0%E9%99%A4%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF%E6%96%87%E4%BB%B6%E5%8F%A5%E6%9F%84">DSTP2x_DeleteTmpl (删除标签模板文件句柄)</a></li>
+<li><a href="#dstp2x_loadlabeltmpl-%E5%8A%A0%E8%BD%BD%E9%A2%84%E5%AE%9A%E4%B9%89%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF">DSTP2x_LoadLabelTmpl (加载预定义标签模板)</a></li>
+<li><a href="#dstp2x_printtmpl-%E6%89%93%E5%8D%B0%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF">DSTP2x_PrintTmpl (打印标签模板)</a></li>
+<li><a href="#dstp2x_settmplprndata-%E4%B8%BA%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF%E5%86%85%E6%8C%87%E5%AE%9Aid%E7%9A%84%E5%85%83%E7%B4%A0%E8%AE%BE%E7%BD%AE%E5%AE%9E%E9%99%85%E7%9A%84%E6%89%93%E5%8D%B0%E6%9B%BF%E4%BB%A3%E6%95%B0%E6%8D%AE">DSTP2x_SetTmplPrnData (为标签模板内指定ID的元素设置实际的打印替代数据)</a></li>
+<li><a href="#dstp2x_settmplvalbykey-%E4%B8%BA%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF%E5%86%85%E6%8C%87%E5%AE%9Aid%E7%9A%84%E5%85%83%E7%B4%A0%E6%A0%B9%E6%8D%AE%E5%AD%98%E5%9C%A8%E7%9A%84%E9%94%AE%E5%80%BC%E8%AE%BE%E7%BD%AE%E6%9B%BF%E4%BB%A3%E7%9A%84%E5%B1%9E%E6%80%A7%E5%80%BC">DSTP2x_SetTmplValByKey (为标签模板内指定ID的元素，根据存在的键值设置替代的属性值)</a></li>
+<li><a href="#dstp2x_getbacktmpl-%E8%BF%94%E5%9B%9E%E5%BD%93%E5%89%8D%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF%E7%9A%84%E6%A8%A1%E6%9D%BF%E6%96%87%E4%BB%B6dlt">DSTP2x_GetBackTmpl (返回当前标签模板的模板文件(.dlt))</a></li>
+<li><a href="#dstp2x_gettmplallidvalues-%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF%E6%89%80%E6%9C%89id%E5%80%BC">DSTP2x_GetTmplAllIDValues (获取当前标签模板所有ID值)</a></li>
+<li><a href="#dstp2x_settmplprnmode-%E8%AE%BE%E7%BD%AE%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF%E7%9A%84%E6%89%93%E5%8D%B0%E6%A8%A1%E5%BC%8F">DSTP2x_SetTmplPrnMode (设置标签模板的打印模式)</a></li>
+<li><a href="#dstp2x_settmplprnsynctype-%E8%AE%BE%E7%BD%AEdstp2x_printtmpl%E5%8D%95%E6%AC%A1%E8%B0%83%E7%94%A8%E6%98%AF%E5%90%A6%E6%89%93%E5%8D%B0%E5%90%8C%E6%AD%A5%E7%BB%93%E6%9E%9C">DSTP2x_SetTmplPrnSyncType (设置DSTP2x_PrintTmpl单次调用是否打印同步结果)</a></li>
+<li><a href="#dstp2x_settmplprntimeout-%E8%AE%BE%E7%BD%AEdstp2x_printtmpl%E5%8D%95%E6%AC%A1%E8%B0%83%E7%94%A8%E6%9C%80%E5%A4%A7%E8%B6%85%E6%97%B6%E6%97%B6%E9%97%B4">DSTP2x_SetTmplPrnTimeout (设置DSTP2x_PrintTmpl单次调用最大超时时间)</a></li>
+<li><a href="#dstp2x_settmplrfiddata-%E4%B8%BA%E6%A0%87%E7%AD%BE%E6%A8%A1%E6%9D%BF%E5%86%85%E6%8C%87%E5%AE%9Aid%E7%9A%84%E5%85%83%E7%B4%A0%E8%AE%BE%E7%BD%AE%E5%AE%9E%E9%99%85%E7%9A%84rfid%E5%86%99%E5%85%A5%E6%9B%BF%E4%BB%A3%E6%95%B0%E6%8D%AE">DSTP2x_SetTmplRFIDData (为标签模板内指定ID的元素设置实际的rfid写入替代数据)</a></li>
+</ul>
+</li>
+<li><a href="#%E6%A0%87%E7%AD%BE%E7%BB%98%E5%9B%BE%E6%89%93%E5%8D%B0%E5%8A%9F%E8%83%BD">标签绘图打印功能</a>
+<ul>
+<li><a href="#dstp2x_createlabelcontext-%E5%88%9B%E5%BB%BA%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83">DSTP2x_CreateLabelContext (创建标签画布)</a></li>
+<li><a href="#dstp2x_createtable-%E5%88%9B%E5%BB%BA%E8%A1%A8%E6%A0%BC">DSTP2x_CreateTable (创建表格)</a></li>
+<li><a href="#dstp2x_deletelabelcontext-%E5%88%A0%E9%99%A4%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E5%8F%A5%E6%9F%84">DSTP2x_DeleteLabelContext (删除标签画布句柄)</a></li>
+<li><a href="#dstp2x_deletetable-%E5%88%A0%E9%99%A4%E8%A1%A8%E6%A0%BC%E5%8F%A5%E6%9F%84">DSTP2x_DeleteTable (删除表格句柄)</a></li>
+<li><a href="#dstp2x_lbl_drawbarcode-%E5%9C%A8%E6%8C%87%E5%AE%9A%E7%9A%84%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%88%B6%E6%9D%A1%E7%A0%81">DSTP2x_Lbl_DrawBarCode (在指定的标签画布绘制条码)</a></li>
+<li><a href="#dstp2x_lbl_drawimage-%E5%9C%A8%E6%8C%87%E5%AE%9A%E7%9A%84%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%88%B6%E5%9B%BE%E5%83%8F">DSTP2x_Lbl_DrawImage (在指定的标签画布绘制图像)</a></li>
+<li><a href="#dstp2x_lbl_drawtext-%E5%9C%A8%E6%8C%87%E5%AE%9A%E7%9A%84%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC">DSTP2x_Lbl_DrawText (在指定的标签画布绘制文本)</a></li>
+<li><a href="#dstp2x_lcdraw_setbarcodeeclvl-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E4%BA%8C%E7%BB%B4%E7%A0%81%E7%BA%A0%E9%94%99%E7%BA%A7%E5%88%AB">DSTP2x_LcDraw_SetBarCodeEcLvl (标签画布绘图设置-设置待绘制二维码纠错级别)</a></li>
+<li><a href="#dstp2x_lcdraw_setbarcodeexpl-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E4%B8%80%E7%BB%B4%E7%A0%81%E6%98%AF%E5%90%A6%E6%89%93%E5%8D%B0%E6%B3%A8%E9%87%8A%E8%A1%8C">DSTP2x_LcDraw_SetBarCodeExpl (标签画布绘图设置-设置待一维码是否打印注释行)</a></li>
+<li><a href="#dstp2x_lcdraw_setbarcoderotation-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E4%B8%80%E7%BB%B4%E7%A0%81%E5%92%8C%E4%BA%8C%E7%BB%B4%E7%A0%81%E7%9A%84%E6%97%8B%E8%BD%AC%E5%8F%82%E6%95%B0">DSTP2x_LcDraw_SetBarCodeRotation (标签画布绘图设置-设置待绘制一维码和二维码的旋转参数)</a></li>
+<li><a href="#dstp2x_lcdraw_setimagehalftonealgo-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E5%9B%BE%E5%83%8F%E7%9A%84%E5%8D%8A%E8%89%B2%E8%B0%83%E5%A4%84%E7%90%86%E7%AE%97%E6%B3%95">DSTP2x_LcDraw_SetImageHalftoneAlgo (标签画布绘图设置-设置待绘制图像的半色调处理算法)</a></li>
+<li><a href="#dstp2x_lcdraw_setimagerotation-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E5%9B%BE%E5%83%8F%E6%97%8B%E8%BD%AC%E5%8F%82%E6%95%B0">DSTP2x_LcDraw_SetImageRotation (标签画布绘图设置-设置待绘制图像旋转参数)</a></li>
+<li><a href="#dstp2x_lcdraw_settextautolinefeed-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC%E6%98%AF%E5%90%A6%E8%87%AA%E5%8A%A8%E6%8D%A2%E8%A1%8C">DSTP2x_LcDraw_SetTextAutoLineFeed (标签画布绘图设置-设置待绘制文本是否自动换行)</a></li>
+<li><a href="#dstp2x_lcdraw_settextbold-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC%E6%98%AF%E5%90%A6%E5%8A%A0%E7%B2%97">DSTP2x_LcDraw_SetTextBold (标签画布绘图设置-设置待绘制文本是否加粗)</a></li>
+<li><a href="#dstp2x_lcdraw_settextcharspacing-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC%E5%AD%97%E9%97%B4%E8%B7%9D">DSTP2x_LcDraw_SetTextCharSpacing (标签画布绘图设置-设置待绘制文本字间距)</a></li>
+<li><a href="#dstp2x_lcdraw_settextfontname-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC%E5%86%85%E5%AE%B9%E7%9A%84%E5%AD%97%E4%BD%93%E5%90%8D%E7%A7%B0">DSTP2x_LcDraw_SetTextFontName (标签画布绘图设置-设置待绘制文本内容的字体名称)</a></li>
+<li><a href="#dstp2x_lcdraw_settextfontsize-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC%E5%86%85%E5%AE%B9%E7%9A%84%E5%AD%97%E4%BD%93%E5%A4%A7%E5%B0%8F">DSTP2x_LcDraw_SetTextFontSize (标签画布绘图设置-设置待绘制文本内容的字体大小)</a></li>
+<li><a href="#dstp2x_lcdraw_settexthalign-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC%E6%B0%B4%E5%B9%B3%E5%AF%B9%E9%BD%90%E6%96%B9%E5%BC%8F">DSTP2x_LcDraw_SetTextHAlign (标签画布绘图设置-设置待绘制文本水平对齐方式)</a></li>
+<li><a href="#dstp2x_lcdraw_settextitalic-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC%E6%98%AF%E5%90%A6%E6%96%9C%E4%BD%93">DSTP2x_LcDraw_SetTextItalic (标签画布绘图设置-设置待绘制文本是否斜体)</a></li>
+<li><a href="#dstp2x_lcdraw_settextlinespacing-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC%E8%A1%8C%E9%97%B4%E8%B7%9D">DSTP2x_LcDraw_SetTextLineSpacing (标签画布绘图设置-设置待绘制文本行间距)</a></li>
+<li><a href="#dstp2x_lcdraw_settextrotation-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC%E6%97%8B%E8%BD%AC%E5%8F%82%E6%95%B0">DSTP2x_LcDraw_SetTextRotation (标签画布绘图设置-设置待绘制文本旋转参数)</a></li>
+<li><a href="#dstp2x_lcdraw_settextvalign-%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC%E5%9E%82%E7%9B%B4%E5%AF%B9%E9%BD%90%E6%96%B9%E5%BC%8F">DSTP2x_LcDraw_SetTextVAlign (标签画布绘图设置-设置待绘制文本垂直对齐方式)</a></li>
+<li><a href="#dstp2x_lcrfid_setdata-%E8%AE%BE%E7%BD%AE%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E6%89%93%E5%8D%B0%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%9C%80%E8%A6%81%E5%86%99%E5%85%A5%E7%9A%84-rfid-%E6%95%B0%E6%8D%AE">DSTP2x_LcRfid_SetData (设置标签画布打印过程中需要写入的 rfid 数据)</a></li>
+<li><a href="#dstp2x_printlc-%E6%89%93%E5%8D%B0%E6%A0%87%E7%AD%BE">DSTP2x_PrintLc (打印标签)</a></li>
+<li><a href="#dstp2x_setlcprnmode-%E8%AE%BE%E7%BD%AE%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%9A%84%E6%89%93%E5%8D%B0%E6%A8%A1%E5%BC%8F">DSTP2x_SetLcPrnMode (设置标签画布的打印模式)</a></li>
+<li><a href="#dstp2x_setlcprnrotate-%E8%AE%BE%E7%BD%AE%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%9A%84%E6%95%B4%E5%BC%A0%E7%94%BB%E5%B8%83%E6%97%8B%E8%BD%AC%E8%A7%92%E5%BA%A6">DSTP2x_SetLcPrnRotate (设置标签画布的整张画布旋转角度)</a></li>
+<li><a href="#dstp2x_setlcprnsynctype-%E8%AE%BE%E7%BD%AEdstp2x_printlc%E5%8D%95%E6%AC%A1%E8%B0%83%E7%94%A8%E6%98%AF%E5%90%A6%E6%89%93%E5%8D%B0%E5%90%8C%E6%AD%A5%E7%BB%93%E6%9E%9C">DSTP2x_SetLcPrnSyncType (设置DSTP2x_PrintLc单次调用是否打印同步结果)</a></li>
+<li><a href="#dstp2x_setlcprntimeout-%E8%AE%BE%E7%BD%AEdstp2x_printlc%E5%8D%95%E6%AC%A1%E8%B0%83%E7%94%A8%E6%9C%80%E5%A4%A7%E8%B6%85%E6%97%B6%E6%97%B6%E9%97%B4">DSTP2x_SetLcPrnTimeout (设置DSTP2x_PrintLc单次调用最大超时时间)</a></li>
+<li><a href="#dstp2x_tbl_drawbarcode-%E5%9C%A8%E8%A1%A8%E6%A0%BC%E6%8C%87%E5%AE%9A%E5%8D%95%E5%85%83%E6%A0%BC%E4%B8%8A%E7%BB%98%E5%88%B6%E4%B8%80%E7%BB%B4%E4%BA%8C%E7%BB%B4%E6%9D%A1%E7%A0%81">DSTP2x_Tbl_DrawBarCode (在表格指定单元格上绘制一维、二维条码)</a></li>
+<li><a href="#dstp2x_tbl_drawimage-%E5%9C%A8%E8%A1%A8%E6%A0%BC%E6%8C%87%E5%AE%9A%E5%8D%95%E5%85%83%E6%A0%BC%E4%B8%8A%E7%BB%98%E5%88%B6%E5%9B%BE%E5%83%8F">DSTP2x_Tbl_DrawImage (在表格指定单元格上绘制图像)</a></li>
+<li><a href="#dstp2x_tbl_drawtext-%E5%9C%A8%E8%A1%A8%E6%A0%BC%E6%8C%87%E5%AE%9A%E5%8D%95%E5%85%83%E6%A0%BC%E4%B8%8A%E7%BB%98%E5%88%B6%E6%96%87%E6%9C%AC">DSTP2x_Tbl_DrawText (在表格指定单元格上绘制文本)</a></li>
+<li><a href="#dstp2x_tbl_drawline-%E5%9C%A8%E8%A1%A8%E6%A0%BC%E6%8C%87%E5%AE%9A%E5%8D%95%E5%85%83%E6%A0%BC%E4%B8%8A%E7%BB%98%E5%88%B6%E7%BA%BF%E6%AE%B5">DSTP2x_Tbl_DrawLine (在表格指定单元格上绘制线段)</a></li>
+<li><a href="#dstp2x_tbl_drawellipse-%E5%9C%A8%E8%A1%A8%E6%A0%BC%E6%8C%87%E5%AE%9A%E5%8D%95%E5%85%83%E6%A0%BC%E4%B8%8A%E7%BB%98%E5%88%B6%E6%A4%AD%E5%9C%86">DSTP2x_Tbl_DrawEllipse (在表格指定单元格上绘制椭圆)</a></li>
+<li><a href="#dstp2x_tbl_drawrectangle-%E5%9C%A8%E8%A1%A8%E6%A0%BC%E6%8C%87%E5%AE%9A%E5%8D%95%E5%85%83%E6%A0%BC%E4%B8%8A%E7%BB%98%E5%88%B6%E7%9F%A9%E5%BD%A2">DSTP2x_Tbl_DrawRectangle (在表格指定单元格上绘制矩形)</a></li>
+<li><a href="#dstp2x_tbl_mergegrids-%E5%90%88%E5%B9%B6%E5%8D%95%E5%85%83%E6%A0%BC">DSTP2x_Tbl_MergeGrids (合并单元格)</a></li>
+<li><a href="#dstp2x_tbl_revertmergedgrid-%E8%BF%98%E5%8E%9F%E5%B7%B2%E5%90%88%E5%B9%B6%E7%9A%84%E5%8D%95%E5%85%83%E6%A0%BC">DSTP2x_Tbl_RevertMergedGrid (还原（已合并的）单元格)</a></li>
+<li><a href="#dstp2x_tbl_movecolboundary-%E9%80%9A%E8%BF%87%E7%A7%BB%E5%8A%A8%E5%88%97%E7%9A%84%E8%BE%B9%E7%95%8C%E7%BA%BF%E4%BB%A5%E6%9B%B4%E6%94%B9%E8%A1%A8%E6%A0%BC%E7%9A%84%E5%88%97%E5%AE%BD">DSTP2x_Tbl_MoveColBoundary (通过移动列的边界线以更改表格的列宽)</a></li>
+<li><a href="#dstp2x_tbl_moverowboundary-%E9%80%9A%E8%BF%87%E7%A7%BB%E5%8A%A8%E5%88%97%E7%9A%84%E8%BE%B9%E7%95%8C%E7%BA%BF%E4%BB%A5%E6%9B%B4%E6%94%B9%E8%A1%A8%E6%A0%BC%E7%9A%84%E8%A1%8C%E9%AB%98">DSTP2x_Tbl_MoveRowBoundary (通过移动列的边界线以更改表格的行高)</a></li>
+<li><a href="#dstp2x_lbl_drawline-%E5%9C%A8%E6%8C%87%E5%AE%9A%E7%9A%84%E6%A0%87%E7%AD%BE%E7%94%BB%E5%B8%83%E7%BB%98%E5%88%B6%E7%BA%BF%E6%AE%B5">DSTP2x_Lbl_DrawLine (在指定的标签画布绘制线段)</a></li>
+<li><a href="#dstp2x_lcdraw_setellipserotation-%E6%A0%87%E7%AD%BE%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E6%A4%AD%E5%9C%86%E6%97%8B%E8%BD%AC%E5%8F%82%E6%95%B0">DSTP2x_LcDraw_SetEllipseRotation (标签上下文绘图设置-设置待绘制椭圆旋转参数)</a></li>
+<li><a href="#dstp2x_lbl_drawellipse-%E5%9C%A8%E6%8C%87%E5%AE%9A%E7%9A%84%E6%A0%87%E7%AD%BE%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BB%98%E5%88%B6%E6%A4%AD%E5%9C%86">DSTP2x_Lbl_DrawEllipse (在指定的标签上下文绘制椭圆)</a></li>
+<li><a href="#dstp2x_lcdraw_setrectanglerotation-%E6%A0%87%E7%AD%BE%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BB%98%E5%9B%BE%E8%AE%BE%E7%BD%AE-%E8%AE%BE%E7%BD%AE%E5%BE%85%E7%BB%98%E5%88%B6%E7%9F%A9%E5%BD%A2%E6%97%8B%E8%BD%AC%E5%8F%82%E6%95%B0">DSTP2x_LcDraw_SetRectangleRotation (标签上下文绘图设置-设置待绘制矩形旋转参数)</a></li>
+<li><a href="#dstp2x_lbl_drawrectangle-%E5%9C%A8%E6%8C%87%E5%AE%9A%E7%9A%84%E6%A0%87%E7%AD%BE%E4%B8%8A%E4%B8%8B%E6%96%87%E7%BB%98%E5%88%B6%E7%9F%A9%E5%BD%A2">DSTP2x_Lbl_DrawRectangle (在指定的标签上下文绘制矩形)</a></li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+<h1 id="库的基本操作">库的基本操作</h1>
+<h2 id="dstp2x_apirtncodetomsg-解析sdk接口返回的错误码">DSTP2x_ApiRtnCodeToMsg (解析SDK接口返回的错误码)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_ApiRtnCodeToMsg(unsigned int unSDKErrCode, char *szDesc, int *pLen)
+
+说明：
+  将SDK接口返回的错误码翻译成对应的解释
+
+参数：
+  [in]        unSDKErrCode    SDK接口返回的错误码
+  [out]       szDesc          输出字符串缓冲区，大小：不少于 1024 字节，字符串的字符编码：utf-8
+  [in,out]    pLen            入参时：szDesc 指向的缓冲区大小，出参时：实际写入 szDesc 指向的缓冲区的字符串长度
+
+返回：
+  0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_getlibversion-获取本库版本号">DSTP2x_GetLibVersion (获取本库版本号)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetLibVersion(char *pLibVer, int *pLibVerLen)
+
+说明：
+  本热敏库的版本号为五组数字。
+
+参数：
+  [out]       pLibVer         用于存放返回的版本号信息，建议缓冲区预分配不小于
+16 字节
+  [in,out]    pLibVerLen      入参时表示 pLibVer 的缓冲区大小，出参时表示实际存入 pLibVer 的数据长度
+
+返回：
+  0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_getlibinfo-获取本库信息">DSTP2x_GetLibInfo (获取本库信息)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetLibInfo(char *pLibInfo, int *pLibInfoLen) 
+
+参数：
+  [out]       pLibInfo         用于存放返回的库信息，建议缓冲区预分配不小于256字节
+  [in,out]    pLibInfoLen      入参时表示pLibInfo的缓冲区大小
+
+返回：
+  0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lib_init-动态库初始化">DSTP2x_Lib_Init (动态库初始化)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lib_Init(char *pSzInitInfo, int nInitInfoLen, char *pSzResult, int *pResultLen)
+
+说明：
+  用以初始化 SDK 库资源；当本动态库被加载后，进程内必须且仅需成功调用一次本接口。调用失败时需要查看 pSzResult 的内容的描述有助于分析问题。
+注：
+  若进程内本接口未曾被成功调用过，其他接口将无法正常使用！！！
+
+参数：
+  [in]        pSzInitInfo        自定义描述信息(默认传&quot;&quot;)
+  [in]        nInitInfoLen       自定义描述信息长度
+  [out]       pSzResult          返回初始化成功的说明信息或者初始化失败的出错信息，字符编码：utf-8，建议分配不小于 1024 字节的空间
+
+返回：
+  0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lib_clear-动态库清理">DSTP2x_Lib_Clear (动态库清理)</h2>
+<pre><code>unsigned int DSSDK  DSTP2x_GetLibInfo(char * pLibInfo, int * 	pLibInfoLen)
+
+说明：
+  动态库被卸载前必须调用，进程调用一次即可
+
+返回：
+  0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setliblang-设置库语言">DSTP2x_SetLibLang (设置库语言)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetLibLang 	(	int 	nLanguage	)	
+
+说明：
+  能设置成中文或英文 
+
+参数:
+  [in]        nLanguage]       语言 
+                               0 - 中文（默认） 
+                               1 - 英文 
+  
+返回:
+  0表示成功，非零失败 
+</code></pre>
+<br>
+<br>
+<h1 id="设备连接">设备连接</h1>
+<h2 id="dstp2x_connenumerateddev-通过设备名称连接设备">DSTP2x_ConnEnumeratedDev (通过设备名称连接设备)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_ConnEnumeratedDev(const char *szDevName, DEV_HDL *pDevHdl)
+
+说明：
+	根据DSTP2x_EnumDev接口枚举得到的设备集，连接其中的设备
+
+参数：
+  [in]        szDevName        来自DSTP2x_EnumDev返回的szEnumList中的一台设备的名称
+  [out]       pDevHdl          设备句柄地址
+
+返回：
+	0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_connnetworkdev-通过ip和端口连接设备">DSTP2x_ConnNetworkDev (通过IP和端口连接设备)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_ConnNetworkDev(const char *szIpPort, DEV_HDL *pDevHdl)
+
+说明：
+  通过 IP 和端口直接连接上设备，并获得设备句柄。
+
+参数：
+  [in]        szIpPort         通过传入 Ip 地址和端口号直接连接设备，如传入&quot;165.469.2.23:9100&quot; 
+  [out]       pDevHdl          设备句柄地址
+
+返回：
+  0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_connserialdev-通过串口号和波特率连接设备">DSTP2x_ConnSerialDev (通过串口号和波特率连接设备)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_ConnSerialDev( int nSerialNo, int nBaudRate, DEV_HDL *pDevHdl)
+
+说明:
+ 通过串口号和波特率直接连接设备，并获得设备句柄。
+
+参数:
+  [in]        nSerialNo        串口号
+  [in]        nBaudRate        波特率
+  [out]       pDevHdl          设备句柄地址
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_disconndev-断开设备连接">DSTP2x_DisconnDev (断开设备连接)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_DisconnDev(DEV_HDL ullDevHdl)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_enumdev-搜索在线设备">DSTP2x_EnumDev (搜索在线设备)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_EnumDev(int nEnumType, char *szEnumList, int *pDevSize, int *pDevNum)
+
+说明：
+ 请确保设备已开机且已连接到PC机。
+
+参数:
+  [in]        nEnumType        枚举类型 
+                               1 - 枚举USB在线的设备
+                               2 - 枚举TCP在线的设备
+  [out]       szEnumList       枚举列表，若有多台设备则以“\\n”分隔
+  [in,out]    pDevSize         入参时指出szEnumList的大小，出参时指出实际填入szEnumList的字符串长度
+  [out]       pDevNum          枚举到的在线的设备数量
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setcommtimeout-设置连接的通讯超时">DSTP2x_SetCommTimeout (设置连接的通讯超时)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetCommTimeout(DEV_HDL ullDevHdl, int nCommType, unsigned int unSendTimeout, unsigned int unRecvTimeout)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址 
+                 
+  [in]        nCommType        设置通讯超时类型
+                               1 - 设置USB超时
+                               2 - 设置TCP超时
+                               3 - 设置串口超时  
+  [in]        unSendTimeout    数据发送超时，单位：毫秒
+  [in]        unRecvTimeout    数据接收超时，单位：毫秒
+ 
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setnetenumrecvtimes-设置网口枚举打印机接收应答时允许连续读不到数据的次数">DSTP2x_SetNetEnumRecvTimes (设置网口枚举打印机接收应答时，允许连续读不到数据的次数)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetNetEnumRecvTimes(int nTimes)
+
+说明：
+ 需根据当前局域网网络环境动态调整
+
+参数:
+  [in]        nTimes           允许连续读不到数据的次数。如果网络较拥堵，可设置10；如果网络较空闲，可设置5 
+ 
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setnetenumsubnets-网口枚举打印机时需要进行枚举的多个子网段">DSTP2x_SetNetEnumSubNets (网口枚举打印机时，需要进行枚举的多个子网段)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetNetEnumSubNets(const char *szSubNets)
+
+参数:
+  [in]        szSubNets        需要进行枚举的多个子网段，两个子网段之间以&quot;|&quot;分隔开；格式如：192.168.1.*|172.10.*.*
+ 
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setnetworkreconnectpar-设置网口连接重试">DSTP2x_SetNetworkReconnectPar (设置网口连接重试)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetNetworkReconnectPar(const char *szIp, int iTryConnNum, int iTryInterval);
+
+说明：
+ 当此接口没有被调用，默认重试次数为1，重试间隔为3000ms
+
+参数:
+  [in]        szIp             设备Ip地址, 当传空字符串&quot;&quot;时为针对所有网口连接的打印机
+  [in]        iTryConnNum      网络重连次数
+  [in]        iTryInterval     网络重连时间间隔, 单位: ms
+ 
+返回:
+0 表示成功，非零失败
+</code></pre>
+<br>
+<br>
+<h1 id="常用功能">常用功能</h1>
+<h2 id="dstp2x_cutpaper-即时切纸">DSTP2x_CutPaper (即时切纸)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_CutPaper(DEV_HDL ullDevHdl)
+
+说明：
+ 使用条件：当前打印机内置了切刀模组且切刀功能已开启
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+ 
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_locateblackmark-连续纸黑标定位">DSTP2x_LocateBlackMark (连续纸黑标定位)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LocateBlackMark(DEV_HDL ullDevHdl)
+
+说明：
+ 使用条件：当前打印机纸张模式为标签纸
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+ 
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_locatelabel-普通标签定位">DSTP2x_LocateLabel (普通标签定位)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LocateLabel(DEV_HDL ullDevHdl)
+
+说明：
+ 使用条件：当前打印机纸张模式为标签纸
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+ 
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_movepaper-移动标签">DSTP2x_MovePaper (移动标签)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LocateLabel(DEV_HDL ullDevHdl)
+
+说明：
+ 使用条件：当前打印机内置了RFID模块且已开启
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        nDir             纸张移动方向
+                               0 - 向前
+                               1 - 向后 
+  [in]        dbDistance       纸张移动距离，单位：mm
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_printselfcheckpage-打印自检页">DSTP2x_PrintSelfCheckPage (打印自检页)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_PrintSelfCheckPage(DEV_HDL ullDevHdl)
+
+说明：
+ 打印出设备的基本信息，有厂商，机型，机号、打印仿真类型等信息
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_restartprt-设备清缓存">DSTP2x_RestartPrt (设备清缓存)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RestartPrt(DEV_HDL ullDevHdl)
+
+说明：
+ 实现效果：相当于硬重启打印机达到的效果，当然也包括清除缓存
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_transrecvdata-向打印机直传数据">DSTP2x_TransRecvData (向打印机直传数据)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_TransRecvData(DEV_HDL ullDevHdl, const char *pInData, int nInDataSize, char *pOutData, int *nOutDataSize)
+
+说明：
+ 支持直接传指令或十六进制数据通讯; 也支持单向指令数据，此时pOutData可传0表示程序后续无需接收打印机的应答数据
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        pInData 	       待发送数据，可为字符串类型或普通十六进制数据
+  [in]        nInDataSize 	   表示pInData的数据对应的长度
+  [out]       pOutData 	       用于存放打印机返回的应答数据的缓冲区，请根据所发请求数据决定其应答数据的长度，建议缓冲区预分配不小于1024字节
+  [in,out] 	  nOutDataSize     入参时表示pOutData的缓冲区大小，出参时表示实际存入pOutData的数据长度
+  
+返回:
+0 表示成功，非零失败
+</code></pre>
+<br>
+<br>
+<h1 id="设备信息查询">设备信息查询</h1>
+<h2 id="dstp2x_getprtfwver-查询打印机固件版本号">DSTP2x_GetPrtFWVer (查询打印机固件版本号)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetPrtFWVer(DEV_HDL ullDevHdl, char *szPrtFWVer, int *pPrtFWVerSize)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [out]       szPrtFWVer       用于存放打印机序列号字符串的缓冲区，字符编码为ASCII，格式如：01.08.00.0a，建议缓冲区预分配不小于32字节 
+  [in]        pPrtFWVerSize    入参时表示szPrtFWVer的缓冲区大小，出参时表示实际存入szPrtFWVer的字符串长度（不含'\0'）
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_getprtmotortraveldistance-查询打印机电机转动路程">DSTP2x_GetPrtMotorTravelDistance (查询打印机电机转动路程)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetPrtMotorTravelDistance(DEV_HDL ullDevHdl, unsigned int *pDistance)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [out]       pDistance        返回打印机电机转动路程距离，单位mm 
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_getprtsn-查询打印机序列号">DSTP2x_GetPrtSN (查询打印机序列号)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetPrtSN(DEV_HDL ullDevHdl, char *szPrtSN, int *pPrtSNSize)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [out]       szPrtSN          用于存放打印机序列号字符串的缓冲区，字符编码为ASCII，格式如：228022200001，建议缓冲区预分配不小于32字节
+  [out]       pPrtSNSize       入参时表示szPrtSN的缓冲区大小，出参时表示实际存入szPrtSN的字符串长度（不含'\0'）
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_getprtstatus-查询打印机状态">DSTP2x_GetPrtStatus (查询打印机状态)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetPrtStatus(DEV_HDL ullDevHdl, int *pIsReady, int *pMainStatus, int *pMainStatusNum, int *pWarning, int *pWarningNum, int *pError, int *pErrorNum, char* pDesc, int *pDescLen)
+
+说明：
+ 因打印机存在同一时刻不止状态、警告、错误同时出现的情况，本函数返回时实际存入pMainStatus、pWarning、pError的信息个数可能不止一个
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [out]       pIsReady         判断打印机是否能继续正常工作，返回1能，0否；如传0，则表示不使用不参数
+  [out]       pMainStatus      函数返回时用于存放主状态的数组，建议预分配8个数组元素；如传0，则表示不使用不参数
+  [in,out]    pMainStatusNum   入参时表示pMainStatus的数组大小，出参时表示实际存入pMainStatus的主状态个数；如传0，则表示不使用不参数
+  [out]       pWarning         函数返回时用于存放警告的数组，建议预分配8个数组元素；如传0，则表示不使用不参数
+  [in,out]    pWarningNum      入参时表示pWarning的数组大小，出参时表示实际存入pWarnings的警告信息个数；如传0，则表示不使用不参数
+  [out]       pError           函数返回时用于存放出错信息的数组，建议预分配8个数组元素；如传0，则表示不使用不参数
+  [in,out]    pErrorNum        入参时表示pError的数组大小，出参时表示实际存入pError的出错信息个数；如传0，则表示不使用不参数
+  [out]       pDesc            状态，警告和错误等详细描述，返回字符串格式如：\n主状态:xxx,xxx|警告:无|错误:xxx,xxx|纸张类型|打印模式|切刀状态|剥离器状态|传感器状态；\n如传0，则表示不使用不参数
+  [in,out]    pDescLen         入参时表示pDesc的buffer长度，出参时表示实际返回的pDesc内容长度；如传0，则表示不使用不参数
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_getprtname-查询打印机机型名">DSTP2x_GetPrtName (查询打印机机型名)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetPrtName(DEV_HDL ullDevHdl, char *szPrtName, int *pPrtNameSize)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [out]       szPrtName        用于存放打印机机型名字符串的缓冲区，字符编码为ASCII，建议缓冲区预分配不小于64字节
+  [in,out]    pPrtNameSize     入参时表示szPrtName的缓冲区大小，出参时表示实际存入szPrtName的字符串长度（不含'\0'）
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<br>
+<br>
+<h1 id="功能设置">功能设置</h1>
+<h2 id="dstp2x_setimgdpi-设置待绘制图像的分辨率">DSTP2x_SetImgDpi (设置待绘制图像的分辨率)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetImgDpi(DEV_HDL ullDevHdl, int nDpi)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        nDpi             待绘制图像的分辨率
+                               1 - 203dpi
+                               2 - 300dpi
+                               3 - 600dpi
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setprnemulation-设置仿真类型">DSTP2x_SetPrnEmulation (设置仿真类型)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPrnEmulation(DEV_HDL ullDevHdl, int nEmulation)
+
+说明：
+ 设置打印数据使用的仿真类型
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        nEmulation       仿真类型
+                               0 - 自动适配打印机当前仿真（预留） 
+                               1 - ZPL
+                               2 - TSPL
+                               3 - ESCPOS
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setprnoffset-设置打印偏移">DSTP2x_SetPrnOffset (设置打印偏移)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPrnOffset(DEV_HDL ullDevHdl, double dbXOffset, double dbYOffset)
+
+说明:
+ 因某些标签周边存在距离不等的衬底，为使打印内容准确打印到标签指定位置，用户按标签实际情况选择是否调用本函数
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        dbXOffset        水平方向上相对打印起始位置的偏移量，单位：mm（毫米）
+  [in]        dbYOffset        垂直方向上相对打印起始位置的偏移量，单位：mm（毫米）
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setrtstatus-设置获取状态的实时性">DSTP2x_SetRTStatus (设置获取状态的实时性)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetRTStatus(DEV_HDL ullDevHdl, int nRealtime)
+
+说明:
+ 如不调用本函数，则DSTP2x_GetPrtStatus将是非实时的
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        nRealtime        实时性
+                               0 - 非实时；
+打印机默认（U口、网口、串口）都支持非实时获取状态；此时，打印机串行地执行主机下发的指令，获取状态请求不会被优先、实时处理
+                               1 - 实时；
+打印机目前只有在U口连接方式下才支持实时获取状态；此时，获取状态请求会被优先、实时处理  
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_turnoffcutter-关闭切刀功能">DSTP2x_TurnOffCutter (关闭切刀功能)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_TurnOffCutter(DEV_HDL ullDevHdl)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_turnoncutter-开启切刀功能">DSTP2x_TurnOnCutter (开启切刀功能)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_TurnOnCutter(DEV_HDL ullDevHdl)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<br>
+<br>
+<h1 id="rfid功能">RFID功能</h1>
+<h2 id="dstp2x_rfid_getreadpower-获取rfid读功率">DSTP2x_RFID_GetReadPower (获取RFID读功率)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_GetReadPower(DEV_HDL ullDevHdl, double *pdbPower)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        pdbPower         用于获取RFID写功率的double变量的指针，单位：dBm
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_getwritepower-获取rfid写功率">DSTP2x_RFID_GetWritePower (获取RFID写功率)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_GetWritePower(DEV_HDL ullDevHdl, double *pdbPower)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        pdbPower         用于获取RFID写功率的double变量的指针，单位：dBm
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_locatelabel-rfid标签定位">DSTP2x_RFID_LocateLabel (RFID标签定位)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_LocateLabel(DEV_HDL ullDevHdl)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_readdata-读取rfid数据">DSTP2x_RFID_ReadData (读取RFID数据)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_GetWritePower(DEV_HDL ullDevHdl, double *pdbPower)
+
+说明:
+ 本接口函数适用于直接读取TID、EPC、USER而无需打印的情况
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [out]       pTid             用于接收从RFID标签读回的TID数据的缓冲区，返回数据的十六进制字符串；如不需要读取TID数据，则本参数传0即可
+  [in,out]    pTidSize         入参时表示pTid的缓冲区大小，出参时表示实际pTid数据的十六进制字符串长度；如不需要读取TID数据，则本参数传0即可
+  [out]       pEpc             用于接收从RFID标签读回的EPC数据的缓冲区,返回数据的十六进制字符串；如不需要读取EPC数据，则本参数传0即可
+  [in,out]    pEpcSize         入参时表示pEpc的缓冲区大小，出参时表示实际pEpc数据的十六进制字符串长度；如不需要读取EPC数据，则本参数传0即可
+  [out]       pUser            用于接收从RFID标签读回的USER数据的缓冲区，返回数据的十六进制字符串；如不需要读取USER数据，则本参数传0即可 
+  [in,out]    pUserSize        入参时表示标签中USER数据的实际长度的两倍（比如：传参的pUser缓冲区大小为8，则实际只读取4字节user数据），出参时表示实际pUser数据的十六进制字符串长度；\n如不需要读取USER数据，则本参数传0即可
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_setreadpower-设置rfid读功率">DSTP2x_RFID_SetReadPower (设置RFID读功率)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_SetReadPower(DEV_HDL ullDevHdl, double dbPower)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        dbPower          RFID读功率，单位：dBm
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_setwritepower-设置rfid写功率">DSTP2x_RFID_SetWritePower (设置RFID写功率)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_SetWritePower(DEV_HDL ullDevHdl, double dbPower)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        dbPower          RFID写功率，单位：dBm
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_changeaccesspassword-修改rfid标签的访问密码">DSTP2x_RFID_ChangeAccessPassword (修改RFID标签的访问密码)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_ChangeAccessPassword(DEV_HDL ullDevHdl, const char* szOldPw, const char* szNewPw)
+
+说明:
+ 打印前调用，对单张标签有效；
+ 修改密码在打印时生效；
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        szOldPw          RFID标签的初始密码，为8位十六进制字符串
+  [in]        szNewPw          设置RFID标签的新密码，为8位十六进制字符串，注意不能全0
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_setdestructionpassword-设置rfid标签的销毁密码">DSTP2x_RFID_SetDestructionPassword (设置RFID标签的销毁密码)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_SetDestructionPassword(DEV_HDL ullDevHdl, const char* szPw)
+
+说明:
+ 打印前调用，对单张标签有效；
+ 修改密码在打印时生效；
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        szPw             RFID标签的销毁密码，为8位十六进制字符串，注意不能全0
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_lockoperate-锁定特定rfid区域">DSTP2x_RFID_LockOperate (锁定特定RFID区域)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_LockOperate(DEV_HDL ullDevHdl, int nRFIDArea, const char* szPw)
+
+说明:
+ 支持对EPC区，USER区，访问密码区，销毁密码区进行锁定；
+ 在打印前调用，对单张标签有效；
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        nRFIDArea        RFID区域（或关系），1：EPC区，2：USER区，8：访问密码区，16：销毁密码区
+  [in]        szPw             RFID标签的密码，为8位十六进制字符串
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_unlockoperate-解锁特定rfid区域">DSTP2x_RFID_UnlockOperate (解锁特定RFID区域)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_UnlockOperate(DEV_HDL ullDevHdl, int nRFIDArea, const char* szPw)
+说明:
+ 支持对EPC区，USER区，访问密码区，销毁密码区进行锁定；
+ 在打印前调用，对单张标签有效；
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        nRFIDArea        RFID区域（或关系），1：EPC区，2：USER区，4：TID区，8：访问密码区，16：销毁密码区 
+  [in]        szPw             RFID标签的密码，为8位十六进制字符串
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setpasswordwithwrite-带密码写特定rfid区域">DSTP2x_SetPasswordWithWrite (带密码写特定RFID区域)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_SetPasswordWithWrite(DEV_HDL ullDevHdl, int nRFIDArea, const char* szPw)
+说明:
+ 在打印前调用，对单张标签有效；
+ 不调用本接口则写入不带密码，这时如果已经修改了密码，则写入时会不成功；
+ 若模板已经有密码字段，则将被替换；
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        nRFIDArea        RFID区域（或关系），1：EPC区，2：USER区 
+  [in]        szPw             RFID标签的密码，为8位十六进制字符串，注意同一标签密码是相同的
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_locktypesetting-rfid锁定类型设置">DSTP2x_RFID_LockTypeSetting (RFID锁定类型设置)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_LockTypeSetting(DEV_HDL ullDevHdl, int nRFIDArea, int nLockType, int nTemporary)
+
+说明:
+ 在打印前支持重复调用，例如：原先EPC区和USER区为永久锁定，然后设置USER区为临时锁定，这时EPC区永久锁定继续有效；
+ 重复调用时，nTemporary以最后一次调用为准；
+ 不调用此接口时默认为临时锁；
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [in]        nRFIDArea        RFID区域（或关系），1：EPC区，2：USER区，8：访问密码区，16：销毁密码区
+  [in]        nLockType        0：永久锁，1：临时锁
+  [in]        nTemporary       本设置项是否为临时性的
+                               0 - 持久性的，直至ullDevHdl失效，除非再次被修改
+                               1 - 临时性的，随后一次打印接口(PrintXXX)调用后，本设置项即被还原
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_getproto-获取rfid协议">DSTP2x_RFID_GetProto (获取RFID协议)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_GetProto(DEV_HDL ullDevHdl, int *pProto)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [out]       pProto           返回协议值 
+                               0：ISO14443A协议，（高频模块）
+                               1：ISO15693协议，（高频模块）
+                               5：ISO18000-6C协议，（超高频模块）
+                               9：ISO18000-63协议，（国军标模块）
+                               10：GB/T 29768协议，（国军标模块）
+                               11：GJB 7377.1协议，（国军标模块）
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_rfid_setproto-设置rfid协议">DSTP2x_RFID_SetProto (设置RFID协议)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_RFID_SetProto(DEV_HDL ullDevHdl, int nProto)
+
+参数:
+  [in]        ullDevHdl        设备句柄地址
+  [out]       nProto           设置协议值 
+                               0：ISO14443A协议，（高频模块）
+                               1：ISO15693协议，（高频模块）
+                               5：ISO18000-6C协议，（超高频模块）
+                               9：ISO18000-63协议，（国军标模块）
+                               10：GB/T 29768协议，（国军标模块）
+                               11：GJB 7377.1协议，（国军标模块）
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<br>
+<br>
+<h1 id="pdf打印">PDF打印</h1>
+<h2 id="dstp2x_deletepdf-删除pdf句柄">DSTP2x_DeletePdf (删除PDF句柄)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_DeletePdf(PDF_HDL ullPdfHdl)
+
+参数:
+  [in]        ullPdfHdl        由DSTP2x_LoadPdf函数返回的pdf文件句柄
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_loadpdf-加载pdf数据">DSTP2x_LoadPdf (加载PDF数据)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LoadPdf(int nPdfDataType, const char *szPdfData, int nPdfDataSize, PDF_HDL *pPdfHdl, int *pPageCount)
+
+参数:
+  [in]        nPdfDataType        pdf数据类型
+                                  1 - pdf数据为（含路径）文件名
+                                  2 - pdf数据为base64格式字符串
+
+  [in]        szPdfData           pdf数据，字符编码：utf-8
+  [in]        nPdfDataSize        表示szPdfData的字符串（不含&quot;\0&quot;）长度，单位：字节
+  [out]        pPdfHdl            pdf文件句柄的地址
+  [out]        pPageCount         当前pdf文件的总页数
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_printpdf-打印pdf">DSTP2x_PrintPdf (打印PDF)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_PrintPdf(DEV_HDL ullDevHdl, PDF_HDL ullPdfHdl, int nPageNo, char *szOutFile, int *pOutFileSize, int nRfidReadType, char *szOutRFID, int *pOutRFIDSize);
+
+说明：
+ szOutFile参数需调用了DSTP2x_SetPdfPrnMode且nPrnMode为1或2时，才会生成.png或.prn本地文件；
+ 为了能使用RFID功能，DSTP2x_SetPdfPrnMode需设置0；
+ 对于需要RFID同时具有写和读功能，需要先调用DSTP2x_SetPdfRFIDData, 并且设置nRfidReadType里的读取类型和分配szOutRFID内存；
+ 对于需要RFID的只读功能，无需调用DSTP2x_SetPdfRFIDData接口，但需要分配szOutRFID的内存；
+ 不需要RFID的读取功能，需要设置nRfidReadType和szOutRFID为0。
+
+参数:
+  [in]        ullDevHdl           设备句柄地址
+  [in]        ullPdfHdl           由DSTP2x_LoadPdf函数返回的pdf文件句柄
+  [in]        nPageNo             待打印pdf文件的页码
+  [out]       szOutFile           用于存放本次打印操作生成的（.prn或.png）（含路径的）本地数据文件名，建议预分配空间不小于1024字节；如不需要取得本次打印操作生成的本地数据文件名，本参数传入0即可
+  [in,out]    pOutFileSize        入参时表示szOutFile的缓冲区大小，出参时表示实际存入szOutFile的字符串长度；如szOutFile为0，本参数将被忽略
+  [in]        nRfidReadType       打印当前页数据过程中是否读取及如何rfid数据
+                                  0 - 不读取
+                                  1 - 读取TID
+                                  2 - 读取EPC
+                                  4 - 读取USER
+  [out]        szOutRFID          用于存放打印过程中读取到的rfid数据的缓冲区，请根据nRfidReadType（组合）类型决定其缓冲区预分配空间大小；
+                                  读取的RFID数据在动态执行RFID后返回，以十六进制字符串表示；
+                                  内容格式如：&quot;TID:82309360|EPC:0123456789| USER:abcdef&quot;；
+                                  如不需要取得打印过程中读取到的rfid数据，本参数传0即可
+  [in,out]    pOutRFIDSize        入参时表示szOutRFID的缓冲区大小，出参时表示实际存入szOutRFID的数据长度；如szOutRFID为0，本参数将被忽略
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setpdfprnmode-设置pdf打印模式">DSTP2x_SetPdfPrnMode (设置PDF打印模式)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfPrnMode(PDF_HDL ullPdfHdl, int nPrnMode)
+
+说明:
+ 对当前句柄有效，如不调用本函数，则打印模式默认为0 
+
+参数:
+  [in]        ullPdfHdl           由DSTP2x_LoadPdf函数返回的pdf文件句柄
+  [in]        nPrnMode            打印模式；若不调用本函数，默认打印模式为：通过打印机打印
+                                  0 - 通过打印机打印
+                                  1 - 打印到.prn文件
+                                  2 - 生成png格式的效果预览图文件
+                                  3 - 生成预览图的Base64数据
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setpdfprnrotate-设置pdf目标打印旋转角度">DSTP2x_SetPdfPrnRotate (设置pdf目标打印旋转角度)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfPrnRotate(PDF_HDL ullPdfHdl, int nAngle)
+
+说明:
+ 对当前句柄有效
+
+参数:
+  [in]        ullPdfHdl           由DSTP2x_LoadPdf函数返回的pdf文件句柄
+  [in]        nAngle              旋转角度，范围[0, 90, 180, 270]
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setpdfprnsize-设置pdf目前打印尺寸">DSTP2x_SetPdfPrnSize (设置PDF目前打印尺寸)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfPrnSize(PDF_HDL ullPdfHdl, double dbWidth, double dbHeight)
+
+说明:
+ 对当前句柄有效
+
+参数:
+  [in]        ullPdfHdl           由DSTP2x_LoadPdf函数返回的pdf文件句柄
+  [in]        dbWidth             打印宽度，单位：mm
+  [in]        dbHeight            打印高度，单位：mm
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setpdfhalftonealgo-设置pdf图像的半色调处理算法">DSTP2x_SetPdfHalftoneAlgo (设置pdf图像的半色调处理算法)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfHalftoneAlgo(PDF_HDL ullPdfHdl, int nAlgorithm, int nThreshold)
+
+说明:
+ 对当前句柄有效
+
+参数:
+  [in]        ullPdfHdl           由DSTP2x_LoadPdf函数返回的标签上下文句柄
+  [in]        nAlgorithm          图片算法
+                                  1 - 误差扩散
+                                  2 - 有序抖动算法
+                                  3 - 阈值运算算法（默认）
+  [in]        nThreshold          阈值，当nAlgorithm为3时生效，范围[0,255]
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setpdfprnsynctype-设置dstp2x_printpdf单次调用是否打印同步结果">DSTP2x_SetPdfPrnSyncType (设置DSTP2x_PrintPdf单次调用是否打印同步结果)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfPrnSyncType(PDF_HDL ullPdfHdl, int nSyncType)
+
+说明：
+ 对当前句柄有效，如不调用本函数，则pdf单次打印将同步结果
+
+参数:
+  [in]        ullPdfHdl           由DSTP2x_LoadPdf函数返回的pdf文件句柄
+  [in]        nSyncType           是否打印同步结果
+                                  0 - 不同步打印结果，只要当前页的打印数据发送完，本函数即返回；此时不支持DSTP2x_PrintPdf的RFID读操作
+                                  1 - 同步打印结果，当前页的打印数据发送完后，本函数内部持续监听打印状态，直至打印成功完成才返回；如遇打印机报错，函数立即返回
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setpdfprntimeout-设置dstp2x_printpdf单次调用最大超时时间">DSTP2x_SetPdfPrnTimeout (设置DSTP2x_PrintPdf单次调用最大超时时间)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfPrnTimeout(PDF_HDL ullPdfHdl, int nTimeout)
+
+说明：
+ 对当前句柄有效，如不调用本函数，则pdf单次打印最大超时时间默认为15000毫秒
+
+参数:
+  [in]        ullPdfHdl           由DSTP2x_LoadPdf函数返回的pdf文件句柄
+  [in]        nTimeout            超时时间，单位：毫秒；当DSTP2x_PrintPdf单次调用为同步结果时才生效
+                                  -1 - 表示如打印过程中无任何（软/硬件或通讯）出错情况下，DSTP2x_PrintPdf将无限期等待打印结束条件满足才返回
+                                  &gt;0 - 表示如打印过程中无任何（软/硬件或通讯）出错情况下，DSTP2x_PrintPdf将在等待打印结束条件满足的过程中同时检查是否整体耗时是否大于或等于nTimeout；
+                                  如是，则返回“操作执行超时”
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setpdfrfiddata-设置pdf打印过程中需要写入的rfid数据">DSTP2x_SetPdfRFIDData (设置PDF打印过程中需要写入的RFID数据)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetPdfRFIDData(PDF_HDL ullPdfHdl, int nPageNo, int nRfidRgnType, int nRfidDataFmt, const char *pData, int nDataSize);
+
+说明：
+ 如不调用本函数，则pdf单次打印最大超时时间默认为15000毫秒
+
+参数:
+  [in]        ullPdfHdl           由DSTP2x_LoadPdf函数返回的pdf文件句柄
+  [in]        nPageNo             待打印pdf文件的页码
+  [in]        nRfidRgnType        需在打印过程中写入rfid数据的区域类型
+                                  1 - EPC区
+                                  2 - USER区
+  [in]        nRfidDataFmt        需在打印过程中写入的rfid数据格式
+                                  1 - ASCII编码字符串
+                                  2 - 十六进制字符串
+                                  3 - 十六进制字节数据 
+  [in]        pData               需在打印过程中写入的rfid数据
+  [in]        nDataSize           需在打印过程中写入的rfid数据长度，单位：字节；如nRfidDataFmt为1或者2，则本参数表示pData的实际字符串（不含&quot;\0&quot;）长度
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<br>
+<br>
+<h1 id="标签模板打印功能">标签模板打印功能</h1>
+<h2 id="dstp2x_deletetmpl-删除标签模板文件句柄">DSTP2x_DeleteTmpl (删除标签模板文件句柄)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_DeleteTmpl(LABEL_TEMP_HDL ullLTHdl)
+
+参数:
+  [in]        ullLTHdl        由DSTP2x_LoadLabelTmpl函数返回的标签模板文件句柄
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_loadlabeltmpl-加载预定义标签模板">DSTP2x_LoadLabelTmpl (加载预定义标签模板)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LoadLabelTmpl(const char *szFileName, LABEL_TEMP_HDL *pLTHdl)
+
+说明:
+ szFileName参数必须是由SDK包的DSTP2xDemo.exe生成
+
+参数:
+  [in]        szFileName          预定义标签模板（含路径）文件名，字符编码：utf-8），或模板文件内存数据
+  [out]       pLTHdl              标签模板文件的句柄地址
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_printtmpl-打印标签模板">DSTP2x_PrintTmpl (打印标签模板)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_PrintTmpl(DEV_HDL ullDevHdl, LABEL_TEMP_HDL ullLTHdl, char *szOutFile, int *pOutFileSize, char *szOutRFID, int *pOutRFIDSize)
+
+参数:
+  [in]        ullDevHdl           设备句柄地址
+  [in]        ullLTHdl            由DSTP2x_LoadLabelTmpl函数返回的标签模板文件句柄
+  [out]       szOutFile           用于存放本次打印操作生成的（.prn或.png）（含路径的）本地数据文件名，建议预分配空间不小于256字节；如不需要取得本次打印操作生成的本地数据文件名，本参数传入0即可
+  [in,out]    pOutFileSize        入参时表示szOutRFID的缓冲区大小，出参时表示实际存入szOutRFID的数据长度；如szOutRFID为0，本参数将被忽略
+  [out]       szOutRFID           用于存放打印过程中读取到的rfid数据的缓冲区，请根据nRfidReadType（组合）类型决定其缓冲区预分配空间大小；
+                                  内容格式如：&quot;TID:82309360|EPC:0123456789| USER:abcdef&quot;，RFID内容数据以十六进制字符串表示；
+                                  如不需要取得打印过程中读取到的rfid数据，本参数传0即可
+  [in,out]    pOutRFIDSize        入参时表示szOutRFID的缓冲区大小，出参时表示实际存入szOutRFID的数据长度；如szOutRFID为0，本参数将被忽略
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_settmplprndata-为标签模板内指定id的元素设置实际的打印替代数据">DSTP2x_SetTmplPrnData (为标签模板内指定ID的元素设置实际的打印替代数据)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplPrnData(LABEL_TEMP_HDL ullLTHdl, const char *szElemID, const char *szActualData)
+
+说明：
+ 如不调用本函数为标签模板某些已创建ID的元素设置真实替代数据，后续打印过程中模板里已创建ID的原始则使用预设值进行打印
+
+参数:
+  [in]        ullLTHdl            由DSTP2x_LoadLabelTmpl函数返回的标签模板文件句柄
+  [in]        szElemID            表示标签模板中需要使用实际数据进行打印的特定元素的ID
+  [in]        szActualData        实际需要打印的数据（utf-8）
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_settmplvalbykey-为标签模板内指定id的元素根据存在的键值设置替代的属性值">DSTP2x_SetTmplValByKey (为标签模板内指定ID的元素，根据存在的键值设置替代的属性值)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplValByKey(LABEL_TEMP_HDL ullLTHdl, const char *szElemID, const char *szKey, const char *szValue)
+
+说明：
+ 如不调用本函数为标签模板某些已创建ID的元素设置真实替代数据，后续打印过程中模板里已创建ID的原始则使用预设值进行打印
+
+参数:
+  [in]        ullLTHdl            由DSTP2x_LoadLabelTmpl函数返回的标签模板文件句柄
+  [in]        szElemID            表示标签模板中需要使用实际数据进行打印的特定元素的ID
+  [in]        szKey               数据值所归属的索引键
+  [in]        szValue             实际需要打印的数据值（utf-8）
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_getbacktmpl-返回当前标签模板的模板文件dlt">DSTP2x_GetBackTmpl (返回当前标签模板的模板文件(.dlt))</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetBackTmpl(LABEL_TEMP_HDL ullLTHdl, char * pFileName, int *pFileNameLen)
+
+说明：
+ 如果之前通过DSTP2x_SetTmplxxx接口修改了标签模板一些内容或属性数据，然后想获取修改后的dlt模板文件，则调用此接口。
+
+参数:
+  [in]        ullLTHdl            由DSTP2x_LoadLabelTmpl函数返回的标签模板文件句柄
+  [out]       pFileName           如果成功，返回模板文件路径
+  [in,out]    pFileNameLen        入参时表示pFileName的缓冲区大小，出参时表示实际存入pFileName的数据长度
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_gettmplallidvalues-获取当前标签模板所有id值">DSTP2x_GetTmplAllIDValues (获取当前标签模板所有ID值)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_GetTmplAllIDValues(LABEL_TEMP_HDL ullLTHdl, char cInterval, int nType, char *pIDValues, int *pIDValuesLen)
+
+参数:
+  [in]        ullLTHdl            由DSTP2x_LoadLabelTmpl函数返回的标签模板文件句柄
+  [in]        cInterval           设置返回所有ID值之间的间隔字符
+  [in]        nType				        根据类型获取ID值，0: 全部ID值, 1: 可动态修改的ID值, 2: 不可动态修改的ID值
+  [out]       pIDValues           如果成功，返回所有ID值，值之间以cInterval作间隔  
+  [in,out]    pIDValuesLen        入参时表示pIDValues的缓冲区大小，出参时表示实际存入pIDValues的数据长度
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_settmplprnmode-设置标签模板的打印模式">DSTP2x_SetTmplPrnMode (设置标签模板的打印模式)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplPrnMode(LABEL_TEMP_HDL ullLTHdl, int nPrnMode)
+
+说明：
+ 如不调用本函数，则打印模式默认为0
+
+参数:
+  [in]        ullLTHdl            由DSTP2x_LoadLabelTmpl函数返回的标签模板文件句柄
+  [in]        nPrnMode            打印模式；若不调用本函数，默认打印模式为：通过打印机打印
+                                  0 - 通过打印机打印
+                                  1 - 打印到.prn文件
+                                  2 - 生成png格式的效果预览图文件
+                                  3 - 生成预览图的Base64数据
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_settmplprnsynctype-设置dstp2x_printtmpl单次调用是否打印同步结果">DSTP2x_SetTmplPrnSyncType (设置DSTP2x_PrintTmpl单次调用是否打印同步结果)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplPrnSyncType(LABEL_TEMP_HDL ullLTHdl, int nSyncType)
+
+说明：
+ 如不调用本函数，则模板单次打印将同步结果
+
+参数:
+  [in]        ullLTHdl            由DSTP2x_LoadLabelTmpl函数返回的标签模板文件句柄
+  [in]        nSyncType           是否打印同步结果
+                                  0 - 不同步打印结果，只要当前页的打印数据发送完，本函数即返回；此时不支持DSTP2x_PrintTmpl的RFID读操作
+                                  1 - 同步打印结果，当前页的打印数据发送完后，本函数内部持续监听打印状态，直至打印成功完成才返回；如遇打印机报错，函数立即返回
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_settmplprntimeout-设置dstp2x_printtmpl单次调用最大超时时间">DSTP2x_SetTmplPrnTimeout (设置DSTP2x_PrintTmpl单次调用最大超时时间)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplPrnTimeout(LABEL_TEMP_HDL ullLTHdl, int nTimeout)
+
+说明：
+ 如不调用本函数，则模板单次打印最大超时时间默认为15000毫秒
+
+参数:
+  [in]        ullLTHdl            由DSTP2x_LoadLabelTmpl函数返回的标签模板文件句柄
+  [in]        nTimeout            超时时间，单位：毫秒；当DSTP2x_PrintTmpl单次调用为同步结果时才生效
+                                  -1 - 表示如打印过程中无任何（软/硬件或通讯）出错情况下，DSTP2x_PrintTmpl将无限期等待打印结束条件满足才返回
+                                  &gt;0 - 表示如打印过程中无任何（软/硬件或通讯）出错情况下，DSTP2x_PrintTmpl将在等待打印结束条件满足的过程中同时检查是否整体耗时是否大于或等于nTimeout；
+                                  如是，则返回“操作执行超时”
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_settmplrfiddata-为标签模板内指定id的元素设置实际的rfid写入替代数据">DSTP2x_SetTmplRFIDData (为标签模板内指定ID的元素设置实际的rfid写入替代数据)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetTmplRFIDData(LABEL_TEMP_HDL ullLTHdl, const char *szElemID, const char *pActualData, int nActualDataSize)
+
+说明：
+ 如不调用本函数为标签模板某些已创建ID的元素设置真实替代数据，后续打印过程中模板里已创建ID的原始则使用预设值进行rfid写入
+
+参数:
+  [in]        ullLTHdl            由DSTP2x_LoadLabelTmpl函数返回的标签模板文件句柄
+  [in]        szElemID            表示标签模板中需要使用实际数据进行rfid写入的特定元素的ID
+  [in]        pActualData         实际需要在打印过程中写入的rfid数据
+  [in]        nActualDataSize     需在打印过程中写入的rfid数据长度，单位：字节；
+                                  如pActualData为字符串，则本参数表示pActualData的实际字符串（不含&quot;\0&quot;）长度
+                                  如pActualData为十六进制字节数据，则本参数表示pActualData实际应写入数据长度
+返回:
+0 表示成功，非零失败
+</code></pre>
+<br>
+<br>
+<h1 id="标签绘图打印功能">标签绘图打印功能</h1>
+<h2 id="dstp2x_createlabelcontext-创建标签画布">DSTP2x_CreateLabelContext (创建标签画布)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_CreateLabelContext(double dbWidth, double dbHeight, LC_HDL *pLCHdl)
+
+参数:
+  [in]        dbWidth         目标待打印标签宽度，单位：mm
+  [in]        dbHeight        目标待打印标签高度，单位：mm
+  [out]       pLCHdl          标签上下文的句柄地址
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_createtable-创建表格">DSTP2x_CreateTable (创建表格)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_CreateTable(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, int nRowCount, int nColCount, int nLineWidth, TABLE_HDL *pTblHdl)
+
+说明:
+ 1. 若函数执行成功，新建的表格句柄则由pTblHdl返回；
+ 2. 表格一经创建，其行、列数均不可更改；
+ 3. 表格支持修改表格宽度、表格高度、列宽、行高，合并/还原单元格，在单元格内绘制文本、一维二维条码、图片等操作；
+ 4. 创建后的表格的格名排列比如3x2，将以以下形式表示：
+ 0-0 0-1 0-2 
+ 1-0 1-1 1-2
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        dbX                 表格左上角横坐标，单位：mm（毫米）
+  [in]        dbY                 表格左上角纵坐标，单位：mm（毫米）
+  [in]        dbW                 表格的宽度，为非负浮点数，若为0则表示忽略此参数，单位：mm（毫米）
+  [in]        dbH                 表格的高度，为非负浮点数，若为0则表示忽略此参数，单位：mm（毫米）
+  [in]        nRowCount           待创建表格的行数
+  [in]        nColCount           待创建表格的列数
+  [in]        nLineWidth          待创建表格的框线的线条宽度，单位：dot（点），取值范围：[1,50]
+  [out]       pTblHdl             表格的句柄地址
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_deletelabelcontext-删除标签画布句柄">DSTP2x_DeleteLabelContext (删除标签画布句柄)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_DeleteLabelContext(LC_HDL ullLcHdl)
+
+说明:
+ 如不调用本函数，则打印模式默认为0
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_deletetable-删除表格句柄">DSTP2x_DeleteTable (删除表格句柄)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_DeleteTable(TABLE_HDL ullTblHdl)
+
+参数:
+  [in]        ullTblHdl            由DSTP2x_CreateTable函数返回的表格句柄
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lbl_drawbarcode-在指定的标签画布绘制条码">DSTP2x_Lbl_DrawBarCode (在指定的标签画布绘制条码)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawBarCode(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, int nCodeType, const char *szData)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        dbX                 图像内容块相对于标签左上角的横坐标，单位：mm（毫米）
+  [in]        dbY                 图像内容块相对于标签左上角的纵坐标，单位：mm（毫米）
+  [in]        dbW                 图像内容块的宽度，为非负浮点数，单位：mm（毫米）
+  [in]        dbH                 图像内容块的高度，为非负浮点数，单位：mm（毫米）
+  [in]        nCodeType           生成条码的编码类型
+                                  8 - CODE39
+                                  20 - CODE128
+                                  25 - CODE93
+                                  34 - UPCA
+                                  37 - UPCE
+                                  55 - PDF417
+                                  58 - QRCode
+                                  71 - DataMatrix
+                                  72 - EAN14
+                                  84 - MicroPDF417
+                                  116 - HanXin
+                                  142 - GridMatrix
+  [in]        szData              需要绘制在绘图画布的条码数据
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lbl_drawimage-在指定的标签画布绘制图像">DSTP2x_Lbl_DrawImage (在指定的标签画布绘制图像)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawImage(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, double dbScale, int nImgDataType, const char *szImage, unsigned int unImgDataSize)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        dbX                 图像内容块相对于标签左上角的横坐标，单位：mm（毫米）
+  [in]        dbY                 图像内容块相对于标签左上角的纵坐标，单位：mm（毫米）
+  [in]        dbW                 图像内容块的宽度，为非负浮点数，单位：mm（毫米）
+  [in]        dbH                 图像内容块的高度，为非负浮点数，单位：mm（毫米）
+  [in]        dbScale             相对于原图尺寸的缩放系数，为非负浮点数，若为0则表示忽略此参数，取值范围必须1到3之间生成条码的编码类型
+  [in]        nImgDataType        图像数据类型
+                                  0 - 本地图片文件
+                                  1 - 图片内存数据
+                                  2 - base64格式图片数据
+  [in]        szImage             图像数据类型
+  [in]        unImgDataSize       图像数据类型
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lbl_drawtext-在指定的标签画布绘制文本">DSTP2x_Lbl_DrawText (在指定的标签画布绘制文本)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawText(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, const char *szText);
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        dbX                 文本内容块相对于标签左上角的横坐标，单位：mm（毫米）
+  [in]        dbY                 文本内容块相对于标签左上角的纵坐标，单位：mm（毫米）
+  [in]        dbW                 文本内容块的宽度，为非负浮点数，若为0则表示忽略此参数，单位：mm（毫米）
+  [in]        dbH                 文本内容块的高度，为非负浮点数，若为0则表示忽略此参数，单位：mm（毫米）
+  [in]        szText              需要绘制在绘图上下文的文本内容，字符编码：utf-8
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_setbarcodeeclvl-标签画布绘图设置-设置待绘制二维码纠错级别">DSTP2x_LcDraw_SetBarCodeEcLvl (标签画布绘图设置-设置待绘制二维码纠错级别)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetBarCodeEcLvl(LC_HDL ullLcHdl, int nTemporary, int nErrorCorrectLevel)
+
+说明：
+ 本设置适用于PDC417、MicroPDF417、QRCode等二维条码类型
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawBarCode或DSTP2x_Tbl_DrawBarCode调用后，本设置项即被还原
+  [in]        nErrorCorrectLevelnErrorCorrectLevel                纠错级别，具体取值范围需根据DSTP2x_DrawCode函数的nCodeType而定
+                                                                  当nCodeType为QRCode时，nErrorCorrectLevelparameter取值范围为[1,4]，不设置时默认没有纠错级别
+                                                                  当nCodeType为PDF417时，nErrorCorrectLevelparameter取值范围为[0,8]，不设置时默认纠错级别为2
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_setbarcodeexpl-标签画布绘图设置-设置待一维码是否打印注释行">DSTP2x_LcDraw_SetBarCodeExpl (标签画布绘图设置-设置待一维码是否打印注释行)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetBarCodeExpl(LC_HDL ullLcHdl, int nTemporary, int nExplanation)
+
+说明：
+ 本设置适用于CODE39、CODE128、CODE93、UPC-A、UPC-E、EAN-8、EAN-13、EAN-14、DataMatrix、HanXin、GridMatrix等多种一维条码类型
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄-8
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawBarCode或DSTP2x_Tbl_DrawBarCode调用后，本设置项即被还原
+  [in]        nExplanation        条码是否生成注释
+                                  0 - 不生成注释
+                                  1 - 生成注释
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_setbarcoderotation-标签画布绘图设置-设置待绘制一维码和二维码的旋转参数">DSTP2x_LcDraw_SetBarCodeRotation (标签画布绘图设置-设置待绘制一维码和二维码的旋转参数)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetBarCodeRotation(LC_HDL ullLcHdl, int nTemporary, int nAngle, int nAnchorPoint)
+
+说明：
+ 本设置适用于CODE39、CODE128、CODE93、UPC-A、UPC-E、EAN-8、EAN-13、EAN-14、DataMatrix、HanXin、GridMatrix等多种一维条码类型
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawBarCode或DSTP2x_Tbl_DrawBarCode调用后，本设置项即被还原
+  [in]        nAngle              旋转角度，范围[-360,360]
+  [in]        nAnchorPoint        设置旋转基准中心
+                                  0 - 左上角
+                                  1 - 左边中间点
+                                  2 - 左下角
+                                  3 - 中心点
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_setimagehalftonealgo-标签画布绘图设置-设置待绘制图像的半色调处理算法">DSTP2x_LcDraw_SetImageHalftoneAlgo (标签画布绘图设置-设置待绘制图像的半色调处理算法)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetImageHalftoneAlgo(LC_HDL ullLcHdl, int nTemporary, int nAlgorithm, int nThreshold)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawImage或DSTP2x_Tbl_DrawImage调用后，本设置项即被还原
+  [in]        nAlgorithm          图片算法
+                                  0 - 不做算法（默认）
+                                  1 - 误差扩散
+                                  2 - 有序抖动算法
+                                  3 - 阈值运算算法
+  [in]        nThreshold          阈值，当nAlgorithm为3时生效，范围[0,255]
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_setimagerotation-标签画布绘图设置-设置待绘制图像旋转参数">DSTP2x_LcDraw_SetImageRotation (标签画布绘图设置-设置待绘制图像旋转参数)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetImageRotation(LC_HDL ullLcHdl, int nTemporary, int nAngle, int nAnchorPoint)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawImage或DSTP2x_Tbl_DrawImage调用后，本设置项即被还原
+  [in]        nAngle              旋转角度，范围[-360,360]
+  [in]        nAnchorPoint        设置旋转基准中心
+                                  0 - 左上角
+                                  1 - 左边中间点
+                                  2 - 左下角
+                                  3 - 中心点
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextautolinefeed-标签画布绘图设置-设置待绘制文本是否自动换行">DSTP2x_LcDraw_SetTextAutoLineFeed (标签画布绘图设置-设置待绘制文本是否自动换行)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextAutoLineFeed(LC_HDL ullLcHdl, int nTemporary, int nIsAutoLineFeed)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawText或DSTP2x_Tbl_DrawText调用后，本设置项即被还原
+  [in]        nIsAutoLineFeed     是否自动换行，取值范围：[0,1]
+                                  0 - 不自动换行
+                                  1 - 自动换行
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextbold-标签画布绘图设置-设置待绘制文本是否加粗">DSTP2x_LcDraw_SetTextBold (标签画布绘图设置-设置待绘制文本是否加粗)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextBold(LC_HDL ullLcHdl, int nTemporary, int nIsBold)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawText或DSTP2x_Tbl_DrawText调用后，本设置项即被还原
+  [in]        nIsBold             是否加粗，合法取值：0和1；设置[2,5]时为加粗程度
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextcharspacing-标签画布绘图设置-设置待绘制文本字间距">DSTP2x_LcDraw_SetTextCharSpacing (标签画布绘图设置-设置待绘制文本字间距)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextCharSpacing(LC_HDL ullLcHdl, int nTemporary, double dSpacing)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawText或DSTP2x_Tbl_DrawText调用后，本设置项即被还原
+  [in]        dSpacing            字间距，单位：磅
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextfontname-标签画布绘图设置-设置待绘制文本内容的字体名称">DSTP2x_LcDraw_SetTextFontName (标签画布绘图设置-设置待绘制文本内容的字体名称)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextFontName(LC_HDL ullLcHdl, int nTemporary, const char *szFontName)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawText或DSTP2x_Tbl_DrawText调用后，本设置项即被还原
+  [in]        szFontName          字体名称，字符编码：utf-8
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextfontsize-标签画布绘图设置-设置待绘制文本内容的字体大小">DSTP2x_LcDraw_SetTextFontSize (标签画布绘图设置-设置待绘制文本内容的字体大小)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextFontSize(LC_HDL ullLcHdl, int nTemporary, double dbFontSize)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawText或DSTP2x_Tbl_DrawText调用后，本设置项即被还原
+  [in]        dbFontSize          字体大小，单位：磅
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_settexthalign-标签画布绘图设置-设置待绘制文本水平对齐方式">DSTP2x_LcDraw_SetTextHAlign (标签画布绘图设置-设置待绘制文本水平对齐方式)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextHAlign(LC_HDL ullLcHdl, int nTemporary, double dbX, int nAlign)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawText或DSTP2x_Tbl_DrawText调用后，本设置项即被还原
+  [in]        dbX                 对齐线的横坐标
+  [in]        nAlign              对齐方式
+                                  0 - 无对齐特性
+                                  1 - 居左对齐
+                                  2 - 居中对齐
+                                  3 - 居右对齐
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextitalic-标签画布绘图设置-设置待绘制文本是否斜体">DSTP2x_LcDraw_SetTextItalic (标签画布绘图设置-设置待绘制文本是否斜体)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextItalic(LC_HDL ullLcHdl, int nTemporary, int nIsItalic)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawText或DSTP2x_Tbl_DrawText调用后，本设置项即被还原
+  [in]        nIsItalic           是否斜体，取值范围：[0,1]
+                                  0 - 不使用斜体
+                                  1 - 使用斜体
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextlinespacing-标签画布绘图设置-设置待绘制文本行间距">DSTP2x_LcDraw_SetTextLineSpacing (标签画布绘图设置-设置待绘制文本行间距)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextLineSpacing(LC_HDL ullLcHdl, int nTemporary, double dSpacing)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawText或DSTP2x_Tbl_DrawText调用后，本设置项即被还原
+  [in]        dSpacing            行间距，单位：磅
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextrotation-标签画布绘图设置-设置待绘制文本旋转参数">DSTP2x_LcDraw_SetTextRotation (标签画布绘图设置-设置待绘制文本旋转参数)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextRotation(LC_HDL ullLcHdl, int nTemporary, int nAngle, int nAnchorPoint)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawText或DSTP2x_Tbl_DrawText调用后，本设置项即被还原
+  [in]        nAngle              旋转角度，范围[-360,360]
+  [in]        nAnchorPoint        设置旋转基准中心
+                                  0 -左上角
+                                  1 - 左边中间点
+                                  2 - 左下角
+                                  3 - 中心点
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_settextvalign-标签画布绘图设置-设置待绘制文本垂直对齐方式">DSTP2x_LcDraw_SetTextVAlign (标签画布绘图设置-设置待绘制文本垂直对齐方式)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetTextVAlign(LC_HDL ullLcHdl, int nTemporary, double dbY, int nAlign)
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawText或DSTP2x_Tbl_DrawText调用后，本设置项即被还原
+  [in]        dbY                 对齐线的纵坐标
+  [in]        nAlign              对齐方式
+                                  0 - 无对齐特性
+                                  1 - 顶端对齐
+                                  2 - 居中对齐
+                                  3 - 底端对齐
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcrfid_setdata-设置标签画布打印过程中需要写入的-rfid-数据">DSTP2x_LcRfid_SetData (设置标签画布打印过程中需要写入的 rfid 数据)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcRfid_SetData(LC_HDL ullLcHdl, int nRfidRgnType, int nRfidDataFmt, const char *pData, int nDataSize)
+
+说明:
+ 如不调用本函数，则打印过程中不进行rfid读/写
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nRfidRgnType        需在打印过程中写入rfid数据的区域类型
+                                  1 - EPC区
+                                  2 - USER区
+  [in]        nRfidDataFmt        需在打印过程中写入的rfid数据格式
+                                  1 - ASCII编码字符串
+                                  2 - 十六进制字符串
+                                  3 - 十六进制字节数据
+  [in]        pData               需在打印过程中写入的rfid数据
+  [in]        nDataSize           需在打印过程中写入的rfid数据长度，单位：字节；
+                                  如pData为字符串，则本参数表示pData的实际字符串（不含&quot;\0&quot;）长度
+                                  如pData为十六进制字节数据，则本参数表示pData实际应写入数据长度
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_printlc-打印标签">DSTP2x_PrintLc (打印标签)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_PrintLc(DEV_HDL ullDevHdl, LC_HDL ullLcHdl, char *szOutFile, int *pOutFileSize, int nRfidReadType, char *szOutRFID, int *pOutRFIDSize)
+
+说明:
+ szOutFile参数需调用了DSTP2x_SetLcPrnMode且nPrnMode为1或2时，才会生成.png或.prn本地文件；
+ 为了能使用RFID功能，DSTP2x_SetLcPrnMode需设置0；
+ 对于需要RFID同时具有写和读功能，需要先调用DSTP2x_LcRfid_SetData, 并且设置nRfidReadType里的读取类型和分配szOutRFID内存；
+ 对于需要RFID的只读功能，无需调用DSTP2x_LcRfid_SetData接口，但需要分配szOutRFID的内存；
+ 不需要RFID的读取功能，需要设置nRfidReadType和szOutRFID为0。
+
+参数:
+  [in]        ullDevHdl           设备句柄地址
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [out]       szOutFile           用于存放本次打印操作生成的（.prn或.png）（含路径的）本地数据文件名，建议预分配空间不小于256字节；如不需要取得本次打印操作生成的本地数据文件名，本参数传入0即可
+  [in,out]    pOutFileSize        入参时表示szOutFile的缓冲区大小，出参时表示实际存入szOutFile的字符串长度；如szOutFile为0，本参数将被忽略
+  [in]        nRfidReadType       打印当前页数据过程中是否读取及如何rfid数据
+                                  0 - 不读取
+                                  1 - 读取TID
+                                  2 - 读取EPC
+                                  4 - 读取USER
+ [out]        szOutRFID           用于存放打印过程中读取到的rfid数据的缓冲区，请根据nRfidReadType（组合）类型决定其缓冲区预分配空间大小；
+                                  读取的RFID数据在动态执行RFID后返回，以十六进制字符串表示；
+                                  内容格式如：&quot;TID:82309360|EPC:0123456789|USER:abcdef&quot;；
+                                  如不需要取得打印过程中读取到的rfid数据，本参数传0即可
+ [in,out]    pOutRFIDSize        入参时表示szOutRFID的缓冲区大小，出参时表示实际存入szOutRFID的数据长度；如szOutRFID为0，本参数将被忽略
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setlcprnmode-设置标签画布的打印模式">DSTP2x_SetLcPrnMode (设置标签画布的打印模式)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetLcPrnMode(LC_HDL ullLcHdl, int nPrnMode)
+
+说明:
+ 如不调用本函数，则打印模式默认为0
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nPrnMode            打印模式；若不调用本函数，默认打印模式为：通过打印机打印
+                                  0 - 通过打印机打印
+                                  1 - 打印到.prn文件
+                                  2 - 生成png格式的效果预览图文件
+                                  3 - 生成预览图的Base64数据
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setlcprnrotate-设置标签画布的整张画布旋转角度">DSTP2x_SetLcPrnRotate (设置标签画布的整张画布旋转角度)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetLcPrnMode(LC_HDL ullLcHdl, int nPrnMode)
+
+说明:
+ 如不调用本函数，则打印模式默认为0
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nPrnMode            旋转角度，范围[0, 90, 180, 270]
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setlcprnsynctype-设置dstp2x_printlc单次调用是否打印同步结果">DSTP2x_SetLcPrnSyncType (设置DSTP2x_PrintLc单次调用是否打印同步结果)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetLcPrnSyncType(LC_HDL ullLcHdl, int nSyncType)
+
+说明:
+ 如不调用本函数，则模板单次打印将同步结果
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nSyncType           是否打印同步结果
+                                  0 - 不同步打印结果，只要当前页的打印数据发送完，本函数即返回；此时不支持DSTP2x_PrintLc的RFID读操作
+                                  1 - 同步打印结果，当前页的打印数据发送完后，本函数内部持续监听打印状态，直至打印成功完成才返回；如遇打印机报错，函数立即返回
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_setlcprntimeout-设置dstp2x_printlc单次调用最大超时时间">DSTP2x_SetLcPrnTimeout (设置DSTP2x_PrintLc单次调用最大超时时间)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_SetLcPrnTimeout(LC_HDL ullLcHdl, int nTimeout)
+
+说明:
+ 如不调用本函数，则模板单次打印最大超时时间默认为15000毫秒
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签画布句柄
+  [in]        nTimeout            超时时间，单位：毫秒；当DSTP2x_PrintLc单次调用为同步结果时才生效
+                                  -1 - 表示如打印过程中无任何（软/硬件或通讯）出错情况下，DSTP2x_PrintTmpl将无限期等待打印结束条件满足才返回
+                                  &gt;0 - 表示如打印过程中无任何（软/硬件或通讯）出错情况下，DSTP2x_PrintTmpl将在等待打印结束条件满足的过程中同时检查是否整体耗时是否大于或等于nTimeout；
+                                  如是，则返回“操作执行超时”
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_tbl_drawbarcode-在表格指定单元格上绘制一维二维条码">DSTP2x_Tbl_DrawBarCode (在表格指定单元格上绘制一维、二维条码)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawBarCode(TABLE_HDL ullTblHdl, const char *szGridName, double dbX, double dbY, double dbW, double dbH, int nCodeType, const char *szData)
+
+参数:
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [out]       szGridName          单元格的名字，字符编码：utf-8；例如：基本单元格为&quot;0-0&quot;、&quot;0-1&quot;、&quot;1-0&quot;、&quot;1-1&quot;等；合并后的单元格为&quot;Merged-0&quot;、&quot;Merged-1&quot;等
+  [in]        dbX                 文本内容块左上角相对于单元格左上角的横坐标，单位：mm（毫米）
+  [in]        dbY                 文本内容块左上角相对于单元格左上角的纵坐标，单位：mm（毫米）
+  [in]        dbW                 文本内容块的宽度，为非负浮点数，若为0则表示忽略此参数，单位：mm（毫米）
+  [in]        dbH                 文本内容块的高度，为非负浮点数，若为0则表示忽略此参数，单位：mm（毫米）
+  [in]        nCodeType           生成条码的编码类型
+                                  8 - CODE39
+                                  20 - CODE128
+                                  25 - CODE93
+                                  34 - UPCA
+                                  37 - UPCE
+                                  55 - PDF417
+                                  58 - QRCode
+                                  71 - DataMatrix
+                                  72 - EAN14
+                                  84 - MicroPDF417
+                                  116 - HanXin
+                                  142 - GridMatrix
+  [in]        szData              需要绘制在绘图画布的条码数据                                  
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_tbl_drawimage-在表格指定单元格上绘制图像">DSTP2x_Tbl_DrawImage (在表格指定单元格上绘制图像)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawImage(TABLE_HDL ullTblHdl, const char *szGridName, double dbX, double dbY, double dbW, double dbH, double dbScale, int nImgDataType, const char *szImage, unsigned int unImgDataSize)
+
+参数:
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [out]       szGridName          单元格的名字，字符编码：utf-8；例如：基本单元格为&quot;0-0&quot;、&quot;0-1&quot;、&quot;1-0&quot;、&quot;1-1&quot;等；合并后的单元格为&quot;Merged-0&quot;、&quot;Merged-1&quot;等
+  [in]        dbX                 内容块左上角相对于单元格左上角的横坐标，单位：mm（毫米）
+  [in]        dbY                 内容块左上角相对于单元格左上角的纵坐标，单位：mm（毫米）
+  [in]        dbW                 内容块的宽度，为非负浮点数，若为0则表示忽略此参数，单位：mm（毫米）
+  [in]        dbH                 内容块的高度，为非负浮点数，若为0则表示忽略此参数，单位：mm（毫米）
+  [in]        dbScale             相对于原图尺寸的缩放系数，为非负浮点数，若为0则表示忽略此参数，取值范围必须1到3之间
+  [in]        nImgDataType        图像数据类型
+                                  0 - 本地图片文件
+                                  1 - 图片内存数据
+                                  2 - base64格式图片数据
+  [in]        szImage             需要绘制在绘图画布的图像数据
+  [in]        unImgDataSize       当nImgDataType为1和2时，unImgDataSize的大小为指向szImage的实际内存大小\n 当nImgDataType为0时，unImgDataSize的大小为指向szImage的长度大小。
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_tbl_drawtext-在表格指定单元格上绘制文本">DSTP2x_Tbl_DrawText (在表格指定单元格上绘制文本)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawText(TABLE_HDL ullTblHdl, const char *szGridName, double dbX, double dbY, double dbW, double dbH, const char *szText)
+
+参数:
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [out]       szGridName          单元格的名字，字符编码：utf-8；例如：基本单元格为&quot;0-0&quot;、&quot;0-1&quot;、&quot;1-0&quot;、&quot;1-1&quot;等；合并后的单元格为&quot;Merged-0&quot;、&quot;Merged-1&quot;等
+  [in]        dbX                 文本内容块左上角相对于单元格左上角的横坐标，单位：mm（毫米）
+  [in]        dbY                 文本内容块左上角相对于单元格左上角的纵坐标，单位：mm（毫米）
+  [in]        dbW                 文本内容块的宽度，为非负浮点数，若为0则表示忽略此参数，单位：mm（毫米）
+  [in]        dbH                 文本内容块的高度，为非负浮点数，若为0则表示忽略此参数，单位：mm（毫米）
+  [in]        szText              需要绘制在绘图画布的文本内容，字符编码：utf-8
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_tbl_drawline-在表格指定单元格上绘制线段">DSTP2x_Tbl_DrawLine (在表格指定单元格上绘制线段)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawLine(TABLE_HDL ullTblHdl, const char *szGridName, double dbStartX, double dbStartY, double dbEndX, double dbEndY, int nLineWidth, int nLineType);
+
+参数:
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [out]       szGridName          单元格的名字，字符编码：utf-8；例如：基本单元格为&quot;0-0&quot;、&quot;0-1&quot;、&quot;1-0&quot;、&quot;1-1&quot;等；合并后的单元格为&quot;Merged-0&quot;、&quot;Merged-1&quot;等
+  [in]        dbStartX            线段相对于单元格左上角为原点的起点横坐标，单位：mm（毫米）
+  [in]        dbStartY            线段相对于单元格左上角为原点的起点纵坐标，单位：mm（毫米）
+  [in]        dbEndX              线段相对于单元格左上角为原点的终点横坐标，单位：mm（毫米）
+  [in]        dbEndY              线段相对于单元格左上角为原点的终点纵坐标，单位：mm（毫米）
+  [in]        nLineWidth          线段宽度，单位：pixel（像素）
+  [in]        nLineType           线段类型，0:实线，1:虚线，2：点线，3：点划线，4：双点划线
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_tbl_drawellipse-在表格指定单元格上绘制椭圆">DSTP2x_Tbl_DrawEllipse (在表格指定单元格上绘制椭圆)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawEllipse(TABLE_HDL ullTblHdl, const char *szGridName, double dbX, double dbY, double dbW, double dbH, int nLineWidth, int nLineType, int nIsFill);
+
+参数：
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [out]       szGridName          单元格的名字，字符编码：utf-8；例如：基本单元格为&quot;0-0&quot;、&quot;0-1&quot;、&quot;1-0&quot;、&quot;1-1&quot;等；合并后的单元格为&quot;Merged-0&quot;、&quot;Merged-1&quot;等
+  [in]        dbX                 椭圆左上角横坐标，单位：mm（毫米）
+  [in]        dbY                 椭圆左上角纵坐标，单位：mm（毫米）
+  [in]        dbW                 椭圆的宽度，单位：mm（毫米）
+  [in]        dbH                 椭圆的高度，单位：mm（毫米）
+  [in]        nLineWidth          椭圆的线宽度，单位：pixel（像素）
+  [in]        nLineType           椭圆的线类型，0:实线，1:虚线
+  [in]        nIsFill             是否填充，0:否，1:是
+
+返回：
+0表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_tbl_drawrectangle-在表格指定单元格上绘制矩形">DSTP2x_Tbl_DrawRectangle (在表格指定单元格上绘制矩形)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_DrawRectangle(TABLE_HDL ullTblHdl, const char *szGridName, double dbX, double dbY, double dbW, double dbH, int nLineWidth, int nLineType, int nIsFill);
+
+参数：
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [out]       szGridName          单元格的名字，字符编码：utf-8；例如：基本单元格为&quot;0-0&quot;、&quot;0-1&quot;、&quot;1-0&quot;、&quot;1-1&quot;等；合并后的单元格为&quot;Merged-0&quot;、&quot;Merged-1&quot;等
+  [in]        dbX                 矩形左上角横坐标，单位：mm（毫米）
+  [in]        dbY                 矩形左上角纵坐标，单位：mm（毫米）
+  [in]        dbW                 矩形的宽度，单位：mm（毫米）
+  [in]        dbH                 矩形的高度，单位：mm（毫米）
+  [in]        nLineWidth          矩形的线宽度，单位：pixel（像素）
+  [in]        nLineType           矩形的线类型，0:实线，1:虚线
+  [in]        nIsFill             是否填充，1:是，0:否
+
+返回：
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_tbl_mergegrids-合并单元格">DSTP2x_Tbl_MergeGrids (合并单元格)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_MergeGrids(TABLE_HDL ullTblHdl, int nRowBegin, int nRowEnd, int nColBegin, int nColEnd, char *szMergedGridName, int *pMergedGridNameSize)
+
+参数:
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [in]        nRowBegin           待合并单元格的起始行
+  [in]        nRowEnd             待合并单元格的结束行
+  [in]        nColBegin           待合并单元格的起始列
+  [in]        nColEnd             待合并单元格的结束列
+  [out]       szMergedGridName    合并后的新单元格的名字，字符编码：utf-8，例如：&quot;Merged-0&quot;，建议分配不小于32字节的空间
+  [in,out]    pMergedGridNameSize 返回信息的长度，入参数为szMergedGridName的内存大小，出参数时表示实际写入szMergedGridName内存的长度
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_tbl_revertmergedgrid-还原已合并的单元格">DSTP2x_Tbl_RevertMergedGrid (还原（已合并的）单元格)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_RevertMergedGrid(TABLE_HDL ullTblHdl, const char *szMergedGridName)
+
+参数:
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [in,out]    szMergedGridName    由DSTP2x_Tbl_MergeGrids函数返回的合并后的新单元格的名字
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_tbl_movecolboundary-通过移动列的边界线以更改表格的列宽">DSTP2x_Tbl_MoveColBoundary (通过移动列的边界线以更改表格的列宽)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_MoveColBoundary(TABLE_HDL ullTblHdl, int nColSepLineIdx, int nMoveDir, double dbStep)
+
+说明:
+ 1. 列的边界线数比列数多1
+ 2. 列的边界线索引从左到右依次为0、1、2、3...
+ 3. 因表格起始位置是既定的，因此（索引值为0的）最左侧列边界线不可进行左、右移动
+ 4. 左、右移动最右侧的列边界线会直接改变表格宽度，左、右移动介于最左侧和最右侧间的边界线时，则会且仅会改变此列边界线两侧的列宽，呈此消彼长的关系。
+
+参数:
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [in]        nColSepLineIdx      列的边界线索引，取值范围[1,n]，n等于列数
+  [in]        nMoveDir            边界线的移动方向
+                                  1 - 左移
+                                  2 - 右移
+  [in]        dbStep              移动边界线的步进值，单位：mm（毫米），精度：0.01mm
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_tbl_moverowboundary-通过移动列的边界线以更改表格的行高">DSTP2x_Tbl_MoveRowBoundary (通过移动列的边界线以更改表格的行高)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Tbl_MoveRowBoundary(TABLE_HDL ullTblHdl, int nRowSepLineIdx, int nMoveDir, double dbStep);
+
+说明:
+ 1. 行的边界线数比行数多1
+ 2. 行的边界线索引从上到下依次为0、1、2、3...
+ 3. 因表格起始位置是既定的，因此（索引值为0的）最顶端的行边界线不可进行上、下移动
+ 4. 上、下移动最底端的列边界线会直接改变表格宽度，上、下移动介于最顶端和最底端间的边界线时，则会且仅会改变此行边界线两侧的行高，呈此消彼长的关系。
+
+参数:
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [in]        nRowSepLineIdx      行的边界线索引，取值范围[1,n]，n等于行数
+  [in]        nMoveDir            边界线的移动方向
+                                  1 - 上移
+                                  2 - 下移
+  [in]        dbStep              移动边界线的步进值，单位：mm（毫米），精度：0.01mm
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lbl_drawline-在指定的标签画布绘制线段">DSTP2x_Lbl_DrawLine (在指定的标签画布绘制线段)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawLine(LC_HDL ullLcHdl, double dbStartX, double dbStartY, double dbEndX, double dbEndY, int nLineWidth, int nLineType);
+
+参数:
+  [in]        ullTblHdl           由DSTP2x_CreateTable函数返回的表格句柄
+  [in]        dbStartX            线段相对于标签左上角为原点的起点横坐标，单位：mm（毫米）
+  [in]        dbStartY            线段相对于标签左上角为原点的起点纵坐标，单位：mm（毫米）
+  [in]        dbEndX              线段相对于标签左上角为原点的起点横坐标，单位：mm（毫米）
+  [in]        dbEndY              线段相对于标签左上角为原点的起点纵坐标，单位：mm（毫米）
+  [in]        nLineWidth          线段宽度，单位：pixel（像素））
+  [in]        nLineType           线段类型，0:实线，1:虚线，2：点线，3：点划线，4：双点划线
+
+返回:
+0 表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_setellipserotation-标签上下文绘图设置-设置待绘制椭圆旋转参数">DSTP2x_LcDraw_SetEllipseRotation (标签上下文绘图设置-设置待绘制椭圆旋转参数)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetEllipseRotation(LC_HDL ullLcHdl, int nTemporary, int nAngle, int nAnchorPoint);
+
+参数:
+  [in]        ullLcHdl            由DSTP2x_CreateLabelContext函数返回的标签上下文句柄
+  [in]        nTemporary          本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawEllipse或DSTP2x_Tbl_DrawEllipse调用后，本设置项即被还原
+  [in]        nAngle              旋转角度，范围[-360,360]
+  [in]        nAnchorPoint        设置旋转基准中心
+                                  0 - 左上角
+                                  1 - 左边中间点
+                                  2 - 左下角
+                                  3 - 中心点
+
+返回：
+0表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lbl_drawellipse-在指定的标签上下文绘制椭圆">DSTP2x_Lbl_DrawEllipse (在指定的标签上下文绘制椭圆)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawEllipse(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, int nLineWidth, int nLineType, int nIsFill);
+
+参数：
+  [in]        ullLcHdl           由DSTP2x_CreateLabelContext函数返回的标签上下文句柄
+  [in]        dbX                椭圆左上角横坐标，单位：mm（毫米）
+  [in]        dbY                椭圆左上角纵坐标，单位：mm（毫米）
+  [in]        dbW                椭圆的宽度，单位：mm（毫米）
+  [in]        dbH                椭圆的高度，单位：mm（毫米）
+  [in]        nLineWidth         椭圆的线宽度，单位：pixel（像素）
+  [in]        nLineType          椭圆的线类型，0:实线，1:虚线
+  [in]        nIsFill            是否填充，0:否，1:是
+
+返回：
+0表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lcdraw_setrectanglerotation-标签上下文绘图设置-设置待绘制矩形旋转参数">DSTP2x_LcDraw_SetRectangleRotation (标签上下文绘图设置-设置待绘制矩形旋转参数)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_LcDraw_SetRectangleRotation(LC_HDL ullLcHdl, int nTemporary, int nAngle, int nAnchorPoint);
+
+参数：
+  [in]         ullLcHdl           由DSTP2x_CreateLabelContext函数返回的标签上下文句柄
+  [in]         nTemporary         本设置项是否为临时性的
+                                  0 - 持久性的，直至ullLcHdl失效，除非再次被修改
+                                  1 - 临时性的，随后一次DSTP2x_Lbl_DrawRectangle或DSTP2x_Tbl_DrawRectangle调用后，本设置项即被还原
+  [in]         nAngle             旋转角度，范围[-360,360]
+  [in]         nAnchorPoint       设置旋转基准中心
+                                  0 - 左上角
+                                  1 - 左边中间点
+                                  2 - 左下角
+                                  3 - 中心点
+
+返回：
+0表示成功，非零失败
+</code></pre>
+<h2 id="dstp2x_lbl_drawrectangle-在指定的标签上下文绘制矩形">DSTP2x_Lbl_DrawRectangle (在指定的标签上下文绘制矩形)</h2>
+<pre><code>unsigned int DSSDK DSTP2x_Lbl_DrawRectangle(LC_HDL ullLcHdl, double dbX, double dbY, double dbW, double dbH, int nLineWidth, int nLineType, int nIsFill);
+
+参数：
+  [in]        ullLcHdl           由DSTP2x_CreateLabelContext函数返回的标签上下文句柄
+  [in]        dbX                矩形左上角横坐标，单位：mm（毫米）
+  [in]        dbY                矩形左上角纵坐标，单位：mm（毫米）
+  [in]        dbW                矩形的宽度，单位：mm（毫米）
+  [in]        dbH                矩形的高度，单位：mm（毫米）
+  [in]        nLineWidth         矩形的线宽度，单位：pixel（像素）
+  [in]        nLineType          矩形的线类型，0:实线，1:虚线
+  [in]        nIsFill            是否填充，0:否，1:是
+
+返回：
+0表示成功，非零失败
+</code></pre>
+
+            
+            
+        </body>
+        </html>

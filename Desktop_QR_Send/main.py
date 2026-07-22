@@ -1,3 +1,17 @@
+import sys
+import os
+
+# 自动定位当前脚本根目录并锁定为工作目录，防止跨路径启动引发的相对路径错误
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(CURRENT_DIR)
+if CURRENT_DIR not in sys.path:
+    sys.path.insert(0, CURRENT_DIR)
+
+# 必须在导入任何 PySide6 模块前完成 DLL 引导；返回的目录句柄由该模块持续保存。
+from runtime_bootstrap import configure_runtime
+
+configure_runtime()
+
 import asyncio
 import threading
 
@@ -12,7 +26,6 @@ from utils.RS485Utils import RS485Utils
 from page import config
 from utils.web_socket_client import startWS
 import logging
-import os
 import datetime
 from logging.handlers import TimedRotatingFileHandler
 
@@ -38,7 +51,8 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
             self.client = startWS(websocket_uri=websocket_uri)
 
             # 启动异步事件循环（在单独线程中）
-            self.loop = asyncio.get_event_loop()
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
             self.loop_thread = Thread(target=self.run_loop, daemon=True)
             self.loop_thread.start()
         except Exception as e:

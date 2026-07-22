@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x7b2c;&#x516b;&#x7ae0;&#x3001;&#x5e38;&#x89c1;&#x95ee;&#x9898;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* 右侧内容区域 */
+        .content {
+            margin-left: 10px; /* 内容区域左侧留出导航栏空间 */
+            padding: 20px;
+            flex: 1; /* 内容区域填充剩余空间 */
+            background-color: #f9f9f9;
+        }
+
+        /* 响应式：当屏幕宽度小于768px时，导航栏变为可折叠 */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* 在小屏幕上缩小导航栏宽度 */
+            }
+
+            .content {
+                margin-left: 0; /* 内容区域不再留出导航栏空间 */
+            }
+        }
+       
+/* 子菜单样式 */
+.submenu {
+    display: none; /* 默认隐藏子菜单 */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* 鼠标悬停时显示子菜单 */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* 设置基础样式*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* 左侧导航栏样式 */
+.sidebar {
+    position: sticky;  /* 粘性定位 */
+    top: 0;             /* 当滚动到顶部时，固定 */
+    width: 300px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<!-- </head> -->
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">目录</p>      
+<ul>
+<a href="../index-CN.html" class="active">第一章、概述</a>
+        <a href="./FunctionList.html">第二章、功能清单</a>
+<li>
+<a href="#">第三章、功能示例代码</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP.html">C++示例</a></li>
+         <li><a href="./Samplecode-Charp.html">C#示例</a></li>
+         <li><a href="./Samplecode-java.html">java示例</a></li>
+         <li><a href="./Samplecode-javascript.html">javascript示例</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">第四章、功能接口</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef.html">C接口函数原型</a></li>
+                <li><a href="./WebApiDef.html">web端接口定义</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction.html">第五章、DSTP2xDemo使用说明</a>
+                <a href="./WebPrtServerInstruction.html">第六章、DSTP2xWebPrtServer使用说明</a>
+                <li>
+                  <a href="#">第七章、相关返回码列表</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode.html">SDK接口返回码</a></li>
+                    <li><a href="./PrtStatusCode.html">打印机状态码</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ.html">第八章、常见问题</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+	  body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+ <center>
+<b style="font-size:18pt">
+<h1 id="第八章常见问题">第八章、常见问题</h1>
+</b>
+</center>
+<ul>
+<li><a href="#%E7%AC%AC%E5%85%AB%E7%AB%A0%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98">第八章、常见问题</a>
+<ul>
+<li><a href="#1%E6%9E%9A%E4%B8%BE%E5%A4%B1%E8%B4%A5">1、枚举失败</a></li>
+<li><a href="#2%E7%BD%91%E5%8F%A3%E8%BF%9E%E6%8E%A5%E8%AE%BE%E5%A4%87%E6%97%B6%E6%9E%9A%E4%B8%BE%E4%B8%8D%E5%88%B0%E6%89%93%E5%8D%B0%E6%9C%BA">2、网口连接设备时枚举不到打印机</a></li>
+<li><a href="#3%E8%BF%9E%E6%8E%A5%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0%E6%9C%BA%E5%A4%B1%E8%B4%A5">3、连接串口打印机失败</a></li>
+<li><a href="#4%E8%BF%9E%E6%8E%A5%E5%A4%9A%E5%8F%B0%E6%89%93%E5%8D%B0%E6%9C%BA%E6%89%93%E5%8D%B0%E5%A4%9A%E7%A7%8D%E6%A0%87%E7%AD%BE%E5%A6%82%E4%BD%95%E5%8C%BA%E5%88%86">4、连接多台打印机打印多种标签如何区分</a></li>
+<li><a href="#5%E5%BC%80%E5%8F%91%E5%8C%85%E6%98%AF%E5%90%A6%E6%9C%89%E6%97%A5%E5%BF%97%E4%BF%A1%E6%81%AF%E4%BB%A5%E5%8F%8A%E5%AD%98%E6%94%BE%E7%9B%AE%E5%BD%95">5、开发包是否有日志信息以及存放目录</a></li>
+<li><a href="#6%E6%89%93%E5%8D%B0%E4%B8%8D%E5%85%A8%E6%89%93%E5%8D%B0%E6%95%88%E6%9E%9C%E5%A4%A7%E5%B0%8F%E4%B8%8E%E9%A2%84%E6%9C%9F%E4%B8%8D%E7%AC%A6">6、打印不全/打印效果大小与预期不符</a></li>
+<li><a href="#7%E6%89%93%E5%8D%B0%E6%95%88%E6%9E%9C%E5%9D%90%E6%A0%87%E9%97%AE%E9%A2%98">7、打印效果坐标问题</a></li>
+<li><a href="#8%E6%89%93%E5%8D%B0%E6%9C%89%E5%8A%A8%E4%BD%9C%E4%BD%86%E6%97%A0%E5%86%85%E5%AE%B9">8、打印有动作但无内容</a></li>
+<li><a href="#9%E6%89%93%E5%8D%B0%E6%95%B0%E6%8D%AE%E5%8F%91%E9%80%81%E6%88%90%E5%8A%9F%E4%BD%86%E6%89%93%E5%8D%B0%E6%9C%BA%E6%B2%A1%E6%9C%89%E5%8A%A8%E4%BD%9C">9、打印数据发送成功但打印机没有动作</a></li>
+<li><a href="#10%E5%88%87%E7%BA%B8%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98">10、切纸相关问题</a></li>
+<li><a href="#11%E5%8F%91%E9%80%81%E6%95%B0%E6%8D%AE%E5%90%8E%E6%89%93%E5%8D%B0%E6%9C%BA%E9%9D%A2%E6%9D%BF%E6%8A%A5rfid%E6%97%A0epc%E6%88%96%E6%8C%87%E7%A4%BA%E7%81%AF%E6%8A%A5%E9%94%99">11、发送数据后打印机面板报“rfid无epc”或指示灯报错</a></li>
+<li><a href="#12%E6%89%A7%E8%A1%8C%E6%89%93%E5%8D%B0pdf%E6%97%B6%E8%BF%94%E5%9B%9E42074112%E6%8A%A5%E9%94%99">12、执行打印PDF时返回&quot;42074112&quot;报错</a></li>
+<li><a href="#13%E6%89%A7%E8%A1%8C%E6%89%93%E5%8D%B0pdf%E8%BF%94%E5%9B%9E42074113%E6%8A%A5%E9%94%99">13、执行打印PDF返回“42074113”报错</a></li>
+<li><a href="#14%E6%89%A7%E8%A1%8C%E6%89%93%E5%8D%B0%E8%BF%94%E5%9B%9E25182210%E6%8A%A5%E9%94%99">14、执行打印返回“25182210”报错</a></li>
+<li><a href="#15%E6%89%A7%E8%A1%8C%E6%89%93%E5%8D%B0%E8%BF%94%E5%9B%9E25182213%E6%8A%A5%E9%94%99">15、执行打印返回“25182213”报错</a></li>
+<li><a href="#16%E6%89%A7%E8%A1%8C%E6%89%93%E5%8D%B0%E8%BF%94%E5%9B%9E25198597%E6%8A%A5%E9%94%99">16、执行打印返回“25198597”报错</a></li>
+<li><a href="#17%E6%89%A7%E8%A1%8C%E6%89%93%E5%8D%B0%E8%BF%94%E5%9B%9E25198604%E6%8A%A5%E9%94%99">17、执行打印返回“25198604”报错</a></li>
+<li><a href="#18%E6%89%A7%E8%A1%8C%E6%89%93%E5%8D%B0%E8%BF%94%E5%9B%9E42270720%E6%8A%A5%E9%94%99">18、执行打印返回“42270720”报错</a></li>
+<li><a href="#19%E5%8A%A0%E8%BD%BD%E5%8A%A8%E6%80%81%E5%BA%93%E8%BF%94%E5%9B%9E41992207%E6%8A%A5%E9%94%99">19、加载动态库返回“41992207”报错</a></li>
+<li><a href="#20%E5%AE%A2%E6%88%B7%E7%A8%8B%E5%BA%8F%E6%88%96demo%E6%97%A0%E6%B3%95%E8%BF%90%E8%A1%8C">20、客户程序或demo无法运行</a></li>
+<li><a href="#21dstp2xwebprtserverexe%E6%8A%A5%E9%94%99%E5%BC%80%E5%90%AF%E6%9C%8D%E5%8A%A1%E5%A4%B1%E8%B4%A5">21、DSTP2xWebPrtServer.exe报错“开启服务失败”</a></li>
+<li><a href="#22%E8%AE%BE%E7%BD%AE%E9%80%9A%E8%AE%AF%E8%B6%85%E6%97%B6%E6%97%B6%E9%97%B4%E5%BB%BA%E8%AE%AE">22、设置通讯超时时间建议</a></li>
+<li><a href="#23linux%E7%B3%BB%E7%BB%9F%E4%B8%8B%E5%AF%B9%E5%BA%94%E6%9E%B6%E6%9E%84%E9%80%89%E6%8B%A9">23、Linux系统下对应架构选择</a></li>
+<li><a href="#24linux%E7%B3%BB%E7%BB%9F%E4%B8%8B%E6%9F%A5%E8%AF%A2%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF">24、Linux系统下查询系统信息</a></li>
+<li><a href="#25linux%E7%B3%BB%E7%BB%9F%E4%B8%8B%E9%9C%80%E8%A6%81%E7%94%A8root%E7%94%A8%E6%88%B7%E6%88%96%E6%9D%83%E9%99%90%E8%BF%90%E8%A1%8C%E5%9F%BA%E4%BA%8Esdk%E7%9A%84%E7%A8%8B%E5%BA%8F%E6%9D%A5%E6%93%8D%E6%8E%A7usb%E8%BF%9E%E6%8E%A5%E6%96%B9%E5%BC%8F%E7%9A%84%E6%89%93%E5%8D%B0%E6%9C%BA">25、Linux系统下需要用root用户或权限运行基于SDK的程序来操控USB连接方式的打印机</a></li>
+<li><a href="#26linux%E7%B3%BB%E7%BB%9F%E4%B8%8B%E6%89%93%E5%8D%B0%E6%96%87%E6%9C%AC%E6%8A%A5%E9%94%99">26、Linux系统下打印文本报错</a></li>
+<li><a href="#27linux%E7%B3%BB%E7%BB%9F%E4%B8%8B%E5%AD%97%E4%BD%93%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B">27、Linux系统下字体操作流程</a></li>
+<li><a href="#28epc%E6%88%96user%E6%95%B0%E6%8D%AE%E5%86%99%E5%85%A5%E6%A0%BC%E5%BC%8F">28、EPC或USER数据写入格式</a></li>
+<li><a href="#29%E8%AF%BBepcusertid%E8%BF%94%E5%9B%9E%E7%9A%84%E5%80%BC%E4%B8%BAerror">29、读EPC、USER、TID返回的值为“Error!”</a></li>
+<li><a href="#30%E6%89%93%E5%8D%B0rfid%E6%A0%87%E7%AD%BE%E4%BC%9A%E6%89%93%E5%8D%B0%E4%BD%9C%E5%BA%9F%E5%AD%97%E6%A0%B7">30、打印RFID标签会打印“作废”字样</a></li>
+<li><a href="#31%E5%85%B3%E4%BA%8E%E9%94%81%E5%AE%9A%E6%A0%87%E7%AD%BE%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">31、关于锁定标签的注意事项</a></li>
+<li><a href="#32%E5%BE%AE%E8%BD%AFucqqedge%E8%B0%B7%E6%AD%8C%E7%8C%8E%E8%B1%B9%E7%AD%89%E6%B5%8F%E8%A7%88%E5%99%A8%E8%B7%A8%E5%9F%9F%E9%97%AE%E9%A2%98">32、微软、UC、QQ、edge、谷歌、猎豹等浏览器跨域问题</a></li>
+<li><a href="#33linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E8%BE%91%E6%A8%A1%E6%9D%BF%E5%BF%AB%E6%8D%B7%E6%96%B9%E5%BC%8F">33、Linux系统编辑模板快捷方式</a></li>
+<li><a href="#34%E7%BC%96%E8%BE%91%E6%A8%A1%E6%9D%BF%E8%A1%A8%E6%A0%BC%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">34、编辑模板表格注意事项</a></li>
+<li><a href="#35linux%E7%8E%AF%E5%A2%83usb%E6%95%B0%E6%8D%AE%E6%8A%93%E5%8F%96">35、Linux环境USB数据抓取</a></li>
+<li><a href="#36java%E8%B0%83%E7%94%A8%E8%BF%94%E5%9B%9E%E4%B8%8D%E6%98%AFutf-8%E5%AD%97%E7%AC%A6%E4%B8%B2">36、JAVA调用返回“不是UTF-8字符串”</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="1枚举失败">1、枚举失败</h2>
+<p>①请检查打印机是否已正常开机；<br>
+② 请检查是否正确使用usb线将打印机和电脑U口连接起来；<br>
+③ 请检查打印机与电脑的usb物理连接线是否松脱；<br>
+④ 可能是当前SDK尚未支持的新上市产品，请打印自检页并联系工厂技术支持人员协助分析确认；<br>
+⑤ 如果当前是网页应用，请查看在客户端上 DSTP2xWebPrtServer.exe 服务是否已启动；<br>
+<br>
+<br></p>
+<h2 id="2网口连接设备时枚举不到打印机">2、网口连接设备时枚举不到打印机</h2>
+<p><b>Windows：</b><br>
+<img src="../res/FAQ-EnumFail-Windows.png" ></img><br>
+① 请检查打印机是否已正常开机；<br>
+② 请检查打印机与电脑、（与电脑组网的）交换机/路由器的网线是否松脱；<br>
+③ 请打印自检页，判断打印机跟电脑是否处于同一网段；<br>
+④ 请检查电脑是否能ping通打印机；<br>
+⑤ 如上图所示，如果Demo 首次在电脑上操作 TCP 枚举打印机，会弹出防火墙阻止程序访问网络断开的弹框，需要允许使用网络的应用程序首次请求使用端口；<br>
+<b>Linux：</b><br>
+①请检查电脑是否能ping通打印机；<br>
+②国产系统关一下防火墙；相关指令为：<br>
+iptables -I INPUT -p udp -j ACCEPT<br>
+iptables -I OUTPUT -p udp -j ACCEPT<br>
+<br>
+<br></p>
+<h2 id="3连接串口打印机失败">3、连接串口打印机失败</h2>
+<p>① 请检查软件与打印机的波特率是否一致，如果不清楚打印机波特率，可以通过打印自检页或者用智能助手连接打印机查看；<br>
+② 如果是使用u转串转接板或u转串转接线进行连接的，请确保已正确安装U转串驱动，再进行串口连接操作；<br>
+<br>
+<br></p>
+<h2 id="4连接多台打印机打印多种标签如何区分">4、连接多台打印机打印多种标签如何区分</h2>
+<p>多台打印机 USB 连接，如果是不同型号机器，枚举出来的厂商机型会不同；<br>
+如果相同型号机器可以用【智能助手】开启 USBID，这时枚举出来的信息会有对应机号信息，该机号信息是唯一，故可通过机号进行区分；<br>
+网口连接多台打印机可根据设置的打印IP进行区分；<br>
+<br>
+<br></p>
+<h2 id="5开发包是否有日志信息以及存放目录">5、开发包是否有日志信息以及存放目录</h2>
+<p>具体日志存放路径需要查看对应sdkcfg.xml配置文件里面的<LogPath>参数，默认如下：<br>
+<img src="../res/FAQ-5-1.png"></img><br>
+<b>Windwos环境默认路径：</b><br>
+C:\Users\用户名\AppData\Local\Temp\DSSDKTemp\ThermalLog；<br>
+也可按下Win＋R键，输入“%temp%”命令，然后回车，找到DSSDKTemp文件夹，里面就是本SDK运行记录的日志；<br>
+<img src="../res/FAQ-5-2.png"></img>
+<br>
+<b>Linux环境默认路径：</b><br>
+非ROOT模式下，日志是生成在/home/xxx/DSSDKTemp/，若root模式下，日志是生成在/root/DSSDKTemp/下；<br>
+<b>日志路径以及等级均可通过依赖库目录下“sdkcfg.xml”文件进行设置修改；</b><br>
+<br>
+<br></p>
+<h2 id="6打印不全打印效果大小与预期不符">6、打印不全/打印效果大小与预期不符</h2>
+<p>① 请检查打印机放纸位置是否正确，放纸后有没有用逼纸块固定好纸张；<br>
+② 请通过自检页查看当前页长值来确定打印机已正确实施过标签定位；<br>
+③ 请检查程序中设置的dpi是否与打印机当前的dpi一致。如果dpi设置比该机器实际dpi大，换算后，打印数据整体会被放大，可能超标签规格，导致打印不全；比如DL-218（203dpi），如果接口中设置为300dpi，代码数据里10mm，打出来实际会变成15mm，打印出来的尺寸会比预期大。应根据打印机的实际DPI（如203dpi）进行正确设置；<br>
+④ 请检查打印数据内容或坐标有没有超过标签的大小，模板以及接口参数设置的页长页宽要按实际标签规格设置；<br>
+<br>
+<br></p>
+<h2 id="7打印效果坐标问题">7、打印效果坐标问题</h2>
+<p>①横坐标问题<br>
+检查一下机器放纸位置有没有偏移；<br>
+检查打印数据前，有没有调用接口设置页长页宽，因机器有差异，可能计算坐标的起始位置有差异，因此需先按实际打印需求设置页长页宽；<br>
+②纵坐标问题<br>
+检查一下有没有对标签进行定位校准,可打印自检页看看定位出来的页长是否跟实际标签一样打印（±2mm为正常范围），打印自检页方法：<br>
+【DP便携系列】：开机状态下长按走纸键，等待打印自检页；<br>
+【DL桌面系列】：关机状态，按走纸键开机，响一声松开手打印自检页；带面板机器可进入测试模式菜单--&gt;&gt;自检打印操作打印自检页；<br>
+如果使用黑标纸进行定位，要把传感器改成反射再进行定位；如果是用标签间隙来定位，传感器改成穿透，穿透需要上下传感器都对齐，要移到对着标签间隙的位置再进行定位；如果模式错误，会影响打印出来的纵坐标位置；<br>
+<b>批量打印时如果上一张没有打印完成，就发送下一张，导致位置打偏，建议打印流程发送前获取状态（目前版本打印默认同步返回打印状态结果），状态正常情况下，再进行发送下一份数据打印；</b><br>
+<br>
+<br></p>
+<h2 id="8打印有动作但无内容">8、打印有动作但无内容</h2>
+<p>① 请检查纸张类型是否使用正确；如使用普通纸张则需安装碳带（DP系列一般只能使用热敏纸）；<br>
+② 请检查纸张是否装反了（热敏纸可用指甲划一下表面，会有明显划痕为打印面）；<br>
+③ 检查打印内容坐标是否超出标签范围，例如：实际标签规格宽高为40*30，打印文本内容横坐标设置为40mm，那么内容显示超出画布；<br>
+④ 批量打印丢数据缺漏乱码，先重启一下打印机清除打印机数据，数据不要一次发送太多或多份数据不要发送太快；建议批量打印流程：每份数据发送前先轮询获取状态，判断状态正常（有纸、联机、设备不忙、缓存空无其它报错等状态情况下，再进行发送下一份数据打印；<br>
+<br>
+<br></p>
+<h2 id="9打印数据发送成功但打印机没有动作">9、打印数据发送成功但打印机没有动作</h2>
+<p>①检查打印机仿真模式与发送的仿真是否一致；<br>
+②检查打印机是否处于异常状态<br>
+按走纸键打印机是否能正常走一张标签纸,如机器卡死没有动作可重启机器再重新操作<br>
+查看打印机面板或指示灯是否处于报错状态（有面板机器会直接返回错误信息，无面板机器指示灯会亮红灯），如果因报错导致无法打印，可取消报错状态或重启机器再操作<br>
+<br>
+<br></p>
+<h2 id="10切纸相关问题">10、切纸相关问题</h2>
+<p>①当无法切纸时：检查打印机支持切刀模组以及是否开启切刀功能（切刀功能开启可用智能助手修改）；<br>
+②打印机支持切刀模组并且处于开启切刀状态下，当打印后打印机内无缓存会自动切一张纸；<br>
+③使用接口立即切纸功能：打印机支持切刀模组并且处于开启切刀状态下，调用DSTP2x_CutPaper或者web_DSTP2x_CutPaper接口功能时候会控制切刀立即切纸；一般用于自由控制打印多份数据后切纸；<br>
+<b style="color:red">注意：相关接口指令会有部分机型不适用<br></b>
+<br>
+<br></p>
+<h2 id="11发送数据后打印机面板报rfid无epc或指示灯报错">11、发送数据后打印机面板报“rfid无epc”或指示灯报错</h2>
+<p><b>【报错含义】：</b><br>
+打印机当前已开启RFID功能，但打印机执行打印数据时并未捡到任何待处理的RFID数据；<br>
+<b>【诊断步骤及应对措施】：</b><br>
+如当前应用场景无需RFID功能，请通过面板或“智能助手”关闭RFID功能；否则，请在调用DSTP2x_PrintXXX前先调用DSTP2x_LcRfid_SetData，确保已向打印机固件下发RFID数据。打印机开启RFID功能但只发送了打印数据没有写epc，打印机只收到打印数据，没有epc数据所致；<br>
+如不需要打印RFID标签可用智能助手关闭RFID功能或用智能助手把“RFID数据监测”这个选项参数关了（该RFID数据监测参数要固件版本支持），如需打印RFID必须先动态写入epc数据再打印；<br>
+<br>
+<br></p>
+<h2 id="12执行打印pdf时返回42074112报错">12、执行打印PDF时返回&quot;42074112&quot;报错</h2>
+<p><b>【错误码含义】：</b><br>
+未能找到相对应插件<br>
+<b>【应对措施】：</b><br>
+检查依赖的sdkcfg.xml文件有没有配置好pdf插件路径<br>
+目前我们支持两种形式打印PDF，内部逻辑处理PDF在sdkcfg.xml文件中设置为“0”并且需要授权文件，如需PDF插件则需先插件配置路径；<br>
+<img src="../res/FAQ-12.png"></img>
+<br>
+<br></p>
+<h2 id="13执行打印pdf返回42074113报错">13、执行打印PDF返回“42074113”报错</h2>
+<p><b>【错误码含义】：</b><br>
+程序试图使用PDF打印功能，但未能找到相应的插件<br>
+<b>【应对措施】：</b><br>
+检查依赖的sdkcfg.xml文件有没有配置好pdf插件路径，需要根据实际存放xpdf文件路径调整;<br>
+<img src="../res/FAQ-13.png"></img>
+<br>
+<br></p>
+<h2 id="14执行打印返回25182210报错">14、执行打印返回“25182210”报错</h2>
+<p><b>【错误码含义】：</b><br>
+usb发送数据失败<br>
+<b>【应对措施】：</b><br>
+① 请先检查电脑与打印机的通讯是否正常（检查电脑识别打印机是否正常、usb线是否掉了，电脑是否中途关机或重启等情况）；<br>
+② 如果有其他软件占用端口收发数据会导致调用发送超时，就会发送数据失败；<br>
+③ 如以上步骤都检查过，可重启打印机或再进行操作验证；<br>
+④ 如果重启打印机后，该问题还是必现或出现频率很高，可依次按如下步骤进行排查：<br>
+► 更换一条usb连接线再进行验证<br>
+► 更换另一台电脑再进行验证<br>
+<br>
+<br></p>
+<h2 id="15执行打印返回25182213报错">15、执行打印返回“25182213”报错</h2>
+<p><b>【错误码含义】：</b><br>
+usb接收不到应答数据<br>
+<b>【诊断步骤及应对措施】：</b><br>
+① 请先检查usb连接线是否松脱；如是，请重新接牢；<br>
+② 请先检查打印机是否被电脑正常识别，见下图；<br>
+<img src="../res/FAQ-15.png"></img><br>
+③ 请确认程序是否对一台（RFID功能尚未开启的）RFID打印机调用了RFID相关的读取功能；如是，请先开启打印机的RFID功能，然后重启打印机后再进行验证；<br>
+④ 请通过按打印机的按键观察打印机是否有动作进而判断打印机当前是否卡死；<br>
+⑤ 请检查打印机当前是否报错；如是，请先消除当前报错，然后再次操作看通讯是否正常；<br>
+⑥ 请确认打印机固件与SDK是否适配；此诊断策略适用于以下情况：<br>
+► 首次使用SDK与打印机对接开发项目<br>
+► 最近升级过打印机固件或SDK版本<br>
+<br>
+<b>如果是读epc/user/tid时返回错误：</b><br>
+① 打印自检页，检查一下该打印机是普通打印机、高频打印机还是RFID超高频打印机，如果是RFID超高频打印机，检查是否没有开启 RFID 的功能；<br>
+② RFID标签用软件测试前，是否没有进行RFID标签定位校准（要确保标签定位校准成功：校准成功后，按一下走纸键，走一张标签，且打印自检页，能看到校准后的标签页长是实际标签页长，定位后标签页长有±1mm左右误差都是正常的。）<br>
+③ 读写功率或频段设置的不对，可用智能助手修改频段再重新定位检验RFID标签；<br>
+④ 观察走纸动作是否异常；是否有卡纸、滑纸或碳带粘住标签等异常动作，导致RFID 标签芯片没有到达打印机读写芯片位；<br>
+⑤ 检查标签是否损坏或有无进行过特殊操作，如销毁标签操作等等；<br>
+<br>
+<br></p>
+<h2 id="16执行打印返回25198597报错">16、执行打印返回“25198597”报错</h2>
+<p><b>【错误码含义】：</b><br>
+TCP发送数据失败<br>
+<b>【应对措施】：</b><br>
+① 请检查打印机是否已正常开机;<br>
+② 请检查打印机与电脑、（与电脑组网的）交换机/路由器的网线是否松脱;<br>
+③ 请检查电脑是否能ping通打印机;<br>
+④ 请通过telnet PrinterIp 9100命令（PrinterIp为打印机Ip地址）检查打印机的9100端口当前是否可连通;<br>
+<br>
+<br></p>
+<h2 id="17执行打印返回25198604报错">17、执行打印返回“25198604”报错</h2>
+<p><b>【错误码含义】：</b><br>
+未能从TCP接收到打印机的应答数据<br>
+<b>【应对措施】：</b><br>
+① 请检查打印机是否已正常开机;<br>
+② 请检查打印机与电脑、（与电脑组网的）交换机/路由器的网线是否松脱;<br>
+③ 请检查电脑是否能ping通打印机;<br>
+④ 请通过telnet PrinterIp 9100命令（PrinterIp为打印机Ip地址）检查打印机的9100端口当前是否可连通;<br>
+⑤ 请确认打印机固件与SDK是否适配；此诊断策略适用于以下情况：;<br>
+► 首次使用SDK与打印机对接开发项目<br>
+► 最近升级过打印机固件或SDK版本<br>
+<br>
+<br></p>
+<h2 id="18执行打印返回42270720报错">18、执行打印返回“42270720”报错</h2>
+<p><b>【错误码含义】：</b><br>
+打印机返回给SDK的状态数据表明打印机当前出错了<br>
+<b>【应对措施】：</b><br>
+检查打印机是否处于报错状态，查看打印机面板或指示灯状态（有面板机器会显示错误信息，无面板机器指示灯会亮红灯）。其次，带面板的机器，需要再检查打印机是否处于非打印就绪界面，如果因报错或其它原因导致无法打印，可先取消报错状态或直接重启机器，机器恢复正常状态再继续操作；<br>
+<br>
+<br></p>
+<h2 id="19加载动态库返回41992207报错">19、加载动态库返回“41992207”报错</h2>
+<p><b>【错误码含义】：</b><br>
+已有依赖库的程序运行，表明当前已有一个基于libDSThermal.dll或libDSThermal.so的程序正在运行，再多开一个程序导致的报错;<br>
+<b>【应对措施】：</b><br>
+原则上同一时间只由一个应用程序独占使用打印机；通过任务管理器查看是否已有DSTP2xDemo.exe、DSTP2xWebPrtServer.exe、DSTP2xDemo.out、DSTP2xWebPrtServer.out或者客户基于libDSThermal.dll或libDSThermal.so开发的程序正在运行，并由客户决定最终让哪个程序运行;<br>
+<br>
+<br></p>
+<h2 id="20客户程序或demo无法运行">20、客户程序或demo无法运行</h2>
+<p>① 如出现如下面2张图的报错提示，表明客户程序或demo缺少SDK的依赖库；请将\lib下对应的32/64位目录下的所有文件拷贝到当前程序同级目录下<br>
+<img src="../res/FAQ-20-1.png"></img><br>
+<img src="../res/FAQ-20-2.png"></img><br>
+② 如出现下图的报错提示，表明客户程序或demo使用了与之位数不匹配的依赖库。比如客户程序或demo当前位32程序，但缺依赖了64位的库；请确保32位程序正确使用32位依赖库（路径：\lib\Win32），64位程序正确使用64位依赖库（路径：\lib\x64）。<br>
+<img src="../res/FAQ-20-3.png"></img><br>
+③ 如出现下图的报错提示或者报错提示为“因为计算机中丢失msvcp140.dll”等，表明当前操作系统缺少VC运行时环境；请根据客户程序或demo的位数需要，安装相应位数的vc_redist即可。<br>
+<img src="../res/FAQ-20-4.png"></img>
+<br>
+<br></p>
+<h2 id="21dstp2xwebprtserverexe报错开启服务失败">21、DSTP2xWebPrtServer.exe报错“开启服务失败”</h2>
+<p>检查DSTP2xWebPrtServer服务所需要绑定的9001要端口是否被其他程序占用了，终端输入netstat命令查看端口占用情况，
+window系统可以使用命令查看：netstat -ano | findstr &quot;LISTENING&quot;
+如9001端口已被占用，显示如下图：<br>
+<img src="../res/FAQ-21-1.png"></img><br>
+Linux系统可以使用命令查看：sudo netstat -tulnp
+如9001端口已被占用，显示如下图：<br>
+<img src="../res/FAQ-21-2.png"></img><br>
+<b>【应对措施】：</b><br>
+修改DSTP2xWebPrtServer服务端口，步骤如下：
+①打开\web_server\ServerCfg.ini文件，修改端口号；<br>
+<img src="../res/FAQ-21-3.png"></img><br>
+②保存文件；
+③重新运行./DSTP2xWebPrtServer.out
+注意：修改ServerCfg.ini文件的端口后，如果要运行javascript示例测试，记得同时修改示例文件夹里common.js中的端口号，保持两者一致才能正常连接。<br>
+<img src="../res/FAQ-21-4.png"></img><br>
+<br>
+<br></p>
+<h2 id="22设置通讯超时时间建议">22、设置通讯超时时间建议</h2>
+<p>对于本SDK的功能接口的通讯超时时间，建议值发送或者接收数据均为3000~5000ms即可；<br>
+<br>
+<br></p>
+<h2 id="23linux系统下对应架构选择">23、Linux系统下对应架构选择</h2>
+<p>目前支持x86、arm架构系统，因不同架构底层逻辑有有区别，需要选择对应架构系统的so进行集成；<br><br>
+查看系统架构方法：<br>
+Linux系统的桌面上，右键打开终端，输入lscpu确认CPU的架构，具体返回信息如下图所示：<br>
+<img src="../res/FAQ-22.png"></img><br>
+<br>
+<br></p>
+<h2 id="24linux系统下查询系统信息">24、Linux系统下查询系统信息</h2>
+<p>在调试过程中发现无法调用so库或报错等情况时，可以查看系统具体信息进行分析；
+常用查询命令：<br>
+uname -a<br>
+cat /proc/version<br>
+cat /etc/os-release<br>
+cat /etc/redhat-release<br>
+cat /etc/issue<br>
+lsb_release -a<br>
+<br>
+可在控制台中一次输出以上指令按回车执行，返回结果如下图所示：
+<img src="../res/FAQ-23.1.png"></img><br>
+<br>
+<img src="../res/FAQ-23.2.png"></img><br>
+<br>
+<br></p>
+<h2 id="25linux系统下需要用root用户或权限运行基于sdk的程序来操控usb连接方式的打印机">25、Linux系统下需要用root用户或权限运行基于SDK的程序来操控USB连接方式的打印机</h2>
+<p>SDK包里提供了一个map.ds方案，只需以root用户或权限成功执行一次该方案，后续即可以普通用户或权限运行基于SDK的程序来操控USB连接方式的打印机；<br>
+<br>
+<br></p>
+<h2 id="26linux系统下打印文本报错">26、Linux系统下打印文本报错</h2>
+<p>接口调用是依赖于系统字库，但每家Linux系统厂商都会自己定制字体，字体还涉及到版权问题，如果没有字体的话会报错，可以安装相应字体或者使用系统自带的字体进行打印；<br>
+在Linux系统传入已安装的字体但会报错无法打印：<br>
+因系统差异，检查系统字体看排前的位置是中文还是英文，查出来英文名字在前，web_DSTP2x_LcDraw_SetTextFontName或DSTP2x_LcDraw_SetTextFontName调用参数需要给英文名称，如果是中文则给中文名称；<br>
+如下图例子所示，左侧为Centos7系统，显示SimSun在前，需要传“SimSun”右侧是KylinOS系统显示宋体在前，需要传“宋体”；<br>
+<img src="../res/FAQ-25.png"></img><br>
+查询字体指令：<br>
+终端输入：fc-list<br>
+只查一下安装的中文字体：fc-list :lang=zh<br>
+<br>
+<br></p>
+<h2 id="27linux系统下字体操作流程">27、Linux系统下字体操作流程</h2>
+<p>①在桌面任意地方右键打开终端；输入sudo chmod 777 -R /usr/share/fonts/kyfonts（“/usr/share/fonts/kyfonts”为需要赋权的目录名称，系统不同路径可能会不同，具体根据实际系统而定，下图系统目录位置在/usr/share/fonts/kingsoft）按回车输入密码（如系统本身为root用户不需要输入密码）给该目录修改权限；（777 -R赋权等级可视实际情况给）<br>
+<img src="../res/FAQ-26.1.png"></img><br></p>
+<p>②把字体复制到/usr/share/fonts/kyfonts（“/usr/share/fonts/kyfonts”为你们字体安装的位置，系统不同路径会不同，具体根据实际系统而定，下图系统目录位置在/usr/share/fonts/kingsoft）目录下；<br>
+<img src="../res/FAQ-26.2.png"></img><br></p>
+<p>③在/usr/share/fonts/kyfonts（“/usr/share/fonts/kyfonts”为你们字体安装的位置，系统不同路径会不同，具体根据实际系统而定，下图系统目录位置在/usr/share/fonts/kingsoft）目录下右键打开终端<br>
+<img src="../res/FAQ-26.3.png"></img><br></p>
+<p>④在终端输入fc-cache按回车，等待安装字体；<br>
+<img src="../res/FAQ-26.4.png"></img><br></p>
+<p>⑤在终端输入fc-list按回车，查看确认字体是否安装成功；<br>
+<img src="../res/FAQ-26.5.png"></img><br>
+<br>
+<br></p>
+<h2 id="28epc或user数据写入格式">28、EPC或USER数据写入格式</h2>
+<p><b>SDK接口支持HexStr方式以及ASCII两种形式写入，具体情况如下：</b><br>
+【ASCII类型】<br>
+① 是以一个字符作为一个字节进行数据写入的。<br>
+② 输入的数据长度必须为2个字符的整数倍。<br>
+③ 支持ASCII码表里面的任一字符数据作为输入。<br>
+示例：<br>
+输入数据：1234abcd<br>
+实际写入标签的（十六进制）数据：31 32 33 34 61 62 63 64<br>
+【HexStr类型】<br>
+① 是以两个字符作为一个字节进行数据写入的。<br>
+② 输入的数据长度必须为4个字符的整数倍。<br>
+③ 只支持数字0~9，字母a~f或A~F作为输入。<br>
+示例：<br>
+输入数据：1234abcd<br>
+实际写入标签的（十六进制）数据：12 34 ab cd<br>
+<b style="color:red">【注意事项】<br>
+① 由于写入标签的数据都是十六进制数，因此上层应用读取到标签数据后需要根据此前选定的写入数据格式决定是否需要进行相应的格式转换。<br>
+② epc/user长度不能超过签芯片规格。例如：标签芯片epc区规格是96bits，那么epc只能写96/8=12字节，超出长度就写不进去；用HexStr能写24个数；ASCII方式只能写12个数。<br>
+③ 如果是特殊标签，需要按对应标签规格书要求格式进行写入。<br></b>
+<br>
+<br></p>
+<h2 id="29读epcusertid返回的值为error">29、读EPC、USER、TID返回的值为“Error!”</h2>
+<p><b>【报错含义】：</b>打印机返回的45 72 72 6F 72 21其实是“Error！”的十六进制数据，代表读取epc、user或tid失败。<br>
+【诊断步骤及应对措施】：<br>
+① 请重新进行RFID标签定位校准再试。<br>
+② 请重试该标签的读取操作看能否成功；如果打印机返回的结果仍然是“Error！”，请尝试下一个步骤。<br>
+③ 如果有PDA，请使用PDA看看能否成功读到该标签的epc、user或tid；如果打印机返回的结果仍然是“Error！”，当前标签可能已损坏/已销毁，请尝试下一个步骤。<br>
+④ 请通过走纸功能过掉当前标签，换下一张标签读取看看是否成功。如果换张标签读取正常，检查是否标签损坏或者其他问题（标签进行是否进行了销毁等其它操作导致）。<br>
+⑤ 若已经按以上步骤操作过，打印机仍然返回“Error！”，请重启打印机再进行该读取操作。<br>
+<br>
+<br></p>
+<h2 id="30打印rfid标签会打印作废字样">30、打印RFID标签会打印“作废”字样</h2>
+<p><b>【报错含义】：</b><br>
+对于带epc/user数据的RFID打印操作，当打印过程中打印机无法将epc/user数据写入标签芯片时，打印机会在当前标签上打印“作废”字样；然后转到下一张标签进行补打，如果连续三次补打依旧失败，打印机将报错并停止工作；<br>
+<b>【诊断步骤及应对措施】：</b><br>
+① 请检查标签是否已损坏。</b><br>
+② 请检查标签有没有对标签进行RFID标签定位校准（换不同规格标签/更新升级固件/打印机恢复出厂设置等操作后，都需要重新进行RFID标签定位校准操作）</b><br>
+③ 请检查是否对不带user区的标签执行写user操作。</b><br>
+④ 请检查epc/user数据是否过长。可以查看标签规格书看标签支持多少数据，如果超标签规格，会因写不进去导致打印作废。</b><br>
+⑤ 请检查将要写入的epc/user数据长度是否合法。ASCII类型数据长度必须为2个字符的整数倍，HexStr类型数据长度必须为4个字符的整数倍。</b><br>
+⑥ 使用了普通标签进行打印，无法读写到标签RFID区域；</b><br>
+⑦ 标签协议与机器模块不设配（比如标签的频段对不上，高频协议标签在超高频机器上使用）</b><br>
+⑧ 如果是特殊标签，需要对应标签规格书的要求进行操作；检查标签密码是否定制，还有标签epc/user数据长度写入规则是否不一样。<br><br>
+<br>
+<br></p>
+<h2 id="31关于锁定标签的注意事项">31、关于锁定标签的注意事项</h2>
+<p>① 锁定/解锁操作均须在打印前调用执行。<br>
+② 如需已修改过密码，后续写入epc、user时都需要带新密码进行操作，否则打印机会因无法写入而打印作废及执行补打；<br>
+<br>
+<br></p>
+<h2 id="32微软ucqqedge谷歌猎豹等浏览器跨域问题">32、微软、UC、QQ、edge、谷歌、猎豹等浏览器跨域问题</h2>
+<p><b>【报错原因】：</b><br>目前server服务已支持对浏览器发起跨域请求，但如果出现谷歌浏览器上返回跨错误时，由于谷歌98版本之后，网站对私有服务发出请求前，浏览器都会自动发出一个“预检请求”，如果服务不认识预检请求，就不会正确返回，浏览器便会拦截所有预检请求不通过的请求。同时报跨域的错误；<br>
+<b>【处理措施】：</b><br>因为是浏览器拦截了数据包的请求；该跨域问题在于浏览器本身，新版本的谷歌浏览器就需要进入浏览器在地址栏输入：chrome://flags/#block-insecure-private-network-requests 回车访问
+搜索Block insecure private network requests，将其设置为Disabled后重启浏览器运行才能解决；<br>
+<br>
+<br></p>
+<h2 id="33linux系统编辑模板快捷方式">33、Linux系统编辑模板快捷方式</h2>
+<p>因系统差异，使用时会有快捷键操作的差异，如下图所示x86架构下kylin系统不支持Alt移动模板，不支持shift+Alt选择表格元素；<br>
+<img src="../res/FAQ-32.png"></img><br>
+<br>
+<br></p>
+<h2 id="34编辑模板表格注意事项">34、编辑模板表格注意事项</h2>
+<p>①同样表格内单元格与非表格元素之间不允许进行合并单元格操作，比如选择文字跟单元格合并会提示下图报错；<br>
+<img src="../res/FAQ-33.1.png"></img><br></p>
+<p>②同一表格内相邻的基础单元格不允许进行合并单元格操作，比如0-0单元格可以与0-1单元格、1-0单元格合并但不可以0-0单元格与0-2单元格或0-3单元格合并，点击合并会提示下图报错；<br>
+<img src="../res/FAQ-33.2.png"></img><br></p>
+<p>③同一表格内不相邻的基础单元格之间不允许进行合并单元格操作，比如0-0单元格想与1-1单元格合并，点击合并会提示下图报错；<br>
+<img src="../res/FAQ-33.3.png"></img><br></p>
+<p>④两个不同表格的基础单元格之间不允许进行合并单元格操作，比如table-01表格0-0单元格想与table-02表格0-1单元格进行合并，点击合并会提示下图报错；<br>
+<img src="../res/FAQ-33.4.png"></img><br>
+<br>
+<br></p>
+<h2 id="35linux环境usb数据抓取">35、Linux环境USB数据抓取</h2>
+<p><b style="font-size:11pt">Linux：<br>
+usbmon 抓取 USB 总线上通信的数据，方法如下：</b><br>
+<br>
+1.检查内核是否支持debugfs文件系统<br>
+cat /proc/filesystems | grep debugfs<br>
+nodev	debugfs<br>
+<br></p>
+<p>2.挂载debugfs文件系统<br>
+sudo mount -t debugfs none_debugs /sys/kernel/debug<br>
+none_debugs already mounted or /sys/kernel/debug busy<br>
+<br></p>
+<p>3.确认内核是否支持usbmon模块<br>
+sudo ls /sys/module/usbmon<br>
+无法访问'/sys/module/usbmon': 没有那个文件或目录<br>
+<br></p>
+<p>4.安装usbmon模块<br>
+sudo modprobe usbmon<br>
+再查看sudo ls /sys/module/usbmon<br>
+coresize  holders  initsize  initstate	notes  refcnt  sections  srcversion  taint  uevent<br>
+<br></p>
+<p>5.查看当前总线编号<br>
+sudo ls /sys/kernel/debug/usb/usbmon<br>
+0s  0u	1s  1t	1u  2s	2t  2u<br>
+<br></p>
+<p>6.查看当前usb设备信息<br>
+sudo cat /sys/kernel/debug/usb/devices<br>
+<br>
+T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 6<br>
+B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0<br>
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1<br>
+P:  Vendor=1d6b ProdID=0002 Rev= 5.04<br>
+S:  Manufacturer=Linux 5.4.18-27-generic ehci_hcd<br>
+S:  Product=EHCI Host Controller<br>
+S:  SerialNumber=0000:02:03.0<br>
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA<br>
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub<br>
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms<br>
+<br>
+T:  Bus=02 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2<br>
+B:  Alloc= 17/900 us ( 2%), #Int=  1, #Iso=  0<br>
+D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1<br>
+P:  Vendor=1d6b ProdID=0001 Rev= 5.04<br>
+S:  Manufacturer=Linux 5.4.18-27-generic uhci_hcd<br>
+S:  Product=UHCI Host Controller<br>
+S:  SerialNumber=0000:02:00.0<br>
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA<br>
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub<br>
+E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms<br>
+<br>
+T:  Bus=02 Lev=01 Prnt=01 Port=00 Cnt=01 Dev#=  2 Spd=12   MxCh= 0<br>
+D:  Ver= 1.10 Cls=00(&gt;ifc ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1<br>
+P:  Vendor=0e0f ProdID=0003 Rev= 1.03<br>
+S:  Manufacturer=VMware<br>
+S:  Product=VMware Virtual USB Mouse<br>
+C:* #Ifs= 1 Cfg#= 1 Atr=c0 MxPwr=  0mA<br>
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=01 Prot=02 Driver=usbhid<br>
+E:  Ad=81(I) Atr=03(Int.) MxPS=   8 Ivl=1ms<br>
+<br>
+T:  Bus=02 Lev=01 Prnt=01 Port=01 Cnt=02 Dev#=  3 Spd=12   MxCh= 7<br>
+D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1<br>
+P:  Vendor=0e0f ProdID=0002 Rev= 1.00<br>
+S:  Manufacturer=VMware, Inc.<br>
+S:  Product=VMware Virtual USB Hub<br>
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA<br>
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub<br>
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=255ms<br>
+<br>
+或者<br>
+lsusb<br>
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub<br>
+Bus 002 Device 003: ID 0e0f:0002 VMware, Inc. Virtual USB Hub<br>
+Bus 002 Device 002: ID 0e0f:0003 VMware, Inc. Virtual Mouse<br>
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub<br>
+<br>
+其中Bus后面的是总线号，Dev#或者Device后面的是设备号<br>
+<br></p>
+<p>7.开始监听（1号总线上的001号设备）<br>
+sudo cat /sys/kernel/debug/usb/usbmon/1u |grep &quot;1:001&quot; &gt; ./1.mon.txt<br>
+<br>
+<br></p>
+<h2 id="36java调用返回不是utf-8字符串">36、JAVA调用返回“不是UTF-8字符串”</h2>
+<p><b>【报错原因】：</b><br>打印参数里面有中文字符编码不是utf-8<br>
+<b>【应对措施】：</b><br>
+增加System.setProperty()方法，用于设置系统属性，如下图所示：<br>
+<img src="../res/FAQ-35.png"></img><br></p>
+</div>
+            
+            
+        </body>
+        </html>

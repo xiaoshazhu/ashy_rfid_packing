@@ -1,0 +1,164 @@
+Thermal standard package change log:
+
+/**************Release_V1.2.0.4 -> Release_V1.3.0.0**********************/
+【 libDSThermal Library - Modify and Optimize 】:
+1. Fixed the bug where PDF paths contain spaces that prevent parsing;
+2. Optimize rectangular printing;
+3. Add support for elliptical printing;
+
+
+【DSTP2xWebPrtServer - Modify and Optimize】:
+1. Add interfaces for printing rectangles and ellipses;
+
+【 Samplecode Sample Program - Modify Optimization 】:
+1. Add examples related to printing rectangles and ellipses;
+
+
+/**************Release_V1.2.0.3 -> Release_V1.2.0.4**********************/
+【 libDSThermal Library - Modify and Optimize 】:
+1. Restore support for read-only RFID on the old motherboard of the thermal machine;
+
+
+/**************Release_V1.2.0.2 -> Release_V1.2.0.3**********************/
+【DSTP2xWebPrtServer - Modify and Optimize】:
+1、The service is hidden after self starting on the upper computer；
+
+
+
+/**************Release_V1.2.0.1 -> Release_V1.2.0.2**********************/
+【 libDSThermal Library - Modify and Optimize 】:
+1、Optimize long connection network port communication bug；
+
+
+/**************Release_V1.2.0.0 -> Release_V1.2.0.1**********************/
+【 libDSThermal Library - Modify and Optimize 】:
+1、For clearer English description；
+
+【DSTP2xDemo - Modify and Optimize】:
+1、For clearer English description；
+
+
+/**************Release Version 1.1.0.2->Release Version 1.2.0.0**********************/
+【 libDSThermal Library - Modify and Optimize 】:
+1. Add an interface for setting up a network port to connect to the printer and retry settings;
+2. Support the drawing function of SVG image files;
+3. All interfaces with parameter values will output the relevant parameter values to the log before successful execution and return;
+4. Add more types of data to the log to support viewing parameter value output;
+5. Template loading has added support for transferring memory data;
+6. Add an interface for obtaining all ID values of the template;
+7. Fixed the bug of interface handle passing invalid values causing crashes;
+8. Fixed the bug where the connection returned success when the serial port number is correct but the baud rate is incorrect;
+9. Optimize the printing speed of multiple printers with multiple threads;
+10. Added length judgment for RFID data written on tags and PDFs;
+11. Support TCP long connection communication with printers;
+12. Increase support for English;
+13. Optimize the RFID locking and unlocking process;
+14. Fix the abnormal disconnection and reconnection of the printer after manually restarting it;
+15. Fix PDF printing with RFID data without performing RFID operations;
+16. Can the template add dynamic modification of fields;
+17. Regarding the template, PDF， Add support for returning Base64 data for preview images in the printing modes of each drawing;
+
+
+【 Samplecode Sample Program - Modify Optimization 】:
+1. Add examples of calling network and serial printer direct connection methods;
+2. When adding an enumeration of multiple printers to the webpage sample code, the first one is selected by default;
+3. Increase support for English;
+
+【DSTP2xWebPrtServer - Modify and Optimize】:
+1. Add an interface for setting up a network port to connect to the printer and retry settings;
+2. Add an interface for obtaining all ID values of the template;
+
+【DSTP2xDemo - Modify and Optimize】:
+1. Support the drawing function of SVG image files;
+2. When the RFID reading mode is non read-only, set the gray reading length;
+3. Increase support for English;
+4. Can the template add dynamic modification of fields;
+
+
+
+/**************Release V1.1.0.1->Release V1.1.0.2**********************/
+
+【 libDSThermal Library - Modify and Optimize 】:
+1. Add RFID locking and unlocking, encryption, password writing RFID and other functions;
+2. Add an interface for obtaining library information;
+3. Add some error codes;
+4. Add the FHIR ibInfo interface to obtain dynamic library information;
+5. Optimize text display (deal with the issue of text not displaying when the height of the text is less than the height of the text box);
+6. Add interfaces for obtaining and setting the current RFID protocol;
+7. Add RFID lock timeliness setting interface;
+8. Add label and table drawing line segment interfaces;
+9. Optimize image scaling algorithm, previously there was a bug where lines disappeared at a certain high magnification ratio;
+10. Resolve the issue of upper layer application socket handle failure caused by closing sockets in multi-threaded network connections;
+11. Add a PDF image halftone processing interface;
+12. Improve the configuration file regarding the addition of new printer information;
+
+【 Samplecode Sample Program - Modify Optimization 】:
+1. Add examples related to RFID locks and encryption;
+2. Optimize some descriptions;
+3. Fixed the bug in C # and Delphi where there was an error in processing the return value after obtaining the state;
+4. Add examples of drawing line segments;
+
+【DSTP2xDemo - Modify and Optimize】:
+1. Add the FHIR ibInfo interface to retrieve dynamic library information and display it on the program version interface;
+2. Add the default IP format filled in the editing box for direct IP connection;
+3. Added read-write passwords and locking operations on RFID tags on the template;
+4. Change the English content of "WR/W/R" in the drop-down menu for editing the read/write mode of RFID attribute to "write first, read later/write only/read-only";
+5. Change the description above the title of the demo to a Chinese name after connecting the printer;
+6. I have made some modifications to the demo to address the issue of garbled text when filling in Russian (the image needs to be edited with a thermal library to print properly);
+7. After selecting PDF in other functions, read and display the page numbers of PDF on the interface;
+8. Added interface functionality for reading and setting RFID protocols on other functional pages;
+9. Add algorithm settings to PDFs in other functions;
+10. Add line segment drawing function;
+
+
+【DSTP2xWebPrtServer - Modify and Optimize】:
+1. Added web interfaces such as web_DSTP2x_RFID_ChangeAccessPassword/web_DSTP2x_RFID_LockOperate/web_DSTP2x_RFID_UnlockOperate/web_DSTP2x_RFID_SetPasswordWithWrite, etc
+2. Add settings and obtain RFID protocol interfaces;
+3. Add RFID lock timeliness setting interface;
+4. Add a PDF image halftone processing interface;
+5. Add a line segment drawing interface;
+
+【Other】
+1. Improve the corresponding documentation;
+2. Optimize the viewing experience of Demo video tutorials;
+
+
+/**************Release Version 1.1.0.0->Release Version 1.1.0.1**********************/
+【 libDSThermal Library - Modify and Optimize 】:
+1. Add interfaces for modifying template properties;
+2. Add an interface to return the current template dlt file
+3. Add some error codes;
+4. Add interfaces for obtaining kilometers;
+5. Shorten the timeout time for obtaining information when connecting devices;
+
+【 Samplecode Sample Program - Modify Optimization 】:
+1. Provide more detailed examples of using the state retrieval interface;
+2. Modifying some Linux browsers to load invalid attribute ID errors;
+3. When loading PDFs in some Linux browsers, adapt to the type wps-office.ddf;
+4. Add simulation type selection to all webpage examples;
+5. Add examples of direct transmission of simulation data;
+6. Add examples of HTML JavaScript communication calls based on WebSocket;
+
+
+【DSTP2xDemo - Modify and Optimize】:
+1. Added 'Save As' to automatically add file dlt suffix;
+2. Add a right-click tree menu copy paste menu;
+3. Added optimization to allow multiple elements to be selected while holding down the Ctrl key. This is mainly used for right-click menu operations on the interface after selecting multiple cells;
+4. Added optimization: After selecting a first level element, you can directly move the selected element's position in the right-click menu on the interface;
+5. Added optimization: After selecting a first level element, holding down the Alt key and clicking on the selected element allows for direct movement of the selected element's position;
+6. After selecting the basic elements to copy on the interface, click on the blank space of the canvas to directly copy them onto the canvas;
+7. Added an option to synchronize printing in the auxiliary menu;
+8. Added the option to hold down the shift key and click on the element to select the element with the largest area;
+9. The elements added to the right-click menu in the blank space will be directly placed at the position clicked by the left mouse button;
+
+
+【DSTP2xWebPrtServer - Modify and Optimize】:
+1. Added HTTPS as a server-side adaptation;
+2. Add templates that support printing and downloading HTTPS files;
+3. Two new interfaces have been added, namely web_DSTP2x_SetTmplValByKey,web_DSTP2x_GetBackTmpl;
+
+
+[Other]:
+1. Optimization documentation;
+2. Update template demo video;
+3. Added demo template examples;

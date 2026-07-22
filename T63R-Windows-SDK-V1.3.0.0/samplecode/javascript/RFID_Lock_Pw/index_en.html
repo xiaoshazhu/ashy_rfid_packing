@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFID_Lock_Pw</title>
+    <link rel="stylesheet" type="text/css" href="./css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+</head>
+
+<body>
+    <div class="header">
+        <img src="./images/tp.png" height="32px" style="margin-top:16px;" />
+    </div>
+    <div class="main">
+        <span class="tag">
+            RFID_Lock_Pw
+        </span>
+        <div class="content_wrap">
+            <div class="setting">
+                <p class="title">RFID Change Access Password</p>
+                <div class="data_set border">
+                    <div class="wrap">
+                        <section>
+                            <div class="set_label" style="flex: 1; margin-right: 45px">
+                                <label for="ChangePassword" style="width: 150px;">Change password: </label>
+                                <label for="OldPassword" style="width: 150px;">Old-Pw: </label>
+                                <input type="text" id="OldPw" name="OldPw">
+                                <label for="NewPassword" style="width: 150px; margin-left: 45px">New-Pw: </label>
+                                <input type="text" id="NewPw" name="NewPw">
+                            </div>                            
+                        </section>                       
+                    </div>
+                </div>
+
+                <p class="title">RFID lock and encryption operation (EPC as an example)</p>
+                <div class="data_set border">
+                    <div class="wrap">
+                        <section>
+                            <div class="set_label" style="flex: 1; margin-right: 45px">                                
+                                <label for="LockEPCPw" style="width: 150px">Lock the EPC area: </label>
+                                <label for="LockEPCWithPw" style="width: 60px;">Pw: </label>
+                                <input type="text" id="LEPCPw" name="LEPCPw">                              
+                            </div>
+                            <div class="set_label" style="flex: 1; margin-right: 45px">
+                                <label for="WriteEPCPw" style="width: 150px">Write EPC with password: </label>
+                                <label for="WriteEPCWithPw" style="width: 60px;">Pw: </label>
+                                <input type="text" id="WEPCPw" name="WEPCPw">
+                            </div>                         
+                        </section>                       
+                    </div>
+                </div>
+
+                <p class="title">RFID data to be written: </p>
+                <div class="data_set border">
+                    <div class="wrap">
+                        <section>
+                            <div class="set_label" style="flex: 1; margin-right: 45px">
+                                <label for="EPC" style="width: 100px;">EPC: </label>
+                                <input type="text" id="EPC_Text" name="EPC_Text">
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" name="EPC_RADIO" id="EPC_ASCII" value="1" checked>
+                                <label for="EPC_ASCII">ASCII</label>
+                            </div>
+                            <div class="set_label" style="margin-right: 45px">
+                                <input type="radio" name="EPC_RADIO" id="EPC_hex" value="2">
+                                <label for="EPC_hex">Hex string</label>
+                            </div>
+                        </section>
+                        <section>
+                            <div class="set_label" style="flex: 1; margin-right: 45px">
+                                <label for="USER" style="width: 100px;">USER: </label>
+                                <input type="text" id="USER_Text" name="USER_Text">
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="USER_ASCII" value="1" name="USER_RADIO" checked>
+                                <label for="USER_ASCII">ASCII</label>
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="USER_hex" value="2" name="USER_RADIO">
+                                <label for="USER_hex" name="USER_hex">Hex string</label>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                <p class="title">Print setting: </p>
+                <div class="options border">
+                    <div class="label">
+                        <label for="printCount" style=" margin-left: 55px;margin-right: 50px">Printing frequency</label>
+                        <input type="number" id="printCount" value="1" name="printCount">
+                    </div>
+
+                </div>
+
+                <div class="data_set border">
+                    <div class="wrap">                                        
+                        <section>   
+                            <label for="EMU_SEL" style=" margin-right: 50px;">Set emulation</label>    
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ZPL_EMU" value="1" name="EMU_RADIO" checked>
+                                <label for="ZPL" name="ZPL">ZPL</label>
+                            </div>                         
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="TSPL_EMU" value="2" name="EMU_RADIO" >
+                                <label for="TSPL" name="TSPL">TSPL</label>
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ESCPOS_EMU" value="3" name="EMU_RADIO">
+                                <label for="ESCPOS" name="ESCPOS">ESCPOS</label>
+                            </div>                            
+                        </section>
+                    </div>
+                </div>
+
+                <div class="btn">
+                    <button class="success" onclick="handlePrint('Text printing')">Text printing</button>
+                    <button class="success" onclick="handlePrint('Barcode printing')">Barcode printing</button>
+                    <button class="success" onclick="handlePrint('QRcode printing')">QRcode printing</button>
+                    <button class="success" onclick="handlePrint('Image printing')">Image printing</button>
+                    <button class="success" onclick="handlePrint('Mixed content printing')">Mixed content printing</button>
+                </div>
+                <div class="terminal_wrap">
+                    <div class="top">
+                        <p class="title">Message output: </p>
+                        <button onclick="clearLog()">Clear message</button>
+                    </div>
+                    <div class="terminal">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="popup_tips" style="display: none;">
+        <div class="popup_tips_mask"></div>
+        <div class="popup_tips_content"></div>
+    </div>
+</body>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/common.js"></script>
+<script src="./js/base64.js"></script>
+
+
+<script type="text/javascript">
+    window.onload = function () {    //Refresh
+        $(window).scrollTop(0)
+    }
+
+    //Params
+    function handleParams() {
+        let data = {}
+        $("input[name]").each(function () {
+            var name = $(this).attr("name");
+            var isFile = $(this).attr("type") == "file";
+            var isRadio = $(this).attr("type") == "radio";
+            var isCheckBox = $(this).attr("type") == "checkbox";
+
+            if (isFile) {
+                data[name] = $("input[name=" + name + "]").get(0).files[0] || "";
+            } else if (isRadio) {
+                data[name] = $("input[name=" + name + "]:checked").val()
+            } else if (isCheckBox) {
+                data[name] = $(this).is(":checked")
+            } else {
+                data[name] = $("input[name=" + name + "]").val() || "";
+            }
+        });
+
+        return data
+    }
+
+    //Text printing
+    async function handlePrint(type) {
+        var rfidType = 0;
+        let params = handleParams()
+        console.log(params);
+        try {
+            await sendPostRequest("web_DSTP2x_SetLibLang", "Set Language", { "language":"1" })
+            
+            //List devices
+            const devRes = await sendPostRequest("web_DSTP2x_EnumDev", "List devices", { "enumType": "1" })
+            
+            let index = devRes.enumList.indexOf(",")
+            if(index != -1)
+            {
+                const devList = devRes.enumList.split(",")
+                devRes.enumList = devList[0]
+            }
+
+            //Connected Device
+            const connectRes = await sendPostRequest("web_DSTP2x_ConnEnumeratedDev", "Connected Device", { "devName": devRes.enumList })
+            //Get printing status
+            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtStatus", "Get printing status", { "devHdl": connectRes.devHdl })
+            if (statusRes.isReady != "1") {
+                openMask("打印机状态异常", true)
+                //Disconnect
+                await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": connectRes.devHdl })
+                return
+            }
+            //Set emulation
+            await sendPostRequest("web_DSTP2x_SetPrnEmulation", "Set emulation", { "devHdl": connectRes.devHdl, "emulation": params.EMU_RADIO })
+
+            //Create a drawing canvas handle
+            const labelRes = await sendPostRequest("web_DSTP2x_CreateLabelContext", "Create a drawing canvas handle", { "width": "110", "height": "100" })
+            if(params.OldPw && params.NewPw) {
+                await sendPostRequest("web_DSTP2x_RFID_ChangeAccessPassword", "Change RFID access password", { "devHdl": connectRes.devHdl, "oldPassWord": params.OldPw, "newPassWord": params.NewPw })                
+            }
+
+            if(params.LEPCPw) {
+                await sendPostRequest("web_DSTP2x_RFID_LockOperate", "Lock RFID-EPC area", { "devHdl": connectRes.devHdl, "rfidArea": "1", "passWord": params.LEPCPw })                
+            }
+
+            if(params.WEPCPw) {
+                await sendPostRequest("web_DSTP2x_RFID_SetPasswordWithWrite", "Set password for RFID-EPC area writing", { "devHdl": connectRes.devHdl, "rfidArea": "1", "passWord": params.WEPCPw })            
+            }
+
+            if (params.EPC_Text) {
+                //Set the RFID data of EPC to be written
+                await sendPostRequest("web_DSTP2x_LcRfid_SetData", "Set the RFID data of EPC to be written", { "lcHdl": labelRes.lcHdl, "rfidRgnType": "1", "rfidDataFmt": params.EPC_RADIO, "data": params.EPC_Text })
+                rfidType += 2
+            }
+            if (params.USER_Text) {
+                //Set the RFID data of USER to be written
+                await sendPostRequest("web_DSTP2x_LcRfid_SetData", "Set the RFID data of USER to be written", { "lcHdl": labelRes.lcHdl, "rfidRgnType": "2", "rfidDataFmt": params.USER_RADIO, "data": params.USER_Text })
+                rfidType += 4;
+            }
+
+            const res = await drawPrintData(type, connectRes.devHdl, labelRes.lcHdl)
+            let info = {
+                devHdl: connectRes.devHdl,
+                lcHdl: labelRes.lcHdl,
+                tblHdl: res.tblHdl ? res.tblHdl : "",
+                rfidType
+            }
+            printAll(info, params, 1, type)
+        } catch (error) {
+            let errText = error ? error : "Request failure"
+            openMask(errText, true)
+        }
+    }
+
+    //Params
+    function drawPrintData(type, devHdl, lcHdl) {
+        return new Promise(async function (resolve, reject) {
+            try {
+                //设置超时时间
+                await sendPostRequest("web_DSTP2x_SetCommTimeout", "Printing frequency", {
+                    "devHdl": devHdl, "commType": "1", "sendTimeout": "20000", "recvTimeout": "20000"
+                })
+                if (type == "Text printing") {
+                    //Set font type
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetTextFontName", "Set font type", { "lcHdl": lcHdl, "temporary": "1", "fontName": "simsun" })
+                    //Set font size
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetTextFontSize", "Set font size", { "lcHdl": lcHdl, "temporary": "0", "fontSize": "20.0" })
+                    //Set alignment method
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetTextHAlign", "Set alignment method", { "lcHdl": lcHdl, "temporary": "0", "align": "2", xLine: "10.0" })
+                    //Set whether to italicize or not
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetTextItalic", "Set whether to italicize or not", { "lcHdl": lcHdl, "temporary": "0", "isItalic": "0" })
+                    //Set text line spacing
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetTextLineSpacing", "Set text line spacing", { "lcHdl": lcHdl, "temporary": "0", "align": "2", spacing: "1.0" })
+                    //Set text rotation
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetTextRotation", "Set text rotation", { "lcHdl": lcHdl, "temporary": "0", "angle": "0", anchorPoint: "3" })
+                    //Set the spacing between characters
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetTextCharSpacing", "Set the spacing between characters", { "lcHdl": lcHdl, "temporary": "0", "spacing": "1.0" })
+                    //Set whether to bold or not
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetTextBold", "Set whether to bold or not", { "lcHdl": lcHdl, "temporary": "0", "isBold": "1" })
+                    //Set whether to wrap lines
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetTextAutoLineFeed", "Set whether to wrap lines", { "lcHdl": lcHdl, "temporary": "0", "isAutoLineFeed": "1" })
+                    //Text content
+                    await sendPostRequest("web_DSTP2x_Lbl_DrawText", "Text content", { "lcHdl": lcHdl, "x": "0", "y": "0", "w": "40", "h": "40", "data": "Test Test Test" })
+                    resolve({})
+                }
+                if (type == "Barcode printing") {
+                    //Does the barcode generate annotations
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetBarCodeExpl", "Does the barcode generate annotations", { "lcHdl": lcHdl, "temporary": "1", "explanation": "1" })
+                    //Barcode content
+                    await sendPostRequest("web_DSTP2x_Lbl_DrawBarCode", "Barcode content", { "lcHdl": lcHdl, "x": "0", "y": "0", "w": "40", "h": "20", "data": "1234", "codeType": "8" })
+                    resolve({})
+                }
+                if (type == "QRcode printing") {
+                    //Set error correction level
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetBarCodeEcLvl", "Set error correction level", { "lcHdl": lcHdl, "temporary": "1", "errorCorrectLevel": "3" })
+                    //QRcode content
+                    await sendPostRequest("web_DSTP2x_Lbl_DrawBarCode", "QRcode content", { "lcHdl": lcHdl, "x": "0", "y": "0", "w": "40", "h": "40", "data": "5678", "codeType": "58" })
+                    resolve({})
+                }
+                if (type == "Image printing") {
+                    //Set image rotation
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetImageRotation", "Set image rotation", { "lcHdl": lcHdl, "temporary": "1", "angle": "90", "anchorPoint": "3" })
+                    //Set the black and white algorithm for images
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetImageHalftoneAlgo", "Set the black and white algorithm for images", { "lcHdl": lcHdl, "temporary": "1", "algorithm": "3", "threshold": "175" })
+                    //Image content
+                    await sendPostRequest("web_DSTP2x_Lbl_DrawImage", "Image content", { "lcHdl": lcHdl, "x": "0", "y": "0", "w": "40", "h": "40", "data": imageBa64, "imgDataType": "2" })
+                    resolve({})
+                }
+                if (type == "Mixed content printing") {
+                    //Set font type
+                    await sendPostRequest("web_DSTP2x_LcDraw_SetTextFontName", "Set font type", { "lcHdl": lcHdl, "temporary": "1", "fontName": "simsun" })
+                    //Text content
+                    await sendPostRequest("web_DSTP2x_Lbl_DrawText", "Text content", { "lcHdl": lcHdl, "x": "0", "y": "0", "w": "40", "h": "40", "data": "Test Test Test" })
+                    //Barcode content
+                    await sendPostRequest("web_DSTP2x_Lbl_DrawBarCode", "Barcode content", { "lcHdl": lcHdl, "x": "20", "y": "0", "w": "40", "h": "20", "data": "1234", "codeType": "8" })
+                    //QRcode content
+                    await sendPostRequest("web_DSTP2x_Lbl_DrawBarCode", "QRcode content", { "lcHdl": lcHdl, "x": "30", "y": "0", "w": "40", "h": "40", "data": "5678", "codeType": "58" })
+                    //Image content
+                    await sendPostRequest("web_DSTP2x_Lbl_DrawImage", "Image content", { "lcHdl": lcHdl, "x": "40", "y": "0", "w": "40", "h": "40", "data": imageBa64, "imgDataType": "2" })
+                    //Table
+                    const tableRes = await sendPostRequest("web_DSTP2x_CreateTable", "Table", {
+                        "lcHdl": lcHdl, "x": "50", "y": "0", "w": "40", "h": "40", "rowCount": "3", "colCount": "2", "lineWidth": "1"
+                    })
+                    resolve(tableRes)
+                }
+            } catch (error) {
+                reject(error)
+            }
+        })
+
+
+    }
+
+    //Loop printing
+    async function printAll(info, params, count, type) {
+        try {
+            if (count <= params.printCount) {
+                //Print
+                await sendPostRequest("web_DSTP2x_PrintLc", `The ${count} th print`, { "devHdl": info.devHdl, "lcHdl": info.lcHdl, "outFileType": "0", "rfidReadType": info.rfidType + "" })
+                count++
+                printAll(info, params, count, type)
+            } else {
+                if (type == "Mixed content") {
+                    //Delete table
+                    await sendPostRequest("web_DSTP2x_DeleteTable", "Delete table", { "tblHdl": info.tblHdl })
+                }
+                //Delete drawing canvas handle
+                await sendPostRequest("web_DSTP2x_DeleteLabelContext", "Delete drawing canvas handle", { "lcHdl": info.lcHdl })
+                //Disconnect
+                await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": info.devHdl })
+                openMask("Print successful", true)
+                // reset()
+            }
+        } catch (error) {
+            console.log(error);
+            let errText = error ? error : "Request failure"
+            openMask(errText, true)
+        }
+    }
+
+
+</script>
+
+</html>

@@ -1,0 +1,11 @@
+fontFile Symbol				./xpdf-t1fonts/s050000l.pfb
+fontFile ZapfDingbats		./xpdf-t1fonts/d050000l.pfb
+
+#----- begin Chinese Simplified support package (2011-sep-02)
+cidToUnicode	Adobe-GB1	./xpdf-chinese-simplified/Adobe-GB1.cidToUnicode
+unicodeMap	ISO-2022-CN	./xpdf-chinese-simplified/ISO-2022-CN.unicodeMap
+unicodeMap	EUC-CN		./xpdf-chinese-simplified/EUC-CN.unicodeMap
+unicodeMap	GBK		./xpdf-chinese-simplified/GBK.unicodeMap
+cMapDir		Adobe-GB1	./xpdf-chinese-simplified/CMap
+toUnicodeDir			./xpdf-chinese-simplified/CMap
+#----- end Chinese Simplified support package

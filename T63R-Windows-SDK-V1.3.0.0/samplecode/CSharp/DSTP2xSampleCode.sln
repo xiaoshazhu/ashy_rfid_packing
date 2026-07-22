@@ -1,0 +1,134 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetPrtInfo", "GetPrtInfo\GetPrtInfo.csproj", "{20738F89-8E42-4D45-8A53-ECC88973D0B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrawPrint_RFID", "DrawPrint_RFID\DrawPrint_RFID.csproj", "{44524DF7-FB84-4183-BAEA-FFD716EA7114}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfPrint_RFID", "PdfPrint_RFID\PdfPrint_RFID.csproj", "{AC34BCD2-A3DD-4934-B506-B88C8C814A9C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfPrintOnly", "PdfPrintOnly\PdfPrintOnly.csproj", "{1919C99A-6F28-4337-978D-B3989764A519}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadTid_DrawPrint_RFID", "ReadTid_DrawPrint_RFID\ReadTid_DrawPrint_RFID.csproj", "{2444CB6F-166F-406A-BE2B-5D9B7BCBF767}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadTid_PdfPrint_RFID", "ReadTid_PdfPrint_RFID\ReadTid_PdfPrint_RFID.csproj", "{90BFA34E-B9E0-4229-8706-6A7CB20491AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadTid_TemplatePrint_RFID", "ReadTid_TemplatePrint_RFID\ReadTid_TemplatePrint_RFID.csproj", "{FFDFCFA0-FD64-4BF1-8D26-156226CF4BCC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplatePrint_RFID", "TemplatePrint_RFID\TemplatePrint_RFID.csproj", "{F490F030-BBFF-44E5-9A19-839C4B443214}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplatePrintOnly", "TemplatePrintOnly\TemplatePrintOnly.csproj", "{EDAF4CE3-06E9-4D53-A530-D12488A7238A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Barcode", "DrawPrintOnly\Barcode\Barcode.csproj", "{962B9EF8-57E5-4394-B0AF-6129BBE05571}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Text", "DrawPrintOnly\Text\Text.csproj", "{4937241D-95AE-4D4E-AA73-2A1007FF9048}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Image", "DrawPrintOnly\Image\Image.csproj", "{6204D7D9-A61A-45D8-8C55-356CCBB53061}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Combination", "DrawPrintOnly\Combination\Combination.csproj", "{DBBB13D5-3EFB-4658-AB0E-F36D5CE2426E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransDataDirectly", "TransDataDirectly\TransDataDirectly.csproj", "{5EF63520-C551-4D5F-B1E7-43054BBEAEDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RFID_Lock_Pw", "RFID_Lock_Pw\RFID_Lock_Pw.csproj", "{F71D905E-4043-400E-80C0-987C1B8937D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetConnectDirectly", "DirectConnection\NetConnectDirectly\NetConnectDirectly.csproj", "{EEBAE329-6904-4BCF-B518-B6AC1819EA9B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerialPortConnectDirectly", "DirectConnection\SerialPortConnectDirectly\SerialPortConnectDirectly.csproj", "{4732AF90-1DB8-4D85-8754-23D5240B5ABA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Line", "DrawPrintOnly\Line\Line.csproj", "{8ACC2D60-74F0-43F9-ADC8-FB6A18DE5DA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ellipse", "DrawPrintOnly\Ellipse\Ellipse.csproj", "{3E9E8D26-35B5-4B91-B1C7-63A36E1AB07A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rectangle", "DrawPrintOnly\Rectangle\Rectangle.csproj", "{319D8E2D-8C88-42DA-8D7A-3422B78313B7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{20738F89-8E42-4D45-8A53-ECC88973D0B2}.Debug|x86.ActiveCfg = Debug|x86
+		{20738F89-8E42-4D45-8A53-ECC88973D0B2}.Debug|x86.Build.0 = Debug|x86
+		{20738F89-8E42-4D45-8A53-ECC88973D0B2}.Release|x86.ActiveCfg = Release|x86
+		{20738F89-8E42-4D45-8A53-ECC88973D0B2}.Release|x86.Build.0 = Release|x86
+		{44524DF7-FB84-4183-BAEA-FFD716EA7114}.Debug|x86.ActiveCfg = Debug|x86
+		{44524DF7-FB84-4183-BAEA-FFD716EA7114}.Debug|x86.Build.0 = Debug|x86
+		{44524DF7-FB84-4183-BAEA-FFD716EA7114}.Release|x86.ActiveCfg = Release|x86
+		{44524DF7-FB84-4183-BAEA-FFD716EA7114}.Release|x86.Build.0 = Release|x86
+		{AC34BCD2-A3DD-4934-B506-B88C8C814A9C}.Debug|x86.ActiveCfg = Debug|x86
+		{AC34BCD2-A3DD-4934-B506-B88C8C814A9C}.Debug|x86.Build.0 = Debug|x86
+		{AC34BCD2-A3DD-4934-B506-B88C8C814A9C}.Release|x86.ActiveCfg = Release|x86
+		{AC34BCD2-A3DD-4934-B506-B88C8C814A9C}.Release|x86.Build.0 = Release|x86
+		{1919C99A-6F28-4337-978D-B3989764A519}.Debug|x86.ActiveCfg = Debug|x86
+		{1919C99A-6F28-4337-978D-B3989764A519}.Debug|x86.Build.0 = Debug|x86
+		{1919C99A-6F28-4337-978D-B3989764A519}.Release|x86.ActiveCfg = Release|x86
+		{1919C99A-6F28-4337-978D-B3989764A519}.Release|x86.Build.0 = Release|x86
+		{2444CB6F-166F-406A-BE2B-5D9B7BCBF767}.Debug|x86.ActiveCfg = Debug|x86
+		{2444CB6F-166F-406A-BE2B-5D9B7BCBF767}.Debug|x86.Build.0 = Debug|x86
+		{2444CB6F-166F-406A-BE2B-5D9B7BCBF767}.Release|x86.ActiveCfg = Release|x86
+		{2444CB6F-166F-406A-BE2B-5D9B7BCBF767}.Release|x86.Build.0 = Release|x86
+		{90BFA34E-B9E0-4229-8706-6A7CB20491AE}.Debug|x86.ActiveCfg = Debug|x86
+		{90BFA34E-B9E0-4229-8706-6A7CB20491AE}.Debug|x86.Build.0 = Debug|x86
+		{90BFA34E-B9E0-4229-8706-6A7CB20491AE}.Release|x86.ActiveCfg = Release|x86
+		{90BFA34E-B9E0-4229-8706-6A7CB20491AE}.Release|x86.Build.0 = Release|x86
+		{FFDFCFA0-FD64-4BF1-8D26-156226CF4BCC}.Debug|x86.ActiveCfg = Debug|x86
+		{FFDFCFA0-FD64-4BF1-8D26-156226CF4BCC}.Debug|x86.Build.0 = Debug|x86
+		{FFDFCFA0-FD64-4BF1-8D26-156226CF4BCC}.Release|x86.ActiveCfg = Release|x86
+		{FFDFCFA0-FD64-4BF1-8D26-156226CF4BCC}.Release|x86.Build.0 = Release|x86
+		{F490F030-BBFF-44E5-9A19-839C4B443214}.Debug|x86.ActiveCfg = Debug|x86
+		{F490F030-BBFF-44E5-9A19-839C4B443214}.Debug|x86.Build.0 = Debug|x86
+		{F490F030-BBFF-44E5-9A19-839C4B443214}.Release|x86.ActiveCfg = Release|x86
+		{F490F030-BBFF-44E5-9A19-839C4B443214}.Release|x86.Build.0 = Release|x86
+		{EDAF4CE3-06E9-4D53-A530-D12488A7238A}.Debug|x86.ActiveCfg = Debug|x86
+		{EDAF4CE3-06E9-4D53-A530-D12488A7238A}.Debug|x86.Build.0 = Debug|x86
+		{EDAF4CE3-06E9-4D53-A530-D12488A7238A}.Release|x86.ActiveCfg = Release|x86
+		{EDAF4CE3-06E9-4D53-A530-D12488A7238A}.Release|x86.Build.0 = Release|x86
+		{962B9EF8-57E5-4394-B0AF-6129BBE05571}.Debug|x86.ActiveCfg = Debug|x86
+		{962B9EF8-57E5-4394-B0AF-6129BBE05571}.Debug|x86.Build.0 = Debug|x86
+		{962B9EF8-57E5-4394-B0AF-6129BBE05571}.Release|x86.ActiveCfg = Release|x86
+		{962B9EF8-57E5-4394-B0AF-6129BBE05571}.Release|x86.Build.0 = Release|x86
+		{4937241D-95AE-4D4E-AA73-2A1007FF9048}.Debug|x86.ActiveCfg = Debug|x86
+		{4937241D-95AE-4D4E-AA73-2A1007FF9048}.Debug|x86.Build.0 = Debug|x86
+		{4937241D-95AE-4D4E-AA73-2A1007FF9048}.Release|x86.ActiveCfg = Release|x86
+		{4937241D-95AE-4D4E-AA73-2A1007FF9048}.Release|x86.Build.0 = Release|x86
+		{6204D7D9-A61A-45D8-8C55-356CCBB53061}.Debug|x86.ActiveCfg = Debug|x86
+		{6204D7D9-A61A-45D8-8C55-356CCBB53061}.Debug|x86.Build.0 = Debug|x86
+		{6204D7D9-A61A-45D8-8C55-356CCBB53061}.Release|x86.ActiveCfg = Release|x86
+		{6204D7D9-A61A-45D8-8C55-356CCBB53061}.Release|x86.Build.0 = Release|x86
+		{DBBB13D5-3EFB-4658-AB0E-F36D5CE2426E}.Debug|x86.ActiveCfg = Debug|x86
+		{DBBB13D5-3EFB-4658-AB0E-F36D5CE2426E}.Debug|x86.Build.0 = Debug|x86
+		{DBBB13D5-3EFB-4658-AB0E-F36D5CE2426E}.Release|x86.ActiveCfg = Release|x86
+		{DBBB13D5-3EFB-4658-AB0E-F36D5CE2426E}.Release|x86.Build.0 = Release|x86
+		{5EF63520-C551-4D5F-B1E7-43054BBEAEDA}.Debug|x86.ActiveCfg = Debug|x86
+		{5EF63520-C551-4D5F-B1E7-43054BBEAEDA}.Debug|x86.Build.0 = Debug|x86
+		{5EF63520-C551-4D5F-B1E7-43054BBEAEDA}.Release|x86.ActiveCfg = Release|x86
+		{5EF63520-C551-4D5F-B1E7-43054BBEAEDA}.Release|x86.Build.0 = Release|x86
+		{F71D905E-4043-400E-80C0-987C1B8937D4}.Debug|x86.ActiveCfg = Debug|x86
+		{F71D905E-4043-400E-80C0-987C1B8937D4}.Debug|x86.Build.0 = Debug|x86
+		{F71D905E-4043-400E-80C0-987C1B8937D4}.Release|x86.ActiveCfg = Release|x86
+		{F71D905E-4043-400E-80C0-987C1B8937D4}.Release|x86.Build.0 = Release|x86
+		{EEBAE329-6904-4BCF-B518-B6AC1819EA9B}.Debug|x86.ActiveCfg = Debug|x86
+		{EEBAE329-6904-4BCF-B518-B6AC1819EA9B}.Debug|x86.Build.0 = Debug|x86
+		{EEBAE329-6904-4BCF-B518-B6AC1819EA9B}.Release|x86.ActiveCfg = Release|x86
+		{EEBAE329-6904-4BCF-B518-B6AC1819EA9B}.Release|x86.Build.0 = Release|x86
+		{4732AF90-1DB8-4D85-8754-23D5240B5ABA}.Debug|x86.ActiveCfg = Debug|x86
+		{4732AF90-1DB8-4D85-8754-23D5240B5ABA}.Debug|x86.Build.0 = Debug|x86
+		{4732AF90-1DB8-4D85-8754-23D5240B5ABA}.Release|x86.ActiveCfg = Release|x86
+		{4732AF90-1DB8-4D85-8754-23D5240B5ABA}.Release|x86.Build.0 = Release|x86
+		{8ACC2D60-74F0-43F9-ADC8-FB6A18DE5DA8}.Debug|x86.ActiveCfg = Debug|x86
+		{8ACC2D60-74F0-43F9-ADC8-FB6A18DE5DA8}.Debug|x86.Build.0 = Debug|x86
+		{8ACC2D60-74F0-43F9-ADC8-FB6A18DE5DA8}.Release|x86.ActiveCfg = Release|x86
+		{8ACC2D60-74F0-43F9-ADC8-FB6A18DE5DA8}.Release|x86.Build.0 = Release|x86
+		{3E9E8D26-35B5-4B91-B1C7-63A36E1AB07A}.Debug|x86.ActiveCfg = Debug|x86
+		{3E9E8D26-35B5-4B91-B1C7-63A36E1AB07A}.Debug|x86.Build.0 = Debug|x86
+		{3E9E8D26-35B5-4B91-B1C7-63A36E1AB07A}.Release|x86.ActiveCfg = Release|x86
+		{3E9E8D26-35B5-4B91-B1C7-63A36E1AB07A}.Release|x86.Build.0 = Release|x86
+		{319D8E2D-8C88-42DA-8D7A-3422B78313B7}.Debug|x86.ActiveCfg = Debug|x86
+		{319D8E2D-8C88-42DA-8D7A-3422B78313B7}.Debug|x86.Build.0 = Debug|x86
+		{319D8E2D-8C88-42DA-8D7A-3422B78313B7}.Release|x86.ActiveCfg = Release|x86
+		{319D8E2D-8C88-42DA-8D7A-3422B78313B7}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

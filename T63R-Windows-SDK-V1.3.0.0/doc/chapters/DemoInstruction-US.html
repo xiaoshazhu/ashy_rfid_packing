@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Chapter 5&comma; DSTP2xDemo instructions</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* Content area on the right */
+        .content {
+            margin-left: 10px; /* Leave space on the left side of the content area */
+            padding: 20px;
+            flex: 1; /* Content area fills the remaining space */
+            background-color: #f9f9f9;
+        }
+
+        /* Responsive: When the screen width is less than 768px, the navigation bar becomes foldable */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* Reduce the navigation bar width on a small screen */
+            }
+
+            .content {
+                margin-left: 0; /* No more space for navigation bar in the content area */
+            }
+        }
+       
+/* Submenu style */
+.submenu {
+    display: none; /* Default hidden submenu */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* Show submenu when mouse hover */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* Set basic styles*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Left navigation bar style */
+.sidebar {
+    position: sticky;  /* Adhesive positioning */
+    top: 0;             /* When scrolling to the top, fixed */
+    width: 300px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">Table of contents</p>      
+<ul>
+<a href="../index-US.html" class="active">Chapter 1, Overview</a>
+        <a href="./FunctionList-US.html">Chapter 2, Function List</a>
+<li>
+<a href="#">Chapter 3, Function Sample Code</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP-US.html">C++ sample</a></li>
+         <li><a href="./Samplecode-Charp-US.html">C# sample</a></li>
+         <li><a href="./Samplecode-java-US.html">java sample</a></li>
+         <li><a href="./Samplecode-javascript-US.html">javascript sample</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">Chapter 4, Functional Interface</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef-US.html">C interface function prototype</a></li>
+                <li><a href="./WebApiDef-US.html">Web-end interface definition</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction-US.html">Chapter 5, DSTP2xDemo instructions</a>
+                <a href="./WebPrtServerInstruction-US.html">Chapter 6, DSTP2xWebPrtServer User Instructions</a>
+                <li>
+                  <a href="#">Chapter 7, Related Return Code List</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode-US.html">SDK interface return code</a></li>
+                    <li><a href="./PrtStatusCode-US.html">Printer status code</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ-US.html">Chapter 8, Frequently Asked Questions</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+      body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+<center>
+<b style="font-size:18pt">
+<h1 id="chapter-5-dstp2xdemo-instructions">Chapter 5, DSTP2xDemo instructions</h1>
+</b>
+</center>
+<ul>
+<li><a href="#chapter-5-dstp2xdemo-instructions">Chapter 5, DSTP2xDemo instructions</a>
+<ul>
+<li><a href="#1software-system-environment">1、Software system environment</a></li>
+<li><a href="#2operation-instructions">2、Operation Instructions</a></li>
+<li><a href="#3dstp2xdemo-function-introduction">3、DSTP2xDemo Function introduction</a>
+<ul>
+<li><a href="#31introduction-to-template-functions">3.1、Introduction to template functions</a>
+<ul>
+<li><a href="#311overview">3.1.1、Overview</a></li>
+<li><a href="#312connect-the-device">3.1.2、Connect the device</a></li>
+<li><a href="#313select-a-preset-template-or-edit-a-new-template-on-your-own">3.1.3、Select a preset template or edit a new template on your own.</a></li>
+<li><a href="#314edit-the-printing-and-rfid-content-according-to-the-actual-needs">3.1.4、Edit the printing and RFID content according to the actual needs.</a></li>
+<li><a href="#315after-editing-the-template-select-the-number-of-printing-loops-and-click-to-start-printing">3.1.5、After editing the template, select the number of printing loops and click to start printing.</a></li>
+</ul>
+</li>
+<li><a href="#32introduction-to-other-functions">3.2、Introduction to Other Functions</a></li>
+</ul>
+</li>
+<li><a href="#4dstp2xdemo-usage-process">4、DSTP2xDemo Usage Process</a>
+<ul>
+<li><a href="#41open-the-template">4.1、Open the template</a></li>
+</ul>
+</li>
+<li><a href="#42create-a-new-label">4.2、Create a New Label</a>
+<ul>
+<li><a href="#421create-a-template">4.2.1、Create a template</a>
+<ul>
+<li><a href="#modify-label-attributes">Modify Label Attributes</a></li>
+</ul>
+</li>
+<li><a href="#422add-text">4.2.2、Add Text</a>
+<ul>
+<li><a href="#modify-the-text-attribute-parameters">Modify the text attribute parameters.</a></li>
+<li><a href="#text-automatic-line---break">Text automatic line - break</a></li>
+</ul>
+</li>
+<li><a href="#423add-barcode">4.2.3、Add Barcode</a>
+<ul>
+<li><a href="#modify-the-barcode-attribute-parameters">Modify the barcode attribute parameters.</a></li>
+</ul>
+</li>
+<li><a href="#424add-qrcode">4.2.4、Add QRcode</a>
+<ul>
+<li><a href="#modify-the-barcode-attribute-parameters-1">Modify the barcode attribute parameters</a></li>
+</ul>
+</li>
+<li><a href="#425add-image">4.2.5、Add Image</a></li>
+<li><a href="#426add-table">4.2.6、Add Table</a>
+<ul>
+<li><a href="#modify-the-table-attribute-parameters">Modify the table attribute parameters.</a></li>
+<li><a href="#adjust-the-row-height-of-the-table">Adjust the row height of the table.</a></li>
+<li><a href="#the-handle-of-the-label-canvas-returned-by-the-dstp2x_createlabelcontext-function">The handle of the label canvas returned by the DSTP2x_CreateLabelContext function.</a></li>
+<li><a href="#merge-cells">Merge cells</a></li>
+<li><a href="#unmerge-cells">Unmerge cells</a></li>
+<li><a href="#add-text-to-the-table">Add text to the table.</a></li>
+<li><a href="#add-a-barcode-to-the-table">Add a barcode to the table</a></li>
+<li><a href="#add-a-qrcode-to-the-table">Add a QRcode to the table</a></li>
+<li><a href="#add-an-image-to-the-table">Add an image to the table</a></li>
+</ul>
+</li>
+<li><a href="#427add-rfid-to-the-label">4.2.7、Add RFID to the label</a>
+<ul>
+<li><a href="#add-epc">Add EPC</a></li>
+<li><a href="#add-user">Add USER</a></li>
+<li><a href="#add-tid">Add TID.</a></li>
+<li><a href="#printing-effect">Printing effect</a></li>
+</ul>
+</li>
+<li><a href="#428save-the-template">4.2.8、Save the template.</a></li>
+<li><a href="#429drag-and-scale-the-template-preview-image">4.2.9、Drag and scale the template preview image.</a></li>
+<li><a href="#4210rfid-tag-locking-and-unlocking">4.2.10、RFID tag locking and unlocking</a>
+<ul>
+<li><a href="#change-password-and-lock-tag">Change password and lock tag</a></li>
+<li><a href="#unlock-and-rewrite-rfid-tags">Unlock and rewrite RFID tags</a></li>
+</ul>
+</li>
+<li><a href="#4211open-the-path-of-the-log-file">4.2.11、Open the path of the log file.</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+<h2 id="1software-system-environment">1、Software system environment</h2>
+<ol>
+<li>This demo supports Windows and Linux systems. For Windows, it requires a system of Windows XP or above. Its main purpose is template editing.<br></li>
+<li>If you need to print a PDF, you can configure it in the sdkcfg.xml file. Currently, we support two forms of PDF printing. For internal logical processing of the PDF, set it to &quot;0&quot; in the sdkcfg.xml file. If you need a PDF plugin, you need to configure the plugin path first.</li>
+</ol>
+<h2 id="2operation-instructions">2、Operation Instructions</h2>
+<p><b>Windows：</b></p>
+<ol>
+<li>Unzip the compressed package (the version will be continuously upgraded, and the specific name shall be subject to the actual situation).<br></li>
+<li>After unzipping, Select and enter the folder of the corresponding architecture system development kit.<br></li>
+<li>After unzipping, enter the bin\Win32 or bin\x64 folder.<br></li>
+<li>Finally, double - click DSTP2xDemo.exe to run it.<br></li>
+</ol>
+<p><b>Linux：</b></p>
+<ol>
+<li>Unzip the compressed package (the version will be continuously upgraded, and the specific name shall be subject to the actual situation).<br></li>
+<li>After unzipping, select and enter the folder of the development package for the corresponding architecture system.<br></li>
+<li>After unzipping, enter the bin folder.<br></li>
+<li>Right-click in the blank area and select &quot;Open Terminal&quot;.<br></li>
+<li>Enter the command: sudo su, enter the password to switch to the root user. If the permission is insufficient, enter chmod  -R 777 * and then execute.<br></li>
+<li>Enter the command to run:./map.ds, which is used to grant permission to run the program based on the SDK to control the printer connected via USB.<br></li>
+<li>Enter the command to run:./DSTP2xDemo.out. <br></li>
+</ol>
+<h2 id="3dstp2xdemo-function-introduction">3、DSTP2xDemo Function introduction</h2>
+<h3 id="31introduction-to-template-functions">3.1、Introduction to template functions</h3>
+<h4 id="311overview">3.1.1、Overview</h4>
+<p>The startup interface is shown in Figure 1.1. The startup interface includes template selection, template editing, template parameter input settings, clearing the output information in the output box, the printing function, and the real-time return of the printer status, etc.
+<img src="../res/Demo-3.1.1-US.png"></img></p>
+<h4 id="312connect-the-device">3.1.2、Connect the device</h4>
+<p>Click in the upper - left corner to enter the device connection selection and choose [Enumerate/Connect to the printer]. Connect according to the actual emulation type of the printer and the required connection method.<br>
+<img src="../res/Demo-3.1.2-US.png"></img><br></p>
+<ol>
+<li>Emulation selection: This refers to the printing language that the printer can recognize. Select the corresponding emulation type according to the printer settings. Currently, ZPL, TSPL, and ESCPOS are supported. You can print a self-check page to confirm the current emulation type of the machine.<br></li>
+<li>Printer connection method: Select the corresponding connection according to the actual application scenario. Currently, USB enumeration, network port enumeration within the same network segment, IP direct connection, and serial port direct connection are supported. <br>
+<br></li>
+</ol>
+<h4 id="313select-a-preset-template-or-edit-a-new-template-on-your-own">3.1.3、Select a preset template or edit a new template on your own.</h4>
+<p><img src="../res/Demo-3.1.3-US.png"></img><br></p>
+<ol>
+<li>Preset template: A pre-edited template in the default path. After selection, you can view the relevant parameter attributes.<br></li>
+<li>New template: Create a blank template and add elements for editing according to the actual printing requirements.<br></li>
+<li>Save template: Save the template that is currently being edited.<br></li>
+<li>Save template as: Save the currently edited template to a specified directory.<br></li>
+<li>Open preset template path: The default directory where the printing demo stores the templates.<br></li>
+<li>Open log path: Open the interface call log for analysis. Generally, the default path is: C:\Users\username\AppData\Local\Temp\DSSDKTemp\ThermalLog.<br>
+<br></li>
+</ol>
+<h4 id="314edit-the-printing-and-rfid-content-according-to-the-actual-needs">3.1.4、Edit the printing and RFID content according to the actual needs.</h4>
+<p><img src="../res/Demo-3.1.4-US.png"></img><br></p>
+<ol>
+<li>The Label tree diagram on the left side: Displays all the printing elements and RFID data editing within the current template.<br></li>
+<li>The middle part is the template preview. After editing the parameters, you need to press the Enter key or click on other parameters to refresh the preview.<br></li>
+<li>The right side is for setting the parameter attributes of specific elements, which should be edited according to the actual printing requirements.<br>
+<br></li>
+</ol>
+<h4 id="315after-editing-the-template-select-the-number-of-printing-loops-and-click-to-start-printing">3.1.5、After editing the template, select the number of printing loops and click to start printing.</h4>
+<p><img src="../res/Demo-3.1.5-US.png"></img><br></p>
+<ol>
+<li>Read TID/EPC first: After checking this option, the corresponding data will be returned first, and then the printing will be executed (Currently, it does not support checking both options to return data simultaneously).<br></li>
+<li>Image DPI: Set it to the actual DPI of the printer print head (Currently, the machines have 203dpi, 300dpi, and 600dpi) and convert it to the corresponding printing size.<br>
+<br></li>
+</ol>
+<h3 id="32introduction-to-other-functions">3.2、Introduction to Other Functions</h3>
+<p>The other function interfaces are shown in Figure 1.2, including common acquisition functions, RFID functions, PDF printing, and direct data transmission functions. All operations need to be performed after connecting the device.<br>
+<img src="../res/Demo-3.2-US.png"></img><br>
+(1) Common Functions<br></p>
+<ol>
+<li>Ordinary Positioning Label: Position and verify ordinary labels or black mark paper.<br></li>
+<li>Print Self-check Page: Click to print the self-check page information of the printer.<br></li>
+<li>Clear Printer Cache: Click to clear the printer cache, and it will return to the data-free state without the need to restart.<br></li>
+<li>Get Version Number: Obtain the firmware version information of the currently connected machine.<br></li>
+<li>Get Manufacturer Model: Obtain the manufacturer and model information of the currently connected machine.<br></li>
+<li>Get Machine Number: Obtain the machine number information of the currently connected machine.<br></li>
+<li>Immediate Paper Cutting: Used to control the machine's paper cutting template, and the paper cutting action will be executed immediately after the operation; (The machine needs to be equipped with a paper cutter module).<br></li>
+<li>Turn on the Paper Cutter: Enable the paper cutter function of the printer.<br></li>
+<li>Turn off the Paper Cutter: Disable the paper cutter function of the printer.<br>
+<br></li>
+</ol>
+<p>((2) RFID Functions<br></p>
+<ol>
+<li>RFID Label: Position and verify the RFID label [The machine will feed the paper slowly, so please be patient and wait for the positioning to be completed].<br></li>
+<li>Read EPC: Directly read the EPC data of the current label.<br></li>
+<li>Read TID: Directly read the TID data of the current label.<br></li>
+<li>Get Writing Power: Obtain the writing power of the currently connected machine.<br></li>
+<li>Get Reading Power: Obtain the reading power of the currently connected machine.<br></li>
+<li>Set Writing Power: Manually set the writing power of the currently connected machine [The most suitable value will be automatically detected during positioning verification. There is no need to modify it unless necessary].<br></li>
+<li>Set Reading Power: Manually set the reading power of the currently connected machine [The most suitable value will be automatically detected during positioning verification. There is no need to modify it unless necessary].<br></li>
+</ol>
+<p>(3) PDF Printing<br></p>
+<ol>
+<li>Input values for the printing offset position, width, height, and rotation angle according to the actual printing size.<br></li>
+<li>Write RFID Data: If you need to write data during printing, check the option, and a data input box will be displayed. Then, input the data you need to write.<br></li>
+<li>Select a PDF file, input the printing page number, and then print.<br>
+If you need to print a PDF, you can configure it in the sdkcfg.xml file. Currently, two forms of PDF printing are supported. For internal logical processing of the PDF, set it to &quot;0&quot; in the sdkcfg.xml file. If you need a PDF plugin, you need to configure the plugin path first.<br></li>
+</ol>
+<p>(4) Direct Data Transmission<br></p>
+<ol>
+<li>It is used to directly transmit data files for printing. <br></li>
+</ol>
+<h2 id="4dstp2xdemo-usage-process">4、DSTP2xDemo Usage Process</h2>
+<h3 id="41open-the-template">4.1、Open the template</h3>
+<p>Double-click to run and open the &quot;DSTP2xDemo.exe&quot;, and click the drop-down box in the upper left corner to select a template.<br>
+The path of the preset template (dlt file): The./Template folder under the root directory of the DSTP2xDemo.exe.<br>
+If you need to open a template file in a custom path, you can select &quot;Open More Templates&quot; to make the selection. <br>
+<img src="../res/Demo-4.1.1-US.png"></img><br>
+<br>
+After selecting an existing template, the demo will refresh to display the corresponding preview of the template. <br>
+<img src="../res/Demo-4.1.2-US.png"></img><br>
+<br></p>
+<h2 id="42create-a-new-label">4.2、Create a New Label</h2>
+<h3 id="421create-a-template">4.2.1、Create a template</h3>
+<p>In the demo interface, click on &quot;New Template&quot;.
+<img src="../res/Demo-4.2.1-1-US.png"></img><br>
+<img src="../res/Demo-4.2.1-2-US.png"></img><br>
+<br></p>
+<h4 id="modify-label-attributes">Modify Label Attributes<br></h4>
+<p>Steps: Click on &quot;print&quot; in the tree diagram on the left side -&gt; The label element attribute bar will be displayed on the right side of the demo -&gt; Modify the corresponding width and height parameters of the canvas -&gt; Press the Enter key or click on any blank area on the right side, and the modification will be successful -&gt; Check the refreshed effect of the preview. (If the preview does not change, you need to check whether the modification was successful.) <br>
+<img src="../res/Demo-4.2.1-3-US.png"></img><br>
+<br>
+If the label type is a label with side margins, as shown in the following figure: The 9mm side margin of this label is not included in the calculation of the canvas width. When creating a new template, the width and height of the label can be set to 50*50mm. <br>
+<img src="../res/Demo-4.2.1-4.png"></img><br>
+<br>
+For labels with side margins, if the content on the left side is not completely printed, adjust the horizontal offset parameter according to the corresponding side margin, as shown in the following figure: <br>
+<img src="../res/Demo-4.2.1-5-US.png"></img><br>
+<br>
+Note：<br>
+① Currently, the default DPI for a newly created template is 203dpi. If you need to switch to other DPI for preview and printing, you need to connect the printer first and then switch the DPI.<br>
+② The default conversion unit is mm. <br>
+<br></p>
+<h3 id="422add-text">4.2.2、Add Text</h3>
+<p>Right-click on &quot;print&quot; with the mouse -&gt; Click on &quot;Add Text&quot;.<br>
+<img src="../res/Demo-4.2.2-1-US.png"></img><br></p>
+<h4 id="modify-the-text-attribute-parameters">Modify the text attribute parameters.<br></h4>
+<p>The default text content is &quot; &quot;. In the text attribute bar on the right side, you can set the coordinates, font, size, content, automatic line break, character spacing, and other effects, etc. <br>
+<img src="../res/Demo-4.2.2-2-US.png"></img><br>
+<br></p>
+<h4 id="text-automatic-line---break">Text automatic line - break</h4>
+<p>Modify the automatic line break attribute parameters - select &quot;Yes&quot;, and enter the width for one - line display. When the text content data exceeds the given width, it will automatically move to the next line for display.<br>
+<img src="../res/Demo-4.2.2-3-US.png"></img><br>
+<br>
+Taking printing a Chinese character in the SimSun font as an example, the size of the font is as shown in the following figure: <br>
+<img src="../res/Demo-4.2.2-4-US.png"></img><br></p>
+<p>In summary, when the font size is increased by one size, the width increases by 0.25-0.4mm; the height increases by 0.25-0.5mm. <br>
+<br></p>
+<h3 id="423add-barcode">4.2.3、Add Barcode</h3>
+<p>Right-click on &quot;print&quot; with the mouse -&gt; Click on &quot;Add Barcode&quot;.<br>
+<img src="../res/Demo-4.2.3-1-US.png"></img><br>
+<br></p>
+<h4 id="modify-the-barcode-attribute-parameters">Modify the barcode attribute parameters.<br></h4>
+<p>The default barcode type is Code 128, and the barcode content is &quot;1234&quot;. In the properties of the barcode column on the right side, you can modify the content, width and height, type, whether to display annotations, rotation angle, and so on of the barcode. <br>
+<img src="../res/Demo-4.2.3-2-US.png"></img><br></p>
+<h3 id="424add-qrcode">4.2.4、Add QRcode</h3>
+<p>Right-click on &quot;print&quot; with the mouse -&gt; Click on &quot;Add QRcode&quot;.<br>
+<img src="../res/Demo-4.2.4-1-US.png"></img><br></p>
+<h4 id="modify-the-barcode-attribute-parameters-1">Modify the barcode attribute parameters</h4>
+<p>The default QR code type is QRCode, and the QR code content is &quot;1234&quot;. In the QR code attribute column on the right side, you can modify the content, width and height, type, error correction level, rotation angle, etc. of the QR code. The error correction level is divided into four levels, and the corresponding error correction rates are: L - 7%, M - 15%, Q - 25%, H - 30%. <br>
+<img src="../res/Demo-4.2.4-2-US.png"></img><br>
+<br></p>
+<h3 id="425add-image">4.2.5、Add Image</h3>
+<p>Right-click on &quot;print&quot; with the mouse -&gt; Click on &quot;Add Image&quot;.<br>
+<img src="../res/Demo-4.2.5-1-US.png"></img><br>
+<br>
+Images can be selected in two ways: local images and base64 image data (in txt format). When you select &quot;base64 TXT file&quot; as the file suffix, all images and txt files will be displayed.<br>
+The steps for importing a local image are as follows: <br>
+<img src="../res/Demo-4.2.5-2-US.png"></img><br>
+<br>
+Select local images in formats other than png, jpg and bmp, or import base64 image data.<br>
+The steps are as follows: <br>
+<img src="../res/Demo-4.2.5-3-US.png"></img><br>
+<br>
+Modify the image attribute parameters.<br>
+After importing the image, in the image attribute column on the right side, you can modify the coordinates, width and height, algorithm, rotation angle, etc. of the image. <br>
+<img src="../res/Demo-4.2.5-4-US.png"></img><br>
+<br></p>
+<h3 id="426add-table">4.2.6、Add Table</h3>
+<p>Right-click on &quot;print&quot; with the mouse -&gt; Click on &quot;Add Table&quot;.<br>
+<img src="../res/Demo-4.2.6-1-US.png"></img><br>
+<br></p>
+<h4 id="modify-the-table-attribute-parameters">Modify the table attribute parameters.</h4>
+<p>The default table has 1 row and 1 column. In the table attribute column on the right side, you can modify the coordinates, width and height, number of rows and columns, position of row and column boundary lines, etc. of the table.<br>
+In the tree-shaped navigation bar on the left side, each Bcell corresponds to a cell. The initial width and height of each cell are evenly divided according to the total width and height of the table and the number of rows and columns.<br>
+<img src="../res/Demo-4.2.6-2-US.png"></img><br>
+<img src="../res/Demo-4.2.6-3-US.png"></img><br>
+<br></p>
+<h4 id="adjust-the-row-height-of-the-table">Adjust the row height of the table.</h4>
+<p>You can adjust the row height accordingly by adjusting the row boundary line.<br></p>
+<p>Row boundary line: In the table, each horizontal line is defined as a row boundary line. Counting down from the top horizontal line of the table: row boundary line 0, row boundary line 1, row boundary line 2... The y-coordinate of the table restricts row boundary line 0. Therefore, the adjustment of the row boundary line can only start from row boundary line 1.<br></p>
+<p>Adjusting the row height: Adjust the row height through the row boundary line. If the row height of a certain row decreases, the entire table will move upward, and if it increases, the entire table will move downward. <br>
+<img src="../res/Demo-4.2.6-4-US.png"></img><br>
+<br>
+Increase the line boundary by 2mm, increase the overall height of the entire table by 2mm, and move the whole table downward.<br>
+<img src="../res/Demo-4.2.6-5-US.png"></img><br>
+<br></p>
+<h4 id="the-handle-of-the-label-canvas-returned-by-the-dstp2x_createlabelcontext-function">The handle of the label canvas returned by the DSTP2x_CreateLabelContext function.</h4>
+<p>You can adjust the column width accordingly by adjusting the column boundary line.<br></p>
+<p>Column boundary line: In a table, each vertical line is defined as a column boundary line. Counting from the leftmost vertical line of the table to the right: column boundary line 0, column boundary line 1, column boundary line 2, and so on. The x-coordinate of the table restricts column boundary line 0. Therefore, the adjustment of the column boundary line can only start from column boundary line 1.<br></p>
+<p>Adjusting the column width: By adjusting a certain column boundary line, the column widths of the two adjacent cells of this column boundary line show a relationship of one decreasing while the other increasing. For example, for a table with 5 rows and 3 columns, if column boundary line 1 is adjusted to increase by 5mm, then the width of the first column will increase by 5mm, and the width of the second column will decrease by 5mm correspondingly, and the width of the third column will remain unchanged. If the rightmost column boundary line 3 of this table is adjusted, then only the width of the third column will be affected. When column boundary line 3 increases, the table will extend to the right, and when column boundary line 3 decreases, the table will shrink to the left.<br></p>
+<p>When column boundary line 1 is adjusted, the change in the column width of the table is shown in the following figure: <br>
+<img src="../res/Demo-4.2.6-6-US.png"></img><br>
+<br>
+When column boundary line 3 is adjusted, the change of the table is shown in the following figure:<br>
+<img src="../res/Demo-4.2.6-7-US.png"></img><br>
+<br></p>
+<h4 id="merge-cells">Merge cells</h4>
+<p>Hold down the Ctrl key, click the cells you want to merge with the mouse. Then right-click with the mouse and select &quot;Merge cells&quot;. After several adjacent BCell cells are merged, a new cell MCell will be generated.<br>
+Note: Only adjacent cells can be merged. <br>
+<img src="../res/Demo-4.2.6-8-US.png"></img><br>
+<img src="../res/Demo-4.2.6-9-US.png"></img><br>
+<br></p>
+<h4 id="unmerge-cells">Unmerge cells</h4>
+<p>If you want to restore the cells after merging, you can right-click on the corresponding MCell, click &quot;Unmerge Cells&quot;, and then the cells will be restored to their original state. <br>
+<img src="../res/Demo-4.2.6-10-US.png"></img><br>
+<br></p>
+<h4 id="add-text-to-the-table">Add text to the table.</h4>
+<p>Right-click and select a certain cell (BCell/MCell) -&gt; Add text.<br></p>
+<p>When adding text to the table, the initial coordinates are the upper-left corner of the cell, and the width and height of the text box are the same as those of the cell. If you select the vertical and horizontal alignment methods, it will be automatically calculated. The effect is shown in the following figure: <br>
+<img src="../res/Demo-4.2.6-11-US.png"></img><br>
+<br></p>
+<h4 id="add-a-barcode-to-the-table">Add a barcode to the table</h4>
+<p>Right-click and select a certain cell (BCell/MCell) -&gt; Add barcode.<br></p>
+<p>When adding a barcode to the table, the initial coordinates are the upper-left corner of the cell, and the width and height of the barcode are the same as those of the cell. The barcode type is code128. You can modify the attribute parameters of the barcode according to the actual printing requirements. The effect is shown in the following figure: <br>
+<img src="../res/Demo-4.2.6-12-US.png"></img><br>
+<br></p>
+<h4 id="add-a-qrcode-to-the-table">Add a QRcode to the table</h4>
+<p>Right-click and select a certain cell (BCell/MCell) -&gt; Add a QR code.<br></p>
+<p>When adding a QR code to the table, the initial coordinates are the upper-left corner of the cell, and the width and height of the QR code are the same as those of the cell. The error tolerance level of the QR code is 1. You can modify the attribute parameters of the QR code according to the actual printing requirements. The effect is shown in the following figure: <br>
+<img src="../res/Demo-4.2.6-13-US.png"></img><br>
+<br></p>
+<h4 id="add-an-image-to-the-table">Add an image to the table</h4>
+<p>Right-click and select a certain cell (BCell/MCell) -&gt; Add an image.<br></p>
+<p>When adding an image to the table, the initial coordinates are the upper-left corner of the cell, and the width and height of the image are the same as those of the cell. The algorithm is in the threshold mode. You can modify the corresponding image attribute parameters according to the actual printing requirements. The effect is shown in the following figure: <br>
+<img src="../res/Demo-4.2.6-14-US.png"></img><br>
+<br></p>
+<h3 id="427add-rfid-to-the-label">4.2.7、Add RFID to the label</h3>
+<h4 id="add-epc">Add EPC</h4>
+<p>Right-click on &quot;RFID&quot; in the label template navigation bar on the left side and select &quot;Add EPC&quot;.<br>
+<img src="../res/Demo-4.2.7-0-US.png"></img><br>
+Data types: There are two types, HexStr and ASCII. <br>
+<br>
+Epc Data Writing Rules:<br>
+① The written EPC data must be an integer multiple of 2 bytes in length.<br>
+For the ASCII type, one number occupies one byte. Therefore, the length of the data written in the ASCII type needs to be an integer multiple of 2.<br>
+Example:<br>
+ASCII: 1234abcd. The data actually written into the label chip is: 31 32 33 34 61 62 63 64 (because in the ASCII mode, it will be converted into the hexadecimal data corresponding to the ASCII code table before being written).<br>
+For the HexStr type, 2 numbers occupy one byte. Therefore, the length of the data written in the HexStr type needs to be an integer multiple of 4.<br>
+Example:<br>
+HexStr: 1234abcd. The data actually written into the label chip is: 12 34 ab cd.<br>
+② The length of the EPC cannot exceed the specifications of the label chip. For example, if the specification of the label chip is 96 bits, then the EPC can only be written with 96/8 = 12 bytes. If the length exceeds this limit, it cannot be written. With HexStr, 24 numbers can be written, and with the ASCII method, only 12 numbers can be written.<br>
+③ The ASCII type can write any character data in the ASCII code table, while the HexStr type can only write numbers from 0-9 and letters from a-f.<br>
+Read and Write Modes: There are three modes: WR, W, and R.<br>
+WR: The process is: write EPC - print - read EPC.<br>
+W: The process is: write EPC - print.<br>
+R: The process is: print - only read EPC.<br>
+The EPC attribute bar is shown in the following figure: <br>
+<img src="../res/Demo-4.2.7-1-US.png"></img><br>
+<br></p>
+<h4 id="add-user">Add USER</h4>
+<p>Right-click on &quot;RFID&quot; in the label template navigation bar on the left side and select &quot;Add USER&quot;.<br>
+<img src="../res/Demo-4.2.7-2-US.png"></img><br>
+Data types: There are two types, HexStr and ASCII.<br>
+USER Data Writing Rules:<br>
+① The written USER data must be an integer multiple of 2 bytes in length.<br>
+For the ASCII type, one number occupies one byte. Therefore, the length of the data written in the ASCII type needs to be an integer multiple of 2.<br>
+Example:<br>
+ASCII: 1234abcd. The data actually written into the label chip is: 31 32 33 34 61 62 63 64 (because in the ASCII mode, it will be converted into the hexadecimal data corresponding to the ASCII code table before being written).<br>
+For the HexStr type, 2 numbers occupy one byte. Therefore, the length of the data written in the HexStr type needs to be an integer multiple of 4.<br>
+Example:<br>
+HexStr: 1234abcd. The data actually written into the label chip is: 12 34 ab cd.<br>
+② The length of the USER cannot exceed the specifications of the label chip. For example, if the specification of the label chip is 96 bits, then the USER can only be written with 96/8 = 12 bytes. If the length exceeds this limit, it cannot be written. With HexStr, 24 numbers can be written, and with the ASCII method, only 12 numbers can be written.<br>
+③ The ASCII type can write any character data in the ASCII code table, while the HexStr type can only write numbers from 0-9 and letters from a-f.<br>
+Read and Write Modes: There are three modes: WR, W, and R.<br>
+WR: The process is: write USER - print - read USER.<br>
+W: The process is: write USER - print. (It seems there was a wrong &quot;X&quot; in your original text, I assume it should be &quot;W&quot;)<br>
+R: The process is: print - only read USER. (It seems there was a wrong &quot;S&quot; in your original text, I assume it should be &quot;R&quot;)<br>
+The USER attribute bar is shown in the following figure: <br>
+<img src="../res/Demo-4.2.7-3-US.png"></img><br>
+<br></p>
+<h4 id="add-tid">Add TID.</h4>
+<p>Right-click on &quot;RFID&quot; in the label template navigation bar on the left side and select &quot;Add TID&quot;.<br>
+<img src="../res/Demo-4.2.7-4-US.png"></img><br>
+<br>
+The TID data cannot be modified, and the read-write mode is only R (read-only).<br>
+The TID attribute bar is shown in the following figure: <br>
+<img src="../res/Demo-4.2.7-5-US.png"></img><br>
+<br>
+<br></p>
+<h4 id="printing-effect">Printing effect</h4>
+<p><img src="../res/Demo-4.2.7-6-US.png"></img><br>
+<br></p>
+<h3 id="428save-the-template">4.2.8、Save the template.</h3>
+<p>Steps to save a newly created template: After the template is edited -&gt; Click on &quot;Save Template As&quot; -&gt; Select the target folder path -&gt; Name the template -&gt; Save it.<br>
+<img src="../res/Demo-4.2.8-1-US.png"></img><br>
+<br></p>
+<p>Steps to save a modified existing template: After modifying the template -&gt; Click on &quot;Save Template&quot; to save it.<br>
+<img src="../res/Demo-4.2.8-2-US.png"></img><br>
+<br></p>
+<h3 id="429drag-and-scale-the-template-preview-image">4.2.9、Drag and scale the template preview image.</h3>
+<p>When the content in the preview image is unclear or not fully displayed, you can scale, drag and move the preview image.<br>
+Scaling: Place the mouse cursor over the content you want to enlarge, and scroll the mouse wheel (or move the cursor above the preview image) to scale it.<br>
+Dragging: Hold down the left mouse button on the preview image, and you can drag it to move it up, down, left, or right.<br>
+<img src="../res/Demo-4.2.9-US.png"></img><br>
+<br></p>
+<h3 id="4210rfid-tag-locking-and-unlocking">4.2.10、RFID tag locking and unlocking</h3>
+<h4 id="change-password-and-lock-tag">Change password and lock tag</h4>
+<p>Specific process: Change new password - Write EPC with password - Lock label - Print
+Settings: Click on the left navigation bar RFID - &quot;Password Mode&quot; to change to &quot;Modify Mode&quot;,
+Change Password:
+Enter the original password (usually 00000000)
+Set a new password (cannot be 00000000)<br>
+As shown in the following figure:
+<img src="../res/Demo-4.2.10-1-US.png"></img><br>
+Click on EPC on the left navigation bar and change &quot;Lock Action&quot; to &quot;Lock&quot;. Finally, click on &quot;Print&quot;; As shown in the following figure:<br>
+<img src="../res/Demo-4.2.10-2-US.png"></img><br></p>
+<h4 id="unlock-and-rewrite-rfid-tags">Unlock and rewrite RFID tags</h4>
+<p>Specific process: Unlock label - Write EPC with password - Print (applicable to locked labels)
+Settings: Click on RFID - &quot;Password Mode&quot; in the left navigation bar to change it to &quot;Modify Mode&quot;. Enter the correct password for the label in the &quot;Password&quot; column, as shown in the following figure:
+Optional: If you need to re lock the tag, you can call the &quot;Lock Tag&quot; interface when integrating. Reference process: Unlock label - write EPC with password - lock label - print. (Applicable to tags that have been password modified and locked at the factory, decide whether to re lock them as needed.)<br>
+<img src="../res/Demo-4.2.10-3-US.png"></img><br>
+Click on EPC on the left navigation bar and change &quot;Lock Action&quot; to &quot;Unlock&quot;. Finally, click on &quot;Print&quot;; As shown in the following figure:<br>
+<img src="../res/Demo-4.2.10-4-US.png"></img><br></p>
+<h3 id="4211open-the-path-of-the-log-file">4.2.11、Open the path of the log file.</h3>
+<p>If there are problems with using &quot;DSTP2xDemo. exe&quot; and it is not possible to clearly troubleshoot the issue, please provide the corresponding log files to relevant technical personnel for analysis and troubleshooting. Simply click the &quot;Log Path&quot; button to jump to the log directory.<br>
+<img src="../res/Demo-4.2.11-US.png"></img><br>
+<br></p>
+</div>
+
+            
+            
+        </body>
+        </html>

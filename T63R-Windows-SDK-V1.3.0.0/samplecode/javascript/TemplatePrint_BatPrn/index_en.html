@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TemplatePrintOnly</title>
+    <link rel="stylesheet" type="text/css" href="./css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+</head>
+
+<body>
+    <div class="header">
+        <img src="./images/tp.png" height="32px" style="margin-top:16px;" />
+    </div>
+    <div class="main">
+        <span class="tag">
+            TemplatePrintOnly
+        </span>
+        <div class="content_wrap">
+            <div class="setting">
+                <p class="title">Template file (note: The ID value set in the example only applies to the template tempTest. dlt in the example directory): </p>
+                <div class="file_input border">
+                    <input style="display: none;" type="file" name="tmplFileSrc" id="tmplFileSrc" />
+                    <input type="text" id="tempDisplay" readonly />
+                    <button onclick="chooseTemp('tmplFileSrc')">To browse</button>
+                </div>               
+                <p class="title">Print setting: </p>
+                <div class="options border">                   
+                    <div class="label">
+                        <label for="printCount" style=" margin-left: 55px;margin-right: 50px">Printing frequency</label>
+                        <input type="number" id="printCount" name="printCount" value="1">
+                    </div>
+
+                </div>
+
+                <div class="data_set border">
+                    <div class="wrap">                                        
+                        <section>   
+                            <label for="EMU_SEL" style=" margin-right: 50px;">Set emulation</label>    
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ZPL_EMU" value="1" name="EMU_RADIO" checked>
+                                <label for="ZPL" name="ZPL">ZPL</label>
+                            </div>                         
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="TSPL_EMU" value="2" name="EMU_RADIO" >
+                                <label for="TSPL" name="TSPL">TSPL</label>
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ESCPOS_EMU" value="3" name="EMU_RADIO">
+                                <label for="ESCPOS" name="ESCPOS">ESCPOS</label>
+                            </div>                            
+                        </section>
+                    </div>
+                </div>
+
+                <div class="btn"><button class="success" onclick="handlePrint()">Print</button></div>
+                <div class="terminal_wrap">
+                    <div class="top">
+                        <p class="title">Message output: </p>
+                        <button onclick="clearLog()">Clear message</button>
+                    </div>
+                    <div class="terminal border">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="popup_tips" style="display: none;">
+        <div class="popup_tips_mask"></div>
+        <div class="popup_tips_content"></div>
+    </div>
+
+</body>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/common.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {    //Refresh
+        $(window).scrollTop(0)
+    }
+
+    //Print start
+    async function handlePrint() {
+        var data = {};
+        $("input[name]").each(function () {
+            var name = $(this).attr("name");
+            var isFile = $(this).attr("type") == "file";
+            var isRadio = $(this).attr("type") == "radio";
+            var isCheckBox = $(this).attr("type") == "checkbox";
+            if (isFile) {
+                data[name] = $("input[name=" + name + "]").get(0).files[0] || "";
+            } else if (isCheckBox) {
+                data[name] = $(this).is(":checked")
+            } else if (isRadio) {
+                data[name] = $("input[name=" + name + "]:checked").val()
+            } else {
+                data[name] = $("input[name=" + name + "]").val() || "";
+            }
+        });
+
+
+        if (!data.tmplFileSrc) {
+            openMask("Please select template file", true)
+            return
+        }
+
+        print(await handleParams(data))
+    }
+    async function handleParams(data) {
+
+        data.tmplFileSrc = await fileToBase64(data.tmplFileSrc)
+
+        return data
+    }
+
+    var intervalObj = null;//Define a timer to display batch query status
+    var connectRes = {};//Connect the handle of the printer
+    var tempRes = {};//Load template handle
+
+    //To print
+    async function print(params) {
+        console.log(params);
+        try {
+            await sendPostRequest("web_DSTP2x_SetLibLang", "Set Language", { "language":"1" })
+            
+            //List devices
+            const devRes = await sendPostRequest("web_DSTP2x_EnumDev", "List devices", { "enumType": "1" })
+            
+            let index = devRes.enumList.indexOf(",")
+            if(index != -1)
+            {
+                const devList = devRes.enumList.split(",")
+                devRes.enumList = devList[0]
+            }
+
+            //Connected Device
+            connectRes = await sendPostRequest("web_DSTP2x_ConnEnumeratedDev", "Connected Device", { "devName": devRes.enumList })
+
+            //Get printing status
+            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtStatus", "Get printing status", { "devHdl": connectRes.devHdl })
+            if (statusRes.isReady != "1") {
+                openMask("Printer status abnormal", true)
+                //Disconnect
+                await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": connectRes.devHdl })
+                return
+            }
+
+            //Load template
+            tempRes = await sendPostRequest("web_DSTP2x_LoadLabelTmpl", "Load template", { "tmplFileSrcType": "1", "tmplFileSrc": params.tmplFileSrc })
+
+            //Assemble and print data (note: the ID value of this test data is for the template tempTest. dlt in the example directory)
+            var jobs = [];
+            var i=0;
+            for( i=1; i <= params.printCount; i++)
+            {
+                var job = {};
+                job.jobNo = "" + i;
+                job.devHdl = connectRes.devHdl;
+                job.tmplHdl = tempRes.tmplHdl;
+
+                job.trueData = [];
+                var trueDataText04 = {"elemID":"Text-04","elemKey":"Data","elemValue":""};
+                trueDataText04.elemValue = "打印机" + i;
+                job.trueData.push(trueDataText04);
+
+                var trueDataText06 = {"elemID":"Text-06","elemKey":"Data","elemValue":""};
+                trueDataText06.elemValue = "No0000" + i;
+                job.trueData.push(trueDataText06);
+
+                var trueDataQrCode01 = {"elemID":"QrCode-01","elemKey":"Data","elemValue":""};
+                trueDataQrCode01.elemValue = "test0" + i;
+                job.trueData.push(trueDataQrCode01);
+
+                jobs.push(job);
+            } 
+            //Batch print
+            await sendPostRequest("web_DSTP2x_BatPrnTmpl", "Batch print", {"syncType":"0", "prnTimeOut":"20000", "emulation":params.EMU_RADIO, "jobs": jobs })
+            
+            //Query batch printing status through timer
+            if (intervalObj != undefined && intervalObj != null) {
+                clearInterval(intervalObj);
+                intervalObj = null;
+            }
+            intervalObj = setInterval(async function () {
+                GetBatPrnTmplStatus(connectRes,tempRes);
+            }, 1000);
+
+        } catch (error) {
+            let errText = error ? error : "Request failure"
+            openMask(errText, true)
+        }
+    }
+
+    //Query batch printing status
+    async function GetBatPrnTmplStatus(connectRes, tempRes)
+    {
+        //Turn off the timer first
+        if (intervalObj != undefined && intervalObj != null)
+        {
+            clearInterval(intervalObj);
+            intervalObj = null;
+        }
+
+        var printStop = 0;
+        const batPrnRst = await sendPostRequest("web_DSTP2x_GetBatPrnTmplStatus", "Query batch printing status", {});
+        if(batPrnRst.subCode == undefined || batPrnRst.subCode != "0")//Status error detected, possibly caused by printer error resulting in non-zero return
+        {
+            //Delete template handle
+            await sendPostRequest("web_DSTP2x_DeleteTmpl", "Delete template handle", { "tmplHdl": tempRes.tmplHdl })
+            //Disconnect
+            await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": connectRes.devHdl })
+
+            openMask("Print template failed", true);
+            printStop = 1;//Print end
+        }
+        else{
+            if(batPrnRst.totalNum == batPrnRst.completeNum)
+            {
+                //Delete template handle
+                await sendPostRequest("web_DSTP2x_DeleteTmpl", "Delete template handle", { "tmplHdl": tempRes.tmplHdl })
+                //Disconnect
+                await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": connectRes.devHdl })
+                openMask("Print template successful", true);
+
+                printStop = 1;//Print end
+            }
+        }
+
+        //Printing has not ended yet, continue with the next query
+        if(printStop == 0)
+        {
+            intervalObj = setInterval(async function () {
+                GetBatPrnTmplStatus(connectRes,tempRes);
+            }, 1000);
+        }
+    }
+
+</script>
+
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Chapter 2&comma; Function List</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* Content area on the right */
+        .content {
+            margin-left: 10px; /* Leave space on the left side of the content area */
+            padding: 20px;
+            flex: 1; /* Content area fills the remaining space */
+            background-color: #f9f9f9;
+        }
+
+        /* Responsive: When the screen width is less than 768px, the navigation bar becomes foldable */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* Reduce the navigation bar width on a small screen */
+            }
+
+            .content {
+                margin-left: 0; /* No more space for navigation bar in the content area */
+            }
+        }
+       
+/* Submenu style */
+.submenu {
+    display: none; /* Default hidden submenu */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* Show submenu when mouse hover */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* Set basic styles*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Left navigation bar style */
+.sidebar {
+    position: sticky;  /* Adhesive positioning */
+    top: 0;             /* When scrolling to the top, fixed */
+    width: 300px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">Table of contents</p>      
+<ul>
+<a href="../index-US.html" class="active">Chapter 1, Overview</a>
+        <a href="./FunctionList-US.html">Chapter 2, Function List</a>
+<li>
+<a href="#">Chapter 3, Function Sample Code</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP-US.html">C++ sample</a></li>
+         <li><a href="./Samplecode-Charp-US.html">C# sample</a></li>
+         <li><a href="./Samplecode-java-US.html">java sample</a></li>
+         <li><a href="./Samplecode-javascript-US.html">javascript sample</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">Chapter 4, Functional Interface</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef-US.html">C interface function prototype</a></li>
+                <li><a href="./WebApiDef-US.html">Web-end interface definition</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction-US.html">Chapter 5, DSTP2xDemo instructions</a>
+                <a href="./WebPrtServerInstruction-US.html">Chapter 6, DSTP2xWebPrtServer User Instructions</a>
+                <li>
+                  <a href="#">Chapter 7, Related Return Code List</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode-US.html">SDK interface return code</a></li>
+                    <li><a href="./PrtStatusCode-US.html">Printer status code</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ-US.html">Chapter 8, Frequently Asked Questions</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+      body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+<center>
+<b style="font-size:18pt">
+<h1 id="chapter-2-function-list">Chapter 2, Function List</h1>
+</b>
+</center>
+<br>
+<br>
+<table border="1">
+  <tr>
+    <th width="130px" style="text-align:center">function</th>
+    <th width="660px" style="text-align:center">specification</th>
+  </tr>
+  <tr>
+    <td>Printer connection</td>
+    <td>
+    1. Supports enumeration and connection of USB/network port/serial port printers.<br>
+    2. Supports setting the timeout time for data sending and receiving of USB/TCP (network port)/serial port.<br>
+    <b style="color:red">Note: When the printer is connected to the PC via USB, please ensure that the printer is exclusively occupied by a certain application program. It is not allowed to run two application programs based on the DSTP2x-SDK simultaneously, or to run an application program based on the DSTP2x-SDK and the printer driver program at the same time.</b> 
+    </td>
+  </tr>
+  <tr>
+    <td>Printer control and management</td>
+    <td>
+    1. Initialize the printer.<br>
+    2. Restart the printer.<br>
+    3. Position the label.<br>
+    4. Set the cutter and DPI.<br>
+    5. Configure network port settings.<br>
+    6. Print the self - test page.<br>
+    </td>
+  </tr>
+  <tr>
+    <td>Printer information query</td>
+    <td>
+    1. Obtain manufacturing information such as printer name, manufacturer name, printer serial number, and main program version number.<br>
+    2. Check whether the printer has abnormal states such as paper out, ribbon out, or print head up.<br>
+    3. Query printer status information, such as paper type, emulation mode, whether the cutter is enabled, printer warning status, printer error status, etc.<br>
+    4. Query the printer's extended main status, warnings, and abnormal states.<br>
+    </td>
+  </tr>
+  <tr>
+    <td>Print</td>
+    <td>
+    1. Canvas drawing and printing:<br>
+    Text, barcodes, QR codes, picture tables, and their corresponding decoration settings, such as font type, font size, bold, italic, etc.<br>
+    ① Text support: Simplified/Traditional Chinese characters, English, etc.<br>
+    ② Barcode/QR code support: Code39, Code93, Code128, PDF417, QRCode, etc.<br>
+    ③ Picture format support: jpg, png, bmp, etc.<br>
+    ④ Table printing: Generate tables with customized rows and columns.<br>
+    2. Offset and area settings:<br>
+    (1) Set the starting horizontal offset of the label.<br>
+    (2) Set the label printing range.<br>
+    3. Image processing property settings<br>
+    (1) Error diffusion setting<br>
+    (2) Ordered dithering setting<br>
+    (3) Threshold setting<br>
+    4. Printing through templates<br>
+    5. Obtain the preview image generated by overlay printing <br>
+    </td>
+  </tr>
+  <tr>
+    <td>RFID(Optional items)</td>
+    <td>
+    1. Read and write EPC, read and write data in the form of strings and hexadecimal.<br>
+    2. Read and write USER, read and write in the form of strings and hexadecimal (optional item. Specifically, check whether the label specification supports this area).<br>
+    3. Set and obtain the read and write power of the printer.<br>
+    4. Read TID.<br>
+    5. RFID label positioning.<br>
+    </td>
+  </tr>
+</table>
+</div>
+            
+            
+        </body>
+        </html>

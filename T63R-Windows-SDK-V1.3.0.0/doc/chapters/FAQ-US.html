@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Chapter 8&comma; Frequently Asked Questions</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* Content area on the right */
+        .content {
+            margin-left: 10px; /* Leave space on the left side of the content area */
+            padding: 20px;
+            flex: 1; /* Content area fills the remaining space */
+            background-color: #f9f9f9;
+        }
+
+        /* Responsive: When the screen width is less than 768px, the navigation bar becomes foldable */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* Reduce the navigation bar width on a small screen */
+            }
+
+            .content {
+                margin-left: 0; /* No more space for navigation bar in the content area */
+            }
+        }
+       
+/* Submenu style */
+.submenu {
+    display: none; /* Default hidden submenu */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* Show submenu when mouse hover */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* Set basic styles*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Left navigation bar style */
+.sidebar {
+    position: sticky;  /* Adhesive positioning */
+    top: 0;             /* When scrolling to the top, fixed */
+    width: 300px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">Table of contents</p>      
+<ul>
+<a href="../index-US.html" class="active">Chapter 1, Overview</a>
+        <a href="./FunctionList-US.html">Chapter 2, Function List</a>
+<li>
+<a href="#">Chapter 3, Function Sample Code</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP-US.html">C++ sample</a></li>
+         <li><a href="./Samplecode-Charp-US.html">C# sample</a></li>
+         <li><a href="./Samplecode-java-US.html">java sample</a></li>
+         <li><a href="./Samplecode-javascript-US.html">javascript sample</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">Chapter 4, Functional Interface</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef-US.html">C interface function prototype</a></li>
+                <li><a href="./WebApiDef-US.html">Web-end interface definition</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction-US.html">Chapter 5, DSTP2xDemo instructions</a>
+                <a href="./WebPrtServerInstruction-US.html">Chapter 6, DSTP2xWebPrtServer User Instructions</a>
+                <li>
+                  <a href="#">Chapter 7, Related Return Code List</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode-US.html">SDK interface return code</a></li>
+                    <li><a href="./PrtStatusCode-US.html">Printer status code</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ-US.html">Chapter 8, Frequently Asked Questions</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+    body {
+            display: flex;
+            margin: 0;
+        }
+       .same-width-table {
+    width: 800px; /* Set the total width of the table. */
+    border: 1px solid black;
+    margin-bottom: 20px;
+  }
+  /* Table 1: Set the percentage width for each column. */
+  .table1 td {
+    border: 1px solid gray;
+  }
+  .table1 td:nth-child(1) {
+    width: 15%; /* The width of the first column is 40% */
+  }
+  .table1 td:nth-child(2) {
+    width: 15%; /* The width of the second column is 30% */
+  }
+  .table1 td:nth-child(3) {
+    width: 20%; /* The width of the third column is 30% */
+  }
+  .table1 td:nth-child(4) {
+    width: 50%; /* The width of the fourth column is 30% */
+  }
+</style>
+ <center>
+<b style="font-size:18pt">
+<h1 id="chapter-8-frequently-asked-questions">Chapter 8, Frequently Asked Questions</h1>
+</b>
+</center>
+<ul>
+<li><a href="#chapter-8-frequently-asked-questions">Chapter 8, Frequently Asked Questions</a>
+<ul>
+<li><a href="#1enumeration-failure">1、Enumeration Failure</a></li>
+<li><a href="#2printer-cannot-be-enumerated-when-connected-via-network-port">2、Printer Cannot Be Enumerated When Connected via Network Port</a></li>
+<li><a href="#3failed-to-connect-to-the-serial-printer">3、Failed to Connect to the Serial Printer</a></li>
+<li><a href="#4how-to-distinguish-multiple-printers-when-printing-various-labels">4、How to Distinguish Multiple Printers When Printing Various Labels</a></li>
+<li><a href="#5whether-the-development-package-has-log-information-and-its-storage-directory">5、Whether the Development Package Has Log Information and Its Storage Directory</a></li>
+<li><a href="#6incomplete-printing--printed-results-do-not-match-the-expected-size">6、Incomplete Printing / Printed Results Do Not Match the Expected Size</a></li>
+<li><a href="#7coordinate-issues-in-printing-results">7、Coordinate Issues in Printing Results</a></li>
+<li><a href="#8printer-operates-but-no-content-is-printed">8、Printer Operates but No Content Is Printed</a></li>
+<li><a href="#9print-data-sent-successfully-but-the-printer-does-not-respond">9、Print Data Sent Successfully but the Printer Does Not Respond</a></li>
+<li><a href="#10issues-related-to-paper-cutting">10、Issues Related to Paper Cutting</a></li>
+<li><a href="#11after-sending-data-the-printer-panel-displays-rfid-not-epc-or-the-indicator-light-reports-an-error">11、After Sending Data, the Printer Panel Displays &quot;rfid not epc&quot; or the Indicator Light Reports an Error</a></li>
+<li><a href="#12error-42074112-returned-when-printing-a-pdf">12、Error &quot;42074112&quot; Returned When Printing a PDF</a></li>
+<li><a href="#13error-42074113-returned-when-printing-a-pdf">13、Error &quot;42074113&quot; Returned When Printing a PDF</a></li>
+<li><a href="#14error-25182210-returned-when-printing">14、Error &quot;25182210&quot; Returned When Printing</a></li>
+<li><a href="#15error-25182213-returned-when-printing">15、Error &quot;25182213&quot; Returned When Printing</a></li>
+<li><a href="#16error-25198597-returned-when-printing">16、Error &quot;25198597&quot; Returned When Printing</a></li>
+<li><a href="#17error-25198604-returned-when-printing">17、Error &quot;25198604&quot; Returned When Printing</a></li>
+<li><a href="#18error-42270720-returned-when-printing">18、Error &quot;42270720&quot; Returned When Printing</a></li>
+<li><a href="#19error-41992207-returned-when-loading-the-dynamic-library">19、Error &quot;41992207&quot; Returned When Loading the Dynamic Library</a></li>
+<li><a href="#20-customer-programs-or-demos-fail-to-run">20、 Customer Programs or Demos Fail to Run</a></li>
+<li><a href="#21dstp2xwebprtserver-exe-error-failed-to-start-service">21、DSTP2xWebPrtServer. exe error &quot;Failed to start service&quot;</a></li>
+<li><a href="#22recommendations-for-setting-communication-timeout">22、Recommendations for Setting Communication Timeout</a></li>
+<li><a href="#23selection-of-corresponding-architectures-in-the-linux-system">23、Selection of Corresponding Architectures in the Linux System</a></li>
+<li><a href="#24querying-system-information-in-the-linux-system">24、Querying System Information in the Linux System</a></li>
+<li><a href="#25in-the-linux-system-you-need-to-run-the-sdk---based-program-as-the-root-user-or-with-root-privileges-to-control-the-printer-connected-via-usb">25、In the Linux system, you need to run the SDK - based program as the root user or with root privileges to control the printer connected via USB.</a></li>
+<li><a href="#26printing-text-errors-in-the-linux-system">26、Printing text errors in the Linux system</a></li>
+<li><a href="#27font-operation-process-under-the-linux-system">27、Font operation process under the Linux system</a></li>
+<li><a href="#28epc-or-user-data-writing-format">28、EPC or USER data writing format</a></li>
+<li><a href="#29the-returned-values-of-reading-epc-user-and-tid-are-error">29、The returned values of reading EPC, USER, and TID are “Error!”</a></li>
+<li><a href="#30when-printing-an-rfid-tag-the-words-void-or-cancelled-will-be-printed">30、When printing an RFID tag, the words &quot;void&quot; or &quot;cancelled&quot; will be printed.</a></li>
+<li><a href="#31precautions-for-locking-tags">31、Precautions for Locking Tags</a></li>
+<li><a href="#32cross-origin-issues-in-browsers-such-as-microsoft-edge-uc-browser-qq-browser-microsoft-edge-again-mentioned-twice-in-your-list-in-different-contexts-perhaps-google-chrome-and-cheetah-browser">32、Cross-origin issues in browsers such as Microsoft Edge, UC Browser, QQ Browser, Microsoft Edge (again, mentioned twice in your list in different contexts perhaps), Google Chrome, and Cheetah Browser</a></li>
+<li><a href="#33shortcuts-for-editing-templates-in-the-linux-system">33、Shortcuts for editing templates in the Linux system</a></li>
+<li><a href="#34precautions-for-editing-template-tables">34、Precautions for Editing Template Tables</a></li>
+<li><a href="#35usb-data-capture-in-a-linux-environment">35、USB data capture in a Linux environment</a></li>
+<li><a href="#36when-calling-with-java-it-returns-not-a-utf---8-string">36、When calling with Java, it returns &quot;Not a UTF - 8 string&quot;.</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="1enumeration-failure">1、Enumeration Failure</h2>
+<p>① Please check if the printer is properly powered on.<br>
+② Please check if the printer is correctly connected to the computer's USB port using a USB cable.<br>
+③ Please check if the USB physical connection between the printer and the computer is loose.<br>
+④ It may be a newly launched product not yet supported by the current SDK. Please print a self - test page and contact the factory's technical support staff for assistance in analysis and confirmation.<br>
+⑤ If it is a web application, please check if the DSTP2xWebPrtServer.exe service has been started on the client.<br>
+<br>
+<br></p>
+<h2 id="2printer-cannot-be-enumerated-when-connected-via-network-port">2、Printer Cannot Be Enumerated When Connected via Network Port</h2>
+<p><b>Windows：</b><br>
+<img src="../res/FAQ-EnumFail-Windows-US.png" ></img><br>
+① Please check if the printer is properly powered on.<br>
+② Please check if the network cables connecting the printer to the computer and the switch/router (used for networking with the computer) are loose.<br>
+③ Please print a self - test page to determine if the printer and the computer are on the same network segment.<br>
+④ Please check if the computer can ping the printer.<br>
+⑤ As shown in the figure above, when the Demo performs a TCP printer enumeration on the computer for the first time, a firewall pop - up window may block the program from accessing the network. You need to allow the application that requests to use the network to access the port for the first time.<br>
+<b>Linux：</b><br>
+① Please check if the computer can ping the printer.<br>
+② Turn off the firewall for domestic systems. The relevant commands are:<br>
+iptables -I INPUT -p udp -j ACCEPT<br>
+iptables -I OUTPUT -p udp -j ACCEPT<br>
+<br>
+<br></p>
+<h2 id="3failed-to-connect-to-the-serial-printer">3、Failed to Connect to the Serial Printer</h2>
+<p>① Please check if the baud rate of the software is consistent with that of the printer. If you are not sure about the printer's baud rate, you can check it by printing a self - test page or connecting the printer with the Smart Assistant.<br>
+②  If you are using a USB - to - serial adapter board or cable for connection, please ensure that the USB - to - serial driver is correctly installed before performing the serial port connection operation.<br>
+<br>
+<br></p>
+<h2 id="4how-to-distinguish-multiple-printers-when-printing-various-labels">4、How to Distinguish Multiple Printers When Printing Various Labels</h2>
+<p>If multiple printers are connected via USB, if they are of different models, the manufacturers and models enumerated will be different.<br>
+If they are of the same model, you can enable the USBID through the [Smart Assistant]. At this time, the enumerated information will include the corresponding machine number information, which is unique. Therefore, you can distinguish them by the machine number.<br>
+When multiple printers are connected via the network port, you can distinguish them according to the set printing IP.<br>
+<br>
+<br></p>
+<h2 id="5whether-the-development-package-has-log-information-and-its-storage-directory">5、Whether the Development Package Has Log Information and Its Storage Directory</h2>
+<p>The specific log storage path needs to be checked through the <LogPath> parameter in the corresponding sdkcfg.xml configuration file. The default settings are as follows:<br>
+<img src="../res/FAQ-5-1.png"></img><br>
+<b>Default Path in Windows Environment:</b><br>
+C:\Users\AppData\Local\Temp\DSSDKTemp\ThermalLog；<br>
+You can also press the Win + R keys, enter the “%temp%” command, and then press Enter. Find the DSSDKTemp folder, and the logs of this SDK's operation records are stored inside.<br>
+<img src="../res/FAQ-5-2-US.png"></img>
+<br>
+<b>Default Path in Linux Environment:</b><br>
+In non - ROOT mode, the logs are generated in /home/xxx/DSSDKTemp/. In ROOT mode, the logs are generated in /root/DSSDKTemp/.<br>
+<b>The log path and level can be set and modified through the “sdkcfg.xml” file in the dependent library directory.</b><br>
+<br>
+<br></p>
+<h2 id="6incomplete-printing--printed-results-do-not-match-the-expected-size">6、Incomplete Printing / Printed Results Do Not Match the Expected Size</h2>
+<p>① Please check if the paper is placed correctly in the printer and if it is fixed properly with the paper - pressing block after loading.<br>
+② Please check the current page length value through the self - test page to ensure that the printer has correctly performed label positioning.<br>
+③ Please check if the DPI set in the program is the same as the current DPI of the printer. If the set DPI is larger than the actual DPI of the machine, after conversion, the entire print data will be enlarged, which may exceed the label specifications and result in incomplete printing. For example, for DL - 218 (203dpi), if the interface is set to 300dpi, 10mm in the code data will actually become 15mm when printed, and the printed size will be larger than expected. You should set it correctly according to the actual DPI of the printer (such as 203dpi).<br>
+④ Please check if the print data content or coordinates exceed the size of the label. The page length and width settings in the template and interface parameters should be based on the actual label specifications.<br>
+<br>
+<br></p>
+<h2 id="7coordinate-issues-in-printing-results">7、Coordinate Issues in Printing Results</h2>
+<p>① Abscissa problem<br>
+Check if the paper placement in the machine is offset.<br>
+Before checking the print data, check if the page length and width are set by calling the interface. Due to differences in machines, there may be differences in the starting position of coordinate calculation. Therefore, you need to set the page length and width according to the actual printing requirements.<br>
+② Ordinate problem<br>
+Check if the label has been calibrated for positioning. You can print a self - test page to see if the positioned page length is the same as the actual label (a ±2mm range is normal). The methods for printing a self - test page are as follows:<br>
+[DP Portable Series]: <br>
+Long - press the paper - feed key while the printer is on, and wait for the self - test page to be printed.<br>
+[DL Desktop Series]:<br>
+Turn off the printer, press the paper - feed key while turning it on, and release your hand when you hear a beep to print the self - test page. For machines with a panel, you can enter the test mode menu -&gt; perform self - test print operation to print the self - test page.<br>
+If you are using black - mark paper for positioning, you need to change the sensor to reflection mode before positioning. If you are using label gaps for positioning, change the sensor to transmission mode. For transmission mode, both the upper and lower sensors need to be aligned, and you need to move them to the position facing the label gap before positioning. If the mode is incorrect, it will affect the ordinate position of the printed result.<br>
+<b>When batch - printing, if the previous print job is not completed and the next one is sent, it will cause the position to be offset. It is recommended to obtain the status before sending in the printing process (the current version of the printer returns the print status result by default in a synchronous manner). Only when the status is normal should the next piece of data be sent for printing.</b><br>
+<br>
+<br></p>
+<h2 id="8printer-operates-but-no-content-is-printed">8、Printer Operates but No Content Is Printed</h2>
+<p>① Please check if the correct paper type is being used. If ordinary paper is used, a ribbon needs to be installed (DP series printers generally only support thermal paper).<br>
+② Please check if the paper is installed upside down. (You can scratch the surface of the thermal paper with your fingernail. If there is an obvious scratch, it is the printing side.)<br>
+③ Check if the print content coordinates exceed the label range. For example, if the actual label size is 40*30mm and the abscissa of the printed text content is set to 40mm, then the content is outside the canvas.<br>
+④ For batch printing with data loss, missing data, or garbled characters, first restart the printer to clear the printer data. Do not send too much data at once or send multiple pieces of data too quickly. It is recommended that in the batch - printing process, before sending each piece of data, poll to obtain the status. Only when the status is normal (paper available, online, device not busy, buffer empty, and no other error messages), send the next piece of data for printing.<br>
+<br>
+<br></p>
+<h2 id="9print-data-sent-successfully-but-the-printer-does-not-respond">9、Print Data Sent Successfully but the Printer Does Not Respond</h2>
+<p>① Check if the printer's emulation mode is the same as the sent emulation.<br>
+② Check if the printer is in an abnormal state.<br>
+Press the paper - feed key to see if the printer can normally feed a label. If the machine is stuck and does not respond, restart the machine and try again.<br>
+Check the printer panel or indicator lights to see if it is in an error - reporting state (machines with a panel will directly display error messages, and machines without a panel will have a red - light indicator). If printing is not possible due to an error, cancel the error state or restart the machine and then operate again.<br>
+<br>
+<br></p>
+<h2 id="10issues-related-to-paper-cutting">10、Issues Related to Paper Cutting</h2>
+<p>① When the paper cannot be cut: Check if the printer supports the cutter module and if the cutter function is enabled (the cutter function can be enabled or modified using the Smart Assistant).<br>
+② When the printer supports the cutter module and the cutter function is enabled, when there is no cache in the printer after printing, it will automatically cut one piece of paper.<br>
+③ Using the interface's immediate paper - cutting function: When the printer supports the cutter module and the cutter function is enabled, calling the DSTP2x_CutPaper or web_DSTP2x_CutPaper interface function will control the cutter to cut the paper immediately. This is generally used to freely control paper - cutting after printing multiple pieces of data.<br>
+<b style="color:red">Note: Some models may not be applicable to the relevant interface commands.<br></b>
+<br>
+<br></p>
+<h2 id="11after-sending-data-the-printer-panel-displays-rfid-not-epc-or-the-indicator-light-reports-an-error">11、After Sending Data, the Printer Panel Displays &quot;rfid not epc&quot; or the Indicator Light Reports an Error</h2>
+<p><b>【Error Meaning】：</b><br>
+The printer currently has the RFID function enabled, but it doesn't detect any RFID data to be processed when executing the print data.<br>
+<b>【Diagnostic Steps and Countermeasures】：</b><br>
+If the current application scenario does not require the RFID function, please turn off the RFID function through the printer panel or the &quot;Smart Assistant&quot;. Otherwise, before calling DSTP2x_PrintXXX, call DSTP2x_LcRfid_SetData first to ensure that RFID data has been sent to the printer firmware. When the printer has the RFID function enabled but only print data is sent without writing the EPC, it's because the printer only receives the print data and lacks the EPC data.<br>
+If you do not need to print RFID tags, you can use the intelligent assistant to turn off the RFID function or use the intelligent assistant to turn off the &quot;RFID data monitoring&quot; option parameter (this RFID data monitoring parameter must be supported by the firmware version). If you need to print RFID, you must first dynamically write EPC data before printing; <br>
+<br>
+<br></p>
+<h2 id="12error-42074112-returned-when-printing-a-pdf">12、Error &quot;42074112&quot; Returned When Printing a PDF</h2>
+<p><b>【Error Code Meaning】：</b><br>
+The corresponding plug - in was not found.<br>
+<b>【Countermeasures】：</b><br>
+Check if the path of the PDF plug - in is configured correctly in the dependent sdkcfg.xml file.<br>
+Currently, we support two forms of PDF printing. The internal logic for processing PDF is set to “0” in the sdkcfg.xml file and requires an authorization file. If a PDF plug - in is needed, the plug - in path needs to be configured first.<br>
+<img src="../res/FAQ-12.png"></img>
+<br>
+<br></p>
+<h2 id="13error-42074113-returned-when-printing-a-pdf">13、Error &quot;42074113&quot; Returned When Printing a PDF</h2>
+<p><b>【Error Code Meaning】：</b><br>
+The program attempted to use the PDF printing function but could not find the corresponding plug - in.<br>
+<b>【Countermeasures】：</b><br>
+Check if the path of the PDF plug - in is configured correctly in the dependent sdkcfg.xml file. You need to adjust it according to the actual storage path of the xpdf file.<br>
+<img src="../res/FAQ-13.png"></img>
+<br>
+<br></p>
+<h2 id="14error-25182210-returned-when-printing">14、Error &quot;25182210&quot; Returned When Printing</h2>
+<p><b>【Error Code Meaning】：</b><br>
+uUSB data sending failed.<br>
+<b>【Countermeasures】：</b><br>
+① First, check if the communication between the computer and the printer is normal (check if the computer correctly identifies the printer, if the USB cable is disconnected, if the computer shuts down or restarts midway, etc.).<br>
+② If other software occupies the port for data sending and receiving, it will cause the call to time out and the data sending to fail.<br>
+③ If all the above steps have been checked, you can restart the printer and then verify the operation.<br>
+④ If the problem still occurs consistently or frequently after restarting the printer, you can troubleshoot it step by step as follows:<br>
+► Replace the USB cable and then verify.<br>
+► Replace the computer and then verify.<br>
+<br>
+<br></p>
+<h2 id="15error-25182213-returned-when-printing">15、Error &quot;25182213&quot; Returned When Printing</h2>
+<p><b>【Error Code Meaning】：</b><br>
+No response data was received via USB.<br>
+<b>【Diagnostic Steps and Countermeasures】：</b><br>
+① First, check if the USB cable is loose. If so, reconnect it firmly.<br>
+② First, check if the printer is normally recognized by the computer, as shown in the following figure.<br>
+<img src="../res/FAQ-15-US.png"></img><br>
+③ Check if the program calls RFID - related reading functions for an RFID printer with the RFID function not enabled. If so, first enable the RFID function of the printer, and then restart the printer and verify.<br>
+④ Observe if the printer has any action by pressing the printer's buttons to determine if the printer is currently stuck.<br>
+⑤ Check if the printer is currently reporting an error. If so, first clear the current error, and then check if the communication is normal when operating again.<br>
+⑥ Check if the printer firmware and the SDK are compatible. This diagnostic strategy is applicable to the following situations:<br>
+► When using the SDK to develop a project for the first time to connect with the printer.<br>
+► When the printer firmware or SDK version has been recently upgraded.<br>
+<br>
+<b>If an error is returned when reading EPC/user/TID:</b><br>
+① Print a self - test page to check if the printer is a regular printer, a high - frequency printer, or an RFID ultra - high - frequency printer. If it is an RFID ultra - high - frequency printer, check if the RFID function is not enabled.<br>
+②  Before testing the RFID tag with software, check if the RFID tag has not been calibrated for positioning (make sure the tag positioning calibration is successful: after successful calibration, press the paper - feed key to feed one label, and when printing a self - test page, you can see that the calibrated label page length is the actual label page length. An error of about ±1mm in the label page length after positioning is normal).<br>
+③ Check if the read - write power or frequency band settings are incorrect. You can use the Smart Assistant to modify the frequency band and then re - position and test the RFID tag.<br>
+④ Observe if the paper - feeding action is abnormal. Check if there is paper jamming, slipping, or the ribbon sticking to the label, etc., which may prevent the RFID tag chip from reaching the printer's read - write chip position.<br>
+⑤ Check if the tag is damaged or if any special operations have been performed on it, such as tag destruction.<br>
+<br>
+<br></p>
+<h2 id="16error-25198597-returned-when-printing">16、Error &quot;25198597&quot; Returned When Printing</h2>
+<p><b>【Error Code Meaning】：</b><br>
+TCP data sending failed.<br>
+<b>【Countermeasures】：</b><br>
+① Please check if the printer is properly powered on.<br>
+② Please check if the network cables connecting the printer to the computer and the switch/router (used for networking with the computer) are loose.<br>
+③ Please check if the computer can ping the printer.<br>
+④ Use the command telnet PrinterIp 9100 (PrinterIp is the printer's IP address) to check if the printer's port 9100 is currently reachable.<br>
+<br>
+<br></p>
+<h2 id="17error-25198604-returned-when-printing">17、Error &quot;25198604&quot; Returned When Printing</h2>
+<p><b>【Error Code Meaning】：</b><br>
+No response data was received from the printer via TCP.<br>
+<b>【Countermeasures】：</b><br>
+① Please check if the printer is properly powered on.<br>
+② Please check if the network cables connecting the printer to the computer and the switch/router (used for networking with the computer) are loose.<br>
+③ Please check if the computer can ping the printer.<br>
+④ Use the command telnet PrinterIp 9100 (PrinterIp is the printer's IP address) to check if the printer's port 9100 is currently reachable.<br>
+⑤ Check if the printer firmware and the SDK are compatible. This diagnostic strategy is applicable to the following situations:<br>
+► When using the SDK to develop a project for the first time to connect with the printer.<br>
+► When the printer firmware or SDK version has been recently upgraded.<br>
+<br>
+<br></p>
+<h2 id="18error-42270720-returned-when-printing">18、Error &quot;42270720&quot; Returned When Printing</h2>
+<p><b>【Error Code Meaning】：</b><br>
+The status data returned by the printer to the SDK indicates that the printer is currently in an error state.<br>
+<b>【Countermeasures】：</b><br>
+Check whether the printer is in an error state by looking at the printer panel or the indicator light status. (For printers with a panel, error messages will be displayed; for printers without a panel, the indicator light will turn red.) Secondly, for printers with a panel, also check whether the printer is on a non - print - ready interface. If printing is not possible due to an error or other reasons, you can first cancel the error state or directly restart the machine. Continue the operation after the machine returns to a normal state. <br>
+<br>
+<br></p>
+<h2 id="19error-41992207-returned-when-loading-the-dynamic-library">19、Error &quot;41992207&quot; Returned When Loading the Dynamic Library</h2>
+<p><b>【Error Code Meaning】：</b><br>
+A program with dependent libraries is already running, which means there is currently a program based on <code>libDSThermal.dll</code> or <code>libDSThermal.so</code> running. The error occurs when you try to start another program.<br>
+<b>【Countermeasures】：</b><br>
+In principle, only one application should exclusively use the printer at a time. Check through the Task Manager if programs such as DSTP2xDemo.exe, DSTP2xWebPrtServer.exe, DSTP2xDemo.out, DSTP2xWebPrtServer.out, or programs developed by the customer based on libDSThermal.dll or <a href="http://libDSThermal.so">libDSThermal.so</a> are running. Then, the customer should decide which program to keep running.<br>
+<br>
+<br></p>
+<h2 id="20-customer-programs-or-demos-fail-to-run">20、 Customer Programs or Demos Fail to Run</h2>
+<p>① If error prompts similar to those in the following two figures appear, it indicates that the customer program or the demo lacks the SDK's dependent libraries. Please copy all the files in the corresponding 32-bit or 64-bit directory under \lib to the same-level directory of the current program.<br>
+<img src="../res/FAQ-20-1-US.png"></img><br>
+② If the message &quot;The application was unable to start correctly (0xc000007b). Please click 'OK' to close the application&quot; pops up, it indicates that the client program or demo is using dependent libraries with a different bit - count. For example, the client program or demo is a 32 - bit program, but it depends on a 64 - bit library. Please ensure that the 32 - bit program correctly uses the 32 - bit dependent libraries (path: \lib\Win32), and the 64 - bit program correctly uses the 64 - bit dependent libraries (path: \lib\x64). <br>
+③ If the message &quot;This program cannot be started because VCRUNTIME140.dll is missing from your computer. Try reinstalling the program to fix this problem&quot; pops up, please install the corresponding bit-version of vc_redist according to the bit requirement of the client program or the demo.  <br>
+<br>
+<br></p>
+<h2 id="21dstp2xwebprtserver-exe-error-failed-to-start-service">21、DSTP2xWebPrtServer. exe error &quot;Failed to start service&quot;</h2>
+<p>Check if the 9001 required port bound to the DSTP2xWebPrtServer service is occupied by other programs. Enter the netstat command on the terminal to check the port occupancy status,
+The window system can be viewed using the command: netstat - ano | findstr &quot;LISTENING&quot;
+If port 9001 is already occupied, it will be displayed as shown in the following figure:<br>
+<img src="../res/FAQ-21-1.png"></img><br>
+Linux systems can be viewed using the command: sudo netstat - tulnp
+If port 9001 is already occupied, it will be displayed as shown in the following figure:<br>
+<img src="../res/FAQ-21-2.png"></img><br>
+<b>【Countermeasures】：</b><br>
+To modify the DSTP2xWebPrtServer service port, the steps are as follows:
+① Open the \web_Server\ServerCfg.ini file and modify the port number;<br>
+<img src="../res/FAQ-21-3.png"></img><br>
+② Save files;
+③ Run again /DSTP2xWebPrtServer.out
+Note: After modifying the port of the ServerCfg.ini file, if you want to run a JavaScript sample test, remember to also modify the port number in common.exe in the sample folder to ensure consistency between the two before connecting properly.<br>
+<img src="../res/FAQ-21-4.png"></img><br>
+<br>
+<br></p>
+<h2 id="22recommendations-for-setting-communication-timeout">22、Recommendations for Setting Communication Timeout</h2>
+<p>For the communication timeout of the functional interfaces in this SDK, it is recommended that the timeout values for both data sending and receiving be set between 3000 and 5000 milliseconds. <br>
+<br>
+<br></p>
+<h2 id="23selection-of-corresponding-architectures-in-the-linux-system">23、Selection of Corresponding Architectures in the Linux System</h2>
+<p>Currently, the system supports x86 and ARM architectures. Since the underlying logic differs among different architectures, you need to select the appropriate <code>.so</code> files for the corresponding architecture system for integration.<br><br>
+Method for checking the system architecture:<br>
+On the desktop of the Linux system, right - click to open the terminal, and enter &quot;lscpu&quot; to confirm the CPU architecture. The specific return information is shown in the following figure:<br>
+<img src="../res/FAQ-22-US.png"></img><br>
+<br>
+<br></p>
+<h2 id="24querying-system-information-in-the-linux-system">24、Querying System Information in the Linux System</h2>
+<p>在During the debugging process, if you encounter issues such as being unable to call the <code>.so</code> library or getting error messages, you can check the specific system information for analysis.
+Commonly used query commands are as follows:<br>
+uname -a<br>
+cat /proc/version<br>
+cat /etc/os-release<br>
+cat /etc/redhat-release<br>
+cat /etc/issue<br>
+lsb_release -a<br>
+<br>
+可Enter the above commands in the console at once and press Enter to execute. The returned results are shown in the following figures:
+<img src="../res/FAQ-23.1.png"></img><br>
+<br>
+<img src="../res/FAQ-23.2.png"></img><br>
+<br>
+<br></p>
+<h2 id="25in-the-linux-system-you-need-to-run-the-sdk---based-program-as-the-root-user-or-with-root-privileges-to-control-the-printer-connected-via-usb">25、In the Linux system, you need to run the SDK - based program as the root user or with root privileges to control the printer connected via USB.</h2>
+<p>The SDK package provides a map.ds solution. You only need to execute this solution successfully as the root user or with root privileges once. After that, you can run the SDK - based program with normal user privileges to control the printer connected via USB. <br>
+<br>
+<br></p>
+<h2 id="26printing-text-errors-in-the-linux-system">26、Printing text errors in the Linux system</h2>
+<p>Interface calls rely on the system font library. However, each Linux system vendor customizes its own fonts, and fonts also involve copyright issues. If there are no fonts available, an error will occur. You can install the corresponding fonts or use the system - built - in fonts for printing.<br>
+In the Linux system, when you pass in the installed fonts, an error occurs and printing cannot be performed:<br>
+Due to system differences, you need to check the system fonts to see whether the font names at the top of the list are in Chinese or English. If the top - ranked font has an English name, you should pass the English name as a parameter when calling <code>web_DSTP2x_LcDraw_SetTextFontName</code> or <code>DSTP2x_LcDraw_SetTextFontName</code>. If it's a Chinese name, then pass the Chinese name.<br>
+As shown in the example in the following figure, on the left is the CentOS 7 system, where &quot;SimSun&quot; is ranked first, so you need to pass &quot;SimSun&quot;. On the right is the KylinOS system, where &quot;宋体&quot; (Song typeface) is ranked first, so you need to pass &quot;宋体&quot;. <br>
+<img src="../res/FAQ-25.png"></img><br>
+Query command for fonts:<br>
+In the terminal, enter:fc-list<br>
+Just check the installed Chinese fonts:fc-list :lang=zh<br>
+<br>
+<br></p>
+<h2 id="27font-operation-process-under-the-linux-system">27、Font operation process under the Linux system</h2>
+<p>①Right - click anywhere on the desktop to open the terminal. Enter <code>sudo chmod 777 -R /usr/share/fonts/truetype</code> (&quot;/usr/share/fonts/truetype&quot; is the name of the directory that needs permission assignment. The path may vary depending on the system. You should determine it according to the actual system. In the system shown in the following figure, the directory is located at <code>/usr/share/fonts/truetype</code>). Then press Enter and enter your password (if you are already logged in as the root user, you don't need to enter the password) to modify the permissions of this directory. (The permission level of <code>777 -R</code> can be adjusted according to the actual situation.) <br>
+<img src="../res/FAQ-26.1-US.png"></img><br></p>
+<p>②Copy the fonts to the directory <code>/usr/share/fonts/truetype</code> (&quot;/usr/share/fonts/truetype&quot; is the location where you install the fonts. The path may vary depending on different systems. Please determine it according to the actual system. In the system shown in the following figure, the directory location is <code>/usr/share/fonts/kingsoft</code>). <br>
+<img src="../res/FAQ-26.2-US.png"></img><br></p>
+<p>③Right-click to open the terminal in the directory <code>/usr/share/fonts/truetype</code> (&quot;/usr/share/fonts/truetype&quot; is the location where your fonts are installed. The paths vary depending on different systems. You should determine it according to the actual system. In the system shown in the following figure, the directory location is <code>/usr/share/fonts/kingsoft</code>). <br>
+<img src="../res/FAQ-26.3-US.png"></img><br></p>
+<p>④In the terminal, enter <code>fc-cache</code> and press Enter. Then wait for the fonts to be installed.<br>
+<img src="../res/FAQ-26.4-US.png"></img><br></p>
+<p>⑤In the terminal, enter <code>fc-list</code> and press Enter to check and confirm whether the fonts are installed successfully.<br>
+<img src="../res/FAQ-26.5-US.png"></img><br>
+<br>
+<br></p>
+<h2 id="28epc-or-user-data-writing-format">28、EPC or USER data writing format</h2>
+<p><b>The SDK interface supports writing in both HexStr and ASCII formats. The specific details are as follows:</b><br>
+【ASCII type】<br>
+① Data is written with one character as one byte.<br>
+② he length of the input data must be an integer multiple of two characters.<br>
+③ Any character data from the ASCII code table is supported as input.<br>
+Example：<br>
+Input data：1234abcd<br>
+The (hexadecimal) data actually written into the label:31 32 33 34 61 62 63 64<br>
+【HexStr type】<br>
+① It is to write the data with every two characters as one byte.<br>
+② The length of the input data must be an integer multiple of 4 characters.<br>
+③ Only numbers from 0 to 9 and letters from a to f or A to F are supported as the input.<br>
+Example：<br>
+Input data：1234abcd<br>
+The (hexadecimal) data actually written into the label：12 34 ab cd<br>
+<b style="color:red">【notes】<br>
+① Since the data written to the label is in hexadecimal format, after the upper - layer application reads the label data, it needs to decide whether to perform corresponding format conversion based on the previously selected data writing format.<br>
+② The length of EPC/user cannot exceed the chip specification. For example, if the EPC area specification of the tag chip is 96 bits, then EPC can only write 96/8=12 bytes, and if it exceeds the length, it cannot be written in; HexStr can write 24 numbers; ASCII can only write 12 numbers.<br>
+③ For special labels, the data should be written in the format required by the corresponding label specification.
+<br></b>
+<br>
+<br></p>
+<h2 id="29the-returned-values-of-reading-epc-user-and-tid-are-error">29、The returned values of reading EPC, USER, and TID are “Error!”</h2>
+<p><b>【Error Meaning】：</b>The data &quot;45 72 72 6F 72 21&quot; returned by the printer is actually the hexadecimal representation of &quot;Error!&quot;. It indicates that the reading of the EPC, USER, or TID has failed. <br>
+【Diagnostic Steps and Countermeasures】：<br>
+① Please perform the RFID tag positioning calibration again and then try again.<br>
+② Please retry the reading operation of this tag to see if it can be successful; if the result returned by the printer is still &quot;Error!&quot;, please try the next step.<br>
+③ If there is a PDA, please use the PDA to see if it can successfully read the EPC, USER, or TID of this tag; if the result returned by the printer is still &quot;Error!&quot;, the current tag may be damaged/destroyed, please try the next step.<br>
+④ Please use the paper feeding function to skip the current tag, and try to read the next tag to see if it is successful. If the reading of the new tag is normal, check whether the tag is damaged or there are other issues (such as whether the tag has been destroyed or other operations have been carried out on it).<br>
+⑤ If you have already followed the above steps and the printer still returns &quot;Error!&quot;, please restart the printer and then perform the reading operation.<br>
+<br>
+<br></p>
+<h2 id="30when-printing-an-rfid-tag-the-words-void-or-cancelled-will-be-printed">30、When printing an RFID tag, the words &quot;void&quot; or &quot;cancelled&quot; will be printed.</h2>
+<p><b>【Error Meaning】：</b><br>
+For RFID printing operations with EPC/USER data, when the printer fails to write the EPC/USER data into the tag chip during the printing process, the printer will print the word &quot;void&quot; on the current tag. Then, it will move on to the next tag for reprinting. If the reprinting fails three times in a row, the printer will report an error and stop working. <br>
+<b>【Diagnostic Steps and Countermeasures】：</b><br>
+① Please check whether the tag is damaged.<br>
+② Please check whether the RFID tag positioning calibration has been carried out for the tag. (After operations such as changing to tags of different specifications, updating and upgrading the firmware, or restoring the printer to its factory settings, the RFID tag positioning calibration operation needs to be carried out again.)<br>
+③ Please check whether the write operation to the USER area is performed on a tag without a USER area.<br>
+④ Please check whether the EPC/USER data is too long. You can refer to the tag specification to see how much data the tag supports. If it exceeds the tag specification, the printing will be voided because the data cannot be written in.<br>
+⑤ Please check whether the length of the EPC/USER data to be written is legal. The length of ASCII type data must be an integer multiple of 2 characters, and the length of HexStr type data must be an integer multiple of 4 characters.<br>
+⑥ When using a common tag for printing, it is impossible to read from or write to the RFID area of the tag.<br>
+⑦ The tag protocol is not compatible with the machine module (for example, the frequency band of the tag does not match, or a high-frequency protocol tag is used on an ultra-high-frequency machine).<br>
+⑧ For special tags, operations need to be carried out in accordance with the requirements of the corresponding tag specification. Check whether the tag password is customized, and whether the writing rules for the length of the tag EPC/USER data are different.<br>
+<br>
+<br></p>
+<h2 id="31precautions-for-locking-tags">31、Precautions for Locking Tags</h2>
+<p>① The locking/unlocking operation must be called and executed before printing.<br>
+② If the password has been modified, the new password needs to be used when writing EPC and USER data subsequently. Otherwise, the printer will print &quot;void&quot; due to the inability to write and perform reprinting.<br>
+<br>
+<br></p>
+<h2 id="32cross-origin-issues-in-browsers-such-as-microsoft-edge-uc-browser-qq-browser-microsoft-edge-again-mentioned-twice-in-your-list-in-different-contexts-perhaps-google-chrome-and-cheetah-browser">32、Cross-origin issues in browsers such as Microsoft Edge, UC Browser, QQ Browser, Microsoft Edge (again, mentioned twice in your list in different contexts perhaps), Google Chrome, and Cheetah Browser</h2>
+<p><b>【cause of the error】：</b><br>Currently, the server service already supports cross-origin requests initiated by browsers. However, if a cross-origin error is returned on Google Chrome, it is because starting from version 98 of Google Chrome, before a website sends a request to a private service, the browser will automatically send a &quot;preflight request&quot;. If the service does not recognize the preflight request, it will not return a response correctly, and the browser will block all requests for which the preflight request fails. At the same time, a cross-origin error will be reported. <br>
+<b>【Handling Measures】：</b><br>因Since it is the browser that has intercepted the request of the data packet, this cross-origin problem lies in the browser itself. For the new version of Google Chrome, you need to enter in the browser's address bar: chrome://flags/#block-insecure-private-network-requests, and then press Enter to access it.
+Search for &quot;Block insecure private network requests&quot;, set it to &quot;Disabled&quot;, and then restart the browser to run, which can solve the problem.<br>
+<br>
+<br></p>
+<h2 id="33shortcuts-for-editing-templates-in-the-linux-system">33、Shortcuts for editing templates in the Linux system</h2>
+<p>Due to system differences, there will be differences in shortcut key operations during use. As shown in the following figure, the Kylin system under the x86 architecture does not support moving templates with the Alt key, nor does it support selecting table elements with Shift+Alt.<br>
+<img src="../res/FAQ-32-US.png"></img><br>
+<br>
+<br></p>
+<h2 id="34precautions-for-editing-template-tables">34、Precautions for Editing Template Tables</h2>
+<p>①Similarly, it is not allowed to perform the operation of merging cells between the cells within a table and non-table elements. For instance, if you select text and try to merge it with a cell, the error prompt shown in the following picture will appear:<br>
+<img src="../res/FAQ-33.1-US.png"></img><br></p>
+<p>②Within the same table, adjacent basic cells are not allowed to be merged. For example, cell 0-0 can be merged with cell 0-1 and cell 1-0, but it cannot be merged with cell 0-2 or cell 0-3. When you click to merge, the error prompt shown in the following picture will appear:<br>
+<img src="../res/FAQ-33.2-US.png"></img><br></p>
+<p>③Within the same table, non-adjacent basic cells are not allowed to be merged. For example, if you want to merge cell 0-0 with cell 1-1 and click to merge, the error prompt shown in the following picture will appear:<br>
+<img src="../res/FAQ-33.3-US.png"></img><br></p>
+<p>④Basic cells from two different tables are not allowed to be merged. For example, if you want to merge cell 0-0 of table-01 with cell 0-1 of table-02 and click to merge, the error prompt shown in the following picture will appear:<br>
+<img src="../res/FAQ-33.4-US.png"></img><br>
+<br>
+<br></p>
+<h2 id="35usb-data-capture-in-a-linux-environment">35、USB data capture in a Linux environment</h2>
+<p><b style="font-size:11pt">Linux：<br>
+usbmon The methods for capturing the data communicated on the USB bus are as follows:</b><br>
+<br>
+1.Check whether the kernel supports the debugfs file system<br>
+cat /proc/filesystems | grep debugfs<br>
+nodev	debugfs<br>
+<br></p>
+<p>2.Mount the debugfs file system<br>
+sudo mount -t debugfs none_debugs /sys/kernel/debug<br>
+none_debugs already mounted or /sys/kernel/debug busy<br>
+<br></p>
+<p>3.Confirm whether the kernel supports the usbmon module<br>
+sudo ls /sys/module/usbmon<br>
+Cannot access '/sys/module/usbmon': No such file or directory<br>
+<br></p>
+<p>4.Install the usbmon module<br>
+sudo modprobe usbmon<br>
+Check again sudo ls /sys/module/usbmon<br>
+coresize  holders  initsize  initstate	notes  refcnt  sections  srcversion  taint  uevent<br>
+<br></p>
+<p>5.Check the current bus number<br>
+sudo ls /sys/kernel/debug/usb/usbmon<br>
+0s  0u	1s  1t	1u  2s	2t  2u<br>
+<br></p>
+<p>6.Check the current USB device information<br>
+sudo cat /sys/kernel/debug/usb/devices<br>
+<br>
+T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 6<br>
+B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0<br>
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1<br>
+P:  Vendor=1d6b ProdID=0002 Rev= 5.04<br>
+S:  Manufacturer=Linux 5.4.18-27-generic ehci_hcd<br>
+S:  Product=EHCI Host Controller<br>
+S:  SerialNumber=0000:02:03.0<br>
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA<br>
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub<br>
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms<br>
+<br>
+T:  Bus=02 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2<br>
+B:  Alloc= 17/900 us ( 2%), #Int=  1, #Iso=  0<br>
+D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1<br>
+P:  Vendor=1d6b ProdID=0001 Rev= 5.04<br>
+S:  Manufacturer=Linux 5.4.18-27-generic uhci_hcd<br>
+S:  Product=UHCI Host Controller<br>
+S:  SerialNumber=0000:02:00.0<br>
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA<br>
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub<br>
+E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms<br>
+<br>
+T:  Bus=02 Lev=01 Prnt=01 Port=00 Cnt=01 Dev#=  2 Spd=12   MxCh= 0<br>
+D:  Ver= 1.10 Cls=00(&gt;ifc ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1<br>
+P:  Vendor=0e0f ProdID=0003 Rev= 1.03<br>
+S:  Manufacturer=VMware<br>
+S:  Product=VMware Virtual USB Mouse<br>
+C:* #Ifs= 1 Cfg#= 1 Atr=c0 MxPwr=  0mA<br>
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=01 Prot=02 Driver=usbhid<br>
+E:  Ad=81(I) Atr=03(Int.) MxPS=   8 Ivl=1ms<br>
+<br>
+T:  Bus=02 Lev=01 Prnt=01 Port=01 Cnt=02 Dev#=  3 Spd=12   MxCh= 7<br>
+D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1<br>
+P:  Vendor=0e0f ProdID=0002 Rev= 1.00<br>
+S:  Manufacturer=VMware, Inc.<br>
+S:  Product=VMware Virtual USB Hub<br>
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA<br>
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub<br>
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=255ms<br>
+<br>
+Or<br>
+lsusb<br>
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub<br>
+Bus 002 Device 003: ID 0e0f:0002 VMware, Inc. Virtual USB Hub<br>
+Bus 002 Device 002: ID 0e0f:0003 VMware, Inc. Virtual Mouse<br>
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub<br>
+<br>
+Among them, the number following &quot;Bus&quot; is the bus number, and the number following &quot;Dev#&quot; or &quot;Device&quot; is the device number<br>
+<br></p>
+<p>7.Start monitoring (device 001 on bus 1)<br>
+sudo cat /sys/kernel/debug/usb/usbmon/1u |grep &quot;1:001&quot; &gt; ./1.mon.txt<br>
+<br>
+<br></p>
+<h2 id="36when-calling-with-java-it-returns-not-a-utf---8-string">36、When calling with Java, it returns &quot;Not a UTF - 8 string&quot;.</h2>
+<p><b>【Cause of the error】：</b><br>There are Chinese characters in the printed parameters whose encoding is not UTF - 8<br>
+<b>【Countermeasures】：</b><br>
+Add the System.setProperty() method to set system properties, as shown in the following figure:<br>
+<img src="../res/FAQ-35.png"></img><br></p>
+</div>
+            
+            
+        </body>
+        </html>

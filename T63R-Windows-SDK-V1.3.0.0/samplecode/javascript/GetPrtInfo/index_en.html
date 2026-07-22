@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetPrtInfo</title>
+    <link rel="stylesheet" type="text/css" href="./css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+</head>
+
+<body>
+    <div class="header">
+        <img src="./images/tp.png" height="32px" style="margin-top:16px;" />
+    </div>
+    <div class="main">
+        <span class="tag">
+            GetPrtInfo
+        </span>
+        <div class="content_wrap">
+            <div class="setting">
+                <p class="title">Printer serial number: </p>
+                <div class="file_input border">
+                    <input style="display: none;"  name="printerSN" id="printerSN" />
+                    <input type="text"  style="width:80%;"  id="snDisplay" readonly />
+                    <button onclick="getInfo(1)">To get</button>
+                </div>
+                
+                <p class="title">Printer firmware version: </p>
+                <div class="file_input border">
+                    <input style="display: none;"  name="printerFW" id="printerFW" />
+                    <input type="text"  style="width:80%;"  id="fwDisplay" readonly />
+                    <button onclick="getInfo(2)">To get</button>
+                </div>
+                
+                <p class="title">Printer status: </p>
+                <div class="file_input border">
+                    <input style="display: none;"  name="printerStatus" id="printerStatus" />
+                    <textarea style="width:80%;height:50px;white-space:pre-wrap;"  id="statusDisplay" readonly ></textarea>              
+                    <button onclick="getInfo(3)">To get</button>
+                </div>                
+
+                <div class="terminal_wrap">
+                    <div class="top">
+                        <p class="title">Message output: </p>
+                        <button onclick="clearLog()">Clear message</button>
+                    </div>
+                    <div class="terminal border">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="popup_tips" style="display: none;">
+        <div class="popup_tips_mask"></div>
+        <div class="popup_tips_content"></div>
+    </div>
+
+</body>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/common.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {    //Refresh
+        $(window).scrollTop(0)
+    }
+
+    
+    async function getInfo(infoType) {
+      try {
+            await sendPostRequest("web_DSTP2x_SetLibLang", "Set Language", { "language":"1" })
+
+            //List devices
+            const devRes = await sendPostRequest("web_DSTP2x_EnumDev", "List devices", { "enumType": "1" })
+            
+            let index = devRes.enumList.indexOf(",")
+            if(index != -1)
+            {
+                const devList = devRes.enumList.split(",")
+                devRes.enumList = devList[0]
+            }
+
+            //Connected Device
+            const connectRes = await sendPostRequest("web_DSTP2x_ConnEnumeratedDev", "Connected Device", { "devName": devRes.enumList })
+            
+            if(infoType == 1) {
+            	//Get printer serial number
+	            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtSN", "Get printer serial number", { "devHdl": connectRes.devHdl })
+	            if (statusRes.prtSN) {
+	                	$("#snDisplay").val(statusRes.prtSN)
+	            }    
+            }
+            else if(infoType == 2) {
+            	//Get firmware version
+	            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtFWVer", "Get firmware version", { "devHdl": connectRes.devHdl })
+	            if (statusRes.prtFWVer) {
+	                	$("#fwDisplay").val(statusRes.prtFWVer)
+	            }    
+            }
+            else if(infoType == 3) {
+            	//Get printer status
+	            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtStatus", "Get printer status", { "devHdl": connectRes.devHdl })
+	            if (statusRes.prtStatusDesc) {
+                        let statusStr = getAllStatus(statusRes.mainStatusCode, statusRes.warnCode, statusRes.errorCode)
+                        
+	                	$("#statusDisplay").val(statusRes.prtStatusDesc + '\n' + statusStr)
+	            }    
+            }
+            
+              
+            //Disconnect
+            await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": connectRes.devHdl })
+            openMask("Successfully obtained", true)
+
+        } catch (error) {
+            let errText = error ? error : "Request failure"
+            openMask(errText, true)
+        }
+    }
+
+</script>
+
+</html>

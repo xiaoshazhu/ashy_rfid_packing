@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PdfPrint+RFID</title>
+    <link rel="stylesheet" type="text/css" href="./css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+</head>
+
+<body>
+    <div class="header">
+        <img src="./images/tp.png" height="32px" style="margin-top:16px;" />
+    </div>
+    <div class="main">
+        <span class="tag">
+            PdfPrint+RFID
+        </span>
+        <div class="content_wrap">
+            <div class="setting">
+                <p class="title">PDF file: </p>
+                <div class="file_input border">
+                    <input style="display: none;" type="file" name="pdfSrc" id="pdfSrc" />
+                    <input type="text" id="pdfDisplay" readonly />
+                    <button onclick="choosePDF('pdfSrc')">To browse</button>
+                </div>
+
+                <p class="title">RFID data to be written: </p>
+                <div class="data_set border">
+                    <div class="wrap">
+                        <section>
+                            <div class="set_label" style="flex: 1; margin-right: 45px">
+                                <label for="EPC" style="width: 100px;">EPC: </label>
+                                <input type="text" id="EPC_Text" name="EPC_Text">
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" name="EPC_RADIO" id="EPC_ASCII" value="1" checked>
+                                <label for="EPC_ASCII">ASCII</label>
+                            </div>
+                            <div class="set_label" style="margin-right: 45px">
+                                <input type="radio" name="EPC_RADIO" id="EPC_hex" value="2">
+                                <label for="EPC_hex">Hex string</label>
+                            </div>
+                        </section>
+                        <section>
+                            <div class="set_label" style="flex: 1; margin-right: 45px">
+                                <label for="USER" style="width: 100px;">USER: </label>
+                                <input type="text" id="USER_Text" name="USER_Text">
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="USER_ASCII" value="1" name="USER_RADIO" checked>
+                                <label for="USER_ASCII">ASCII</label>
+
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="USER_hex" value="2" name="USER_RADIO">
+                                <label for="USER_hex" name="USER_hex">Hex string</label>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                <p class="title">Print setting: </p>
+                <div class="options border">                  
+                    <div class="label">
+                        <label style=" margin-left: 55px;margin-right: 20px">All pages</label>
+                        <div class="pdfHdl" style="display:none;"></div>
+                        <div class="total">0</div>
+                    </div>
+                    <div class="label">
+                        <label for="pageNumber">Page number to be printed</label>
+                        <input type="number" id="pageNumber" value="1" name="pageNumber">
+                    </div>
+                </div>
+
+                <div class="data_set border">
+                    <div class="wrap">                                        
+                        <section>   
+                            <label for="EMU_SEL" style=" margin-right: 50px;">Set emulation</label>    
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ZPL_EMU" value="1" name="EMU_RADIO" checked>
+                                <label for="ZPL" name="ZPL">ZPL</label>
+                            </div>                         
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="TSPL_EMU" value="2" name="EMU_RADIO" >
+                                <label for="TSPL" name="TSPL">TSPL</label>
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ESCPOS_EMU" value="3" name="EMU_RADIO">
+                                <label for="ESCPOS" name="ESCPOS">ESCPOS</label>
+                            </div>                            
+                        </section>
+                    </div>
+                </div>
+
+                <div class="btn"><button class="success" onclick="handlePrint()">Print</button></div>
+                <div class="terminal_wrap">
+                    <div class="top">
+                        <p class="title">Message output: </p>
+                        <button onclick="clearLog()">Clear message</button>
+                    </div>
+                    <div class="terminal border">
+
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="popup_tips" style="display: none;">
+        <div class="popup_tips_mask"></div>
+        <div class="popup_tips_content"></div>
+    </div>
+
+</body>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/common.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {    //Refresh
+        $(window).scrollTop(0)
+    }
+
+    //Print start
+    async function handlePrint() {
+        var data = {};
+        $("input[name]").each(function () {
+            var name = $(this).attr("name");
+            var isFile = $(this).attr("type") == "file";
+            var isRadio = $(this).attr("type") == "radio";
+            var isCheckBox = $(this).attr("type") == "checkbox";
+            if (isFile) {
+                data[name] = $("input[name=" + name + "]").get(0).files[0] || "";
+            } else if (isCheckBox) {
+                data[name] = $(this).is(":checked")
+            } else if (isRadio) {
+                data[name] = $("input[name=" + name + "]:checked").val()
+            } else {
+                data[name] = $("input[name=" + name + "]").val() || "";
+            }
+        });
+
+        data.printCount = $(".total").val()
+        if (!data.pdfSrc) {
+            openMask("Please select PDF file", true)
+            return
+        }
+
+        print(await handleParams(data))
+    }
+
+    //Params
+    async function handleParams(data) {
+        data.pdfHdl = $(".pdfHdl").text()
+        data.pdfSrc = await fileToBase64(data.pdfSrc)
+        return data
+    }
+
+    //To print
+    async function print(params) {
+        try {
+            await sendPostRequest("web_DSTP2x_SetLibLang", "Set Language", { "language":"1" })
+
+            //List devices
+            const devRes = await sendPostRequest("web_DSTP2x_EnumDev", "List devices", { "enumType": "1" })
+            
+            let index = devRes.enumList.indexOf(",")
+            if(index != -1)
+            {
+                const devList = devRes.enumList.split(",")
+                devRes.enumList = devList[0]
+            }
+
+            //Connected Device
+            const connectRes = await sendPostRequest("web_DSTP2x_ConnEnumeratedDev", "Connected Device", { "devName": devRes.enumList })
+            //Get printing status
+            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtStatus", "Get printing status", { "devHdl": connectRes.devHdl })
+            if (statusRes.isReady != "1") {
+                openMask("Printer status abnormal", true)
+                //Disconnect
+                await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": connectRes.devHdl })
+                return
+            }       
+            
+            //Set emulation
+            await sendPostRequest("web_DSTP2x_SetPrnEmulation", "Set emulation", { "devHdl": connectRes.devHdl, "emulation": params.EMU_RADIO })
+   
+            var rfidType = 0;
+            if (params.EPC_Text) {
+                //Set RFID data of EPC for PDF writing
+                await sendPostRequest("web_DSTP2x_SetPdfRFIDData", "Set RFID data of EPC for PDF writing", { "pdfHdl": params.pdfHdl, "pageNo": params.pageNumber, "rfidRgnType": "1", "rfidDataFmt": params.EPC_RADIO, "data": params.EPC_Text })
+                rfidType += 2;
+            }
+            if (params.USER_Text) {
+                //Set RFID data of USER for PDF writing
+                await sendPostRequest("web_DSTP2x_SetPdfRFIDData", "Set RFID data of USER for PDF writing", { "pdfHdl": params.pdfHdl, "pageNo": params.pageNumber, "rfidRgnType": "2", "rfidDataFmt": params.USER_RADIO, "data": params.USER_Text })
+                rfidType += 4;
+            }
+            //Set PDF draw size
+            await sendPostRequest("web_DSTP2x_SetPdfPrnSize", "Set PDF draw size", { "pdfHdl": params.pdfHdl, "width": "110", "height": "100" })
+            //打印
+            await sendPostRequest("web_DSTP2x_PrintPdf", "Print", { "devHdl": connectRes.devHdl, "pdfHdl": params.pdfHdl, "pageNo": params.pageNumber, "outFileType": "0", "rfidReadType": rfidType.toString() })
+            //Delete PDF handle
+            await sendPostRequest("web_DSTP2x_DeletePdf", "Delete PDF handle", { "pdfHdl": params.pdfHdl })
+            //Disconnect
+            await sendPostRequest("web_DSTP2x_DisconnDev", "Disconnect", { "devHdl": connectRes.devHdl })
+            openMask("Print successful", true)
+
+            
+        } catch (error) {
+            let errText = error ? error : "Request failure"
+            openMask(errText, true)
+        }
+
+    }
+
+</script>
+
+</html>

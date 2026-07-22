@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x7b2c;&#x516d;&#x7ae0;&#x3001; DSTP2xWebPrtServer &#x4f7f;&#x7528;&#x8bf4;&#x660e;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* 右侧内容区域 */
+        .content {
+            margin-left: 10px; /* 内容区域左侧留出导航栏空间 */
+            padding: 20px;
+            flex: 1; /* 内容区域填充剩余空间 */
+            background-color: #f9f9f9;
+        }
+
+        /* 响应式：当屏幕宽度小于768px时，导航栏变为可折叠 */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* 在小屏幕上缩小导航栏宽度 */
+            }
+
+            .content {
+                margin-left: 0; /* 内容区域不再留出导航栏空间 */
+            }
+        }
+       
+/* 子菜单样式 */
+.submenu {
+    display: none; /* 默认隐藏子菜单 */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* 鼠标悬停时显示子菜单 */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* 设置基础样式*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* 左侧导航栏样式 */
+.sidebar {
+    position: sticky;  /* 粘性定位 */
+    top: 0;             /* 当滚动到顶部时，固定 */
+    width: 300px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<!-- </head> -->
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">目录</p>      
+<ul>
+<a href="../index-CN.html" class="active">第一章、概述</a>
+        <a href="./FunctionList.html">第二章、功能清单</a>
+<li>
+<a href="#">第三章、功能示例代码</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP.html">C++示例</a></li>
+         <li><a href="./Samplecode-Charp.html">C#示例</a></li>
+         <li><a href="./Samplecode-java.html">java示例</a></li>
+         <li><a href="./Samplecode-javascript.html">javascript示例</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">第四章、功能接口</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef.html">C接口函数原型</a></li>
+                <li><a href="./WebApiDef.html">web端接口定义</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction.html">第五章、DSTP2xDemo使用说明</a>
+                <a href="./WebPrtServerInstruction.html">第六章、DSTP2xWebPrtServer使用说明</a>
+                <li>
+                  <a href="#">第七章、相关返回码列表</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode.html">SDK接口返回码</a></li>
+                    <li><a href="./PrtStatusCode.html">打印机状态码</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ.html">第八章、常见问题</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+    body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+<center>
+<b style="font-size:18pt">
+<h1 id="第六章-dstp2xwebprtserver-使用说明">第六章、 DSTP2xWebPrtServer 使用说明</h1>
+<p></b>d</p>
+</center>
+<ul>
+<li><a href="#%E7%AC%AC%E5%85%AD%E7%AB%A0-dstp2xwebprtserver-%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E">第六章、 DSTP2xWebPrtServer 使用说明</a>
+<ul>
+<li><a href="#1%E8%BD%AF%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83">1、软件系统环境</a></li>
+<li><a href="#2%E8%BF%90%E8%A1%8C%E8%AF%B4%E6%98%8E">2、运行说明</a></li>
+<li><a href="#3javascript-%E7%A4%BA%E4%BE%8B%E7%A8%8B%E5%BA%8F%E4%BD%BF%E7%94%A8%E6%B5%81%E7%A8%8B">3、JavaScript 示例程序使用流程</a>
+<ul>
+<li><a href="#31%E6%89%93%E5%BC%80%E7%A4%BA%E4%BE%8B">3.1、打开示例</a></li>
+<li><a href="#32%E6%89%A7%E8%A1%8C%E6%89%93%E5%8D%B0">3.2、执行打印</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+<h2 id="1软件系统环境">1、软件系统环境</h2>
+<p>1.DSTP2xWebPrtServer 是一款可实现打印机与网页进行通讯的服务，用户需要在Windows 或 Linux 电脑上运行对应架构版本的 DSTP2xWebPrtServer；<br>
+2.同一局域网内的其他设备就可以通过此电脑的 IP 与打印机进行通讯，而不在同一局域网内的设备则可以通过路由器映射 IP 的方式来实现与打印机进行通讯；<br>
+3.支持系统：win XP、win 7、win 10、win 11、centos、KylinOS 等；<br>
+4.支持浏览器：谷歌 Chrome、IE、火狐、Safar、奇安信可信等主流浏览器；；</p>
+<h2 id="2运行说明">2、运行说明</h2>
+<p><b>Windows：</b><br>
+1.解压压缩包（版本会不断升级，具体名称以实际为准）；<br>
+2.解压后，选择进入 对应架构系统开发包 文件夹；<br>
+3.解压后，进入 web_server\Win32 或 web_server\x64 的文件夹；<br>
+4.最后双击运行 DSTP2xWebPrtServer.exe，如下图 2.1 所示；<br>
+5.进入/samplecode/javascript/路径下，打开其中一个 html 网页，即可进行演示；<br>
+<img src="../res/WebPrtServer-2-Windows.png"></img></p>
+<p><b>Linux：</b><br>
+1.解压压缩包（版本会不断升级，具体名称以实际为准）；<br>
+2.解压后，选择进入 对应架构系统开发包 文件夹<br>
+3.解压后，进入 web_server 的文件夹；<br>
+4.鼠标右键点击“打开终端”；<br>
+5.输入命令：sudo su 输入密码，切换到root用户，如权限不足输入chmod -R  777   * 再执行<br>
+6.命令运行：./map.ds，用于给予权限运行基于SDK的程序来操控USB连接方式的打印机<br>
+7.命令运行：./DSTP2xWebPrtServer.out，运行后如下图 2.2 所示；如果系统无界面则运行“DSTP2xWebPrtServer_Console.out”<br>
+8.进入/samplecode/javascript/路径下，打开其中一个 html 网页，即可进行演示；<br>
+<img src="../res/WebPrtServer-2-linux.png"></img></p>
+<h2 id="3javascript-示例程序使用流程">3、JavaScript 示例程序使用流程</h2>
+<h3 id="31打开示例">3.1、打开示例</h3>
+<p>在对应架构 samplecode\javascript 目录下，选择 JavaScript 示例用浏览器打开 index.html（下图为 DrawPrintOnly 相关示例界面）。<br>
+<img src="../res/WebPrtServer-3.1.png"></img></p>
+<h3 id="32执行打印">3.2、执行打印</h3>
+<p>连接打印机后点击打印机，调用成功或失败在下方均有信息输出（下图演示为文本打印输出）。<br>
+<img src="../res/WebPrtServer-3.2.png"></img></p>
+</div>
+            
+            
+        </body>
+        </html>

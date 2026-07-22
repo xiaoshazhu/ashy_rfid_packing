@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>C&num; Example code in programming languages</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* Content area on the right */
+        .content {
+            margin-left: 10px; /* Leave space on the left side of the content area */
+            padding: 20px;
+            flex: 1; /* Content area fills the remaining space */
+            background-color: #f9f9f9;
+        }
+
+        /* Responsive: When the screen width is less than 768px, the navigation bar becomes foldable */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* Reduce the navigation bar width on a small screen */
+            }
+
+            .content {
+                margin-left: 0; /* No more space for navigation bar in the content area */
+            }
+        }
+       
+/* Submenu style */
+.submenu {
+    display: none; /* Default hidden submenu */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* Show submenu when mouse hover */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* Set basic styles*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Left navigation bar style */
+.sidebar {
+    position: sticky;  /* Adhesive positioning */
+    top: 0;             /* When scrolling to the top, fixed */
+    width: 300px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">Table of contents</p>      
+<ul>
+<a href="../index-US.html" class="active">Chapter 1, Overview</a>
+        <a href="./FunctionList-US.html">Chapter 2, Function List</a>
+<li>
+<a href="#">Chapter 3, Function Sample Code</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP-US.html">C++ sample</a></li>
+         <li><a href="./Samplecode-Charp-US.html">C# sample</a></li>
+         <li><a href="./Samplecode-java-US.html">java sample</a></li>
+         <li><a href="./Samplecode-javascript-US.html">javascript sample</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">Chapter 4, Functional Interface</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef-US.html">C interface function prototype</a></li>
+                <li><a href="./WebApiDef-US.html">Web-end interface definition</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction-US.html">Chapter 5, DSTP2xDemo instructions</a>
+                <a href="./WebPrtServerInstruction-US.html">Chapter 6, DSTP2xWebPrtServer User Instructions</a>
+                <li>
+                  <a href="#">Chapter 7, Related Return Code List</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode-US.html">SDK interface return code</a></li>
+                    <li><a href="./PrtStatusCode-US.html">Printer status code</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ-US.html">Chapter 8, Frequently Asked Questions</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+      body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+<center>
+<b style="font-size:18pt">
+<h1 id="c-example-code-in-programming-languages">C# Example code in programming languages</h1>
+</b>
+</center>
+<script>
+// Switch the display/hide status of the flowchart.
+function toggleImage(flowchartId) {
+    // Get all flowchart containers.
+    const flowcharts = document.querySelectorAll('div[id^="flowchart"]');
+    
+    // Hide all flowcharts.
+    flowcharts.forEach(function(flowchart) {
+        flowchart.style.display = "none";
+    });
+
+    // Display the corresponding flowchart container based on the passed-in ID.
+    const flowchart = document.getElementById(flowchartId + '-container');
+    if (flowchart) {
+        flowchart.style.display = "block";  // Display the selected flowchart.
+    }
+}
+
+// Close the flowchart.
+function closeImage(flowchartId) {
+    // Get the flowchart containers and hide them.
+    const flowchart = document.getElementById(flowchartId + '-container');
+    if (flowchart) {
+        flowchart.style.display = "none";  // Hide the corresponding flowchart.
+    }
+}
+</script>
+<p><button onclick="toggleImage('flowchart1'); return false;" style="position: absolute; top: 192px; left: 650px;">Show/Hide the flowchart.</button></p>
+<p><button onclick="toggleImage('flowchart2'); return false;" style="position: absolute; top: 220px; left: 765px;">Show/Hide the flowchart.</button></p>
+<p><button onclick="toggleImage('flowchart3'); return false;" style="position: absolute; top: 310px; left: 765px;">Show/Hide the flowchart.</button></p>
+<p><button onclick="toggleImage('flowchart4'); return false;" style="position: absolute; top: 355px; left: 765px;">Show/Hide the flowchart.</button></p>
+<p><button onclick="toggleImage('flowchart5'); return false;" style="position: absolute; top: 400px; left: 765px;">Show/Hide the flowchart.</button></p>
+<p><button onclick="toggleImage('flowchart6'); return false;" style="position: absolute; top: 584px; left: 765px;">Show/Hide the flowchart.</button></p>
+<p><button onclick="toggleImage('flowchart7'); return false;" style="position: absolute; top: 613px; left: 765px;">Show/Hide the flowchart.</button></p>
+<p><button onclick="toggleImage('flowchart8'); return false;" style="position: absolute; top: 652px; left: 765px;">Show/Hide the flowchart.</button></p>
+<p><button onclick="toggleImage('flowchart9'); return false;" style="position: absolute; top: 681px; left: 765px;">Show/Hide the flowchart.</button></p>
+<!-- 1.TemplatePrintOnly-->
+<div id="flowchart1-container" style="display:none; position: absolute; top: 120px; left: 1000px;">
+        <img id="flowchart1" src="../res/1.TemplatePrintOnly-US.png" alt="TemplatePrintOnly" style="width: 600px; height: 850px;" />
+        <button onclick="closeImage('flowchart1'); return false;" 
+                 style="position: absolute; top: 0; right: 0px;  color: black; ">
+            X
+        </button>
+    </div>
+ <!-- 2.TemplatePrint_RFID-->
+<div id="flowchart2-container" style="display:none; position: absolute; top: 120px; left: 1000px;">
+        <img id="flowchart2" src="../res/2.TemplatePrint_RFID-US.png" alt="TemplatePrint_RFID " style="width: 600px; height: 850px;" />
+        <button onclick="closeImage('flowchart2'); return false;" 
+                 style="position: absolute; top: 0; right: 0px;  color: black; ">
+            X
+        </button>
+    </div>
+ <!-- 3.ReadTid_DrawPrint_RFID -->
+<div id="flowchart3-container" style="display:none; position: absolute; top: 120px; left: 1000px;">
+        <img id="flowchart3" src="../res/3.ReadTid_DrawPrint_RFID-US.png" alt="ReadTid_DrawPrint_RFID " style="width: 600px; height: 850px;" />
+        <button onclick="closeImage('flowchart3'); return false;" 
+                 style="position: absolute; top: 0; right: 0px;  color: black; ">
+            X
+        </button>
+    </div>
+ <!-- 4.ReadTid_PdfPrint_RFID -->
+<div id="flowchart4-container" style="display:none; position: absolute; top: 120px; left: 1000px;">
+        <img id="flowchart4" src="../res/4.ReadTid_PdfPrint_RFID-US.png" alt="ReadTid_PdfPrint_RFID" style="width: 600px; height: 850px;" />
+        <button onclick="closeImage('flowchart4'); return false;" 
+                 style="position: absolute; top: 0; right: 0px;  color: black; ">
+            X
+        </button>
+    </div>
+ <!-- 5.ReadTid_TemplatePrint_RFID -->
+<div id="flowchart5-container" style="display:none; position: absolute; top: 120px; left: 1000px;">
+        <img id="flowchart5" src="../res/5.ReadTid_TemplatePrint_RFID-US.png" alt="ReadTid_TemplatePrint_RFID" style="width: 600px; height: 850px;" />
+        <button onclick="closeImage('flowchart5'); return false;" 
+                 style="position: absolute; top: 0; right: 0px;  color: black; ">
+            X
+        </button>
+    </div>
+ <!-- 6.DrawPrintOnly -->
+<div id="flowchart6-container" style="display:none; position: absolute; top: 120px; left: 1000px;">
+        <img id="flowchart6" src="../res/6.DrawPrintOnly-US.png" alt="DrawPrintOnly " style="width: 600px; height: 850px;" />
+        <button onclick="closeImage('flowchart6'); return false;" 
+                 style="position: absolute; top: 0; right: 0px;  color: black; ">
+            X
+        </button>
+    </div>
+ <!-- 7.DrawPrint_RFID -->
+<div id="flowchart7-container" style="display:none; position: absolute; top: 120px; left: 1000px;">
+        <img id="flowchart7" src="../res/7.DrawPrint_RFID-US.png" alt="DrawPrint_RFID" style="width: 600px; height: 850px;" />
+        <button onclick="closeImage('flowchart7'); return false;" 
+                 style="position: absolute; top: 0; right: 0px;  color: black; ">
+            X
+        </button>
+    </div>
+ <!-- 8.PdfPrintOnly -->
+<div id="flowchart8-container" style="display:none; position: absolute; top: 120px; left: 1000px;">
+        <img id="flowchart8" src="../res/8.PdfPrintOnly-US.png" alt="PdfPrintOnly" style="width: 600px; height: 850px;" />
+        <button onclick="closeImage('flowchart8'); return false;" 
+                 style="position: absolute; top: 0; right: 0px;  color: black; ">
+            X
+        </button>
+    </div>
+ <!-- 9.PdfPrint_RFID -->
+<div id="flowchart9-container" style="display:none; position: absolute; top: 120px; left: 1000px;">
+        <img id="flowchart9" src="../res/9.PdfPrint_RFID-US.png" alt="PdfPrint_RFID" style="width: 600px; height: 850px;" />
+        <button onclick="closeImage('flowchart9'); return false;" 
+                 style="position: absolute; top: 0; right: 0px;  color: black; ">
+            X
+        </button>
+    </div>
+<ul>
+<li>Get printer information★★
+<ul>
+<li><a href="../../samplecode/CSharp/GetPrtInfo/Program.cs">Get printer information, version number, status, etc.</a>
+<b style="font-size:14pt"></li>
+</ul>
+</li>
+<li>Template printing ★★★</b>
+<ul>
+<li><a href="../../samplecode/CSharp/TemplatePrintOnly/Program.cs">Pure template printing example</a></li>
+<li><a href="../../samplecode/CSharp/TemplatePrint_RFID/Program.cs">Example of template printing for RFID tags</a>
+<b style="font-size:14pt"></li>
+</ul>
+</li>
+<li>RFID tag printing ★★★</b>
+<ul>
+<li><a href="../../samplecode/CSharp/ReadTid_DrawPrint_RFID/Program.cs">Example of first reading TID and then performing canvas drawing and printing</a><br><br></li>
+<li><a href="../../samplecode/CSharp/ReadTid_PdfPrint_RFID/Program.cs">Example of first reading TID and then printing a PDF</a><br><br></li>
+<li><a href="../../samplecode/CSharp/ReadTid_TemplatePrint_RFID/Program.cs">Example of first reading TID and then performing template printing</a><br><br></li>
+<li><a href="../../samplecode/CSharp/RFID_Lock_Pw/Program.cs">Related operations such as dynamic locking and encryption of RFID tags</a><br><br></li>
+</ul>
+</li>
+<li>Canvas drawing and printing
+<ul>
+<li><a href="../../samplecode/CSharp/DrawPrintOnly/Barcode/Program.cs">Example of drawing and printing for one-dimensional/two-dimensional barcodes</a></li>
+<li><a href="../../samplecode/CSharp/DrawPrintOnly/Image/Program.cs">Example of picture drawing and printing</a></li>
+<li><a href="../../samplecode/CSharp/DrawPrintOnly/Text/Program.cs">Example of text drawing and printing</a></li>
+<li><a href="../../samplecode/CSharp/DrawPrintOnly/Line/Program.cs">Example of line drawing and printing</a></li>
+<li><a href="../../samplecode/CSharp/DrawPrintOnly/Combination/Program.cs">Example of combined content drawing and printing</a></li>
+<li><a href="../../samplecode/CSharp/DrawPrint_RFID/Program.cs">Example of drawing and printing for RFID tags</a></li>
+</ul>
+</li>
+<li>pdf print
+<ul>
+<li><a href="../../samplecode/CSharp/PdfPrintOnly/Program.cs">Example of pure PDF printing</a></li>
+<li><a href="../../samplecode/CSharp/PdfPrint_RFID/Program.cs">Example of PDF printing for RFID tags</a></li>
+</ul>
+</li>
+<li>Directly transfer data
+<ul>
+<li><a href="../../samplecode/CSharp/TransDataDirectly/Program.cs">Directly transfer data</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+            
+            
+        </body>
+        </html>

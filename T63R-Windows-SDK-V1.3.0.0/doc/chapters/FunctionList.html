@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x7b2c;&#x4e8c;&#x7ae0;&#x3001;&#x529f;&#x80fd;&#x6e05;&#x5355;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* 右侧内容区域 */
+        .content {
+            margin-left: 10px; /* 内容区域左侧留出导航栏空间 */
+            padding: 20px;
+            flex: 1; /* 内容区域填充剩余空间 */
+            background-color: #f9f9f9;
+        }
+
+        /* 响应式：当屏幕宽度小于768px时，导航栏变为可折叠 */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* 在小屏幕上缩小导航栏宽度 */
+            }
+
+            .content {
+                margin-left: 0; /* 内容区域不再留出导航栏空间 */
+            }
+        }
+       
+/* 子菜单样式 */
+.submenu {
+    display: none; /* 默认隐藏子菜单 */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* 鼠标悬停时显示子菜单 */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* 设置基础样式*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* 左侧导航栏样式 */
+.sidebar {
+    position: sticky;  /* 粘性定位 */
+    top: 0;             /* 当滚动到顶部时，固定 */
+    width: 300px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<!-- </head> -->
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">目录</p>      
+<ul>
+<a href="../index-CN.html" class="active">第一章、概述</a>
+        <a href="./FunctionList.html">第二章、功能清单</a>
+<li>
+<a href="#">第三章、功能示例代码</a> 
+<ul class="submenu">
+          <li><a href="./Samplecode-CPP.html">C++示例</a></li>
+         <li><a href="./Samplecode-Charp.html">C#示例</a></li>
+         <li><a href="./Samplecode-java.html">java示例</a></li>
+         <li><a href="./Samplecode-javascript.html">javascript示例</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">第四章、功能接口</a>
+                <ul class="submenu">
+                  <li><a href="./CApiDef.html">C接口函数原型</a></li>
+                <li><a href="./WebApiDef.html">web端接口定义</a></li>
+                </ul>
+            </li>
+                <a href="./DemoInstruction.html">第五章、DSTP2xDemo使用说明</a>
+                <a href="./WebPrtServerInstruction.html">第六章、DSTP2xWebPrtServer使用说明</a>
+                <li>
+                  <a href="#">第七章、相关返回码列表</a>
+                <ul class="submenu">
+                    <li><a href="./ApiRtnCode.html">SDK接口返回码</a></li>
+                    <li><a href="./PrtStatusCode.html">打印机状态码</a></li>
+                </ul>   
+            </li>
+             <a href="./FAQ.html">第八章、常见问题</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+    body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+<center>
+<b style="font-size:18pt">
+<h1 id="第二章功能清单">第二章、功能清单</h1>
+</b>
+</center>
+<br>
+<br>
+<table border="1">
+  <tr>
+    <th width="130px" style="text-align:center">功能</th>
+    <th width="660px" style="text-align:center">规格说明</th>
+  </tr>
+  <tr>
+    <td>打印机连接</td>
+    <td>
+    1.支持枚举、连接 USB/网口/串口打印机<br>
+    2.支持设置 USB/TCP（网口）/串口数据收发超时时间<br>
+    <b style="color:red">注：当打印机以 USB 连接 PC 机时，请确保该打印机仅为某一应用程序独占。不可同时运行两个基于 DSTP2x-SDK 的应用程序，或者不可同时运行基于 DSTP2x-SDK 的应用程序与打印机驱动程序。</b>
+    </td>
+  </tr>
+  <tr>
+    <td>打印机控制、管理</td>
+    <td>
+    1.初始化打印机<br>
+    2.重启打印机<br>
+    3.标签定位<br>
+    4.切刀，DPI 设置<br>
+    5.网口相关设置<br>
+    7.打印自检页
+    </td>
+  </tr>
+  <tr>
+    <td>打印机信息查询</td>
+    <td>
+    1.获取打印机名、厂商名、打印机序列号、主程序版本号等生产制造信息<br>
+    2.获取打印机是否缺纸、缺碳带、印头抬起等异常状态<br>
+    3.查询打印机状态信息，如机纸张类型、仿真模式、切刀是否开启、打印机警告状态、打印机错误状态等信息<br>
+    4.查询打印机扩展主状态、警告、异常状态
+    </td>
+  </tr>
+  <tr>
+    <td>打印</td>
+    <td>
+    1.画布绘制打印：<br>
+    文本、条形码、二维码、图片表格，及其相应的修饰设置，如字体类型、字体大小、加粗、斜体等<br>
+    ①文本支持：简体/繁体汉字、英文等<br>
+    ②条码/二维码支持：Code39、Code93、Code128、PDF417、QRCode 等<br>
+    ③图片格式支持：jpg、png、bmp 等<br>
+    ④表格打印：自定义行列生成表格<br>
+    2.偏移及区域设置：<br>
+    (1)设置标签起始横向偏移量<br>
+    (2)设置标签打印范围<br>
+    3.图像处理属性设置<br>
+    (1)误差扩散设置<br>
+    (2)有序抖动设置<br>
+    (3)阈值设置<br>
+    4.通过模板打印<br>
+    5.获取套打生成的预览图
+    </td>
+  </tr>
+  <tr>
+    <td>RFID(选件)</td>
+    <td>
+    1.读写 EPC，字符串和 16 进制读写数据<br>
+    2.读写 USER，字符串和 16 进制读写读写(选件，具体查看标签规格书是否支持该区域)<br>
+    3.设置、获取打印机的读写功率<br>
+    4.读取 TID<br>
+    5.RFID标签定位
+    </td>
+  </tr>
+</table>
+</div>
+            
+            
+        </body>
+        </html>

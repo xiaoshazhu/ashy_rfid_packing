@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Definition of printer status codes</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+	   
+
+		/* Content area on the right */
+		.content {
+			margin-left: 10px; /* Leave space on the left side of the content area */
+			padding: 20px;
+			flex: 1; /* Content area fills the remaining space */
+			background-color: #f9f9f9;
+		}
+
+		/* Responsive: When the screen width is less than 768px, the navigation bar becomes foldable */
+		@media (max-width: 768px) {
+			.toc {
+				width: 200px; /* Reduce the navigation bar width on a small screen */
+			}
+
+			.content {
+				margin-left: 0; /* No more space for navigation bar in the content area */
+			}
+		}
+	   
+/* Submenu style */
+.submenu {
+	display: none; /* Default hidden submenu */
+	list-style: none;
+	padding-left: 20px;
+}
+
+.submenu li a {
+	background-color: #555;
+}
+
+/* Show submenu when mouse hover */
+.sidebar li:hover .submenu {
+	display: block;
+	text-indent: 5ch;
+}
+/* Set basic styles*/
+body {
+	font-family: Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+/* Left navigation bar style */
+.sidebar {
+	position: sticky;  /* Adhesive positioning */
+	top: 0;             /* When scrolling to the top, fixed */
+	width: 300px;
+	height: 100vh;
+	background-color: #333;
+	color: white;
+	padding-top: 20px;
+}
+
+.sidebar ul {
+	list-style: none;
+	padding: 0;
+}
+
+.sidebar li {
+	position: relative;
+}
+
+.sidebar a {
+	display: block;
+	padding: 10px;
+	text-decoration: none;
+	color: white;
+	background-color: #444;
+	margin: 5px 0;
+	border-radius: 4px;
+}
+
+.sidebar a:hover {
+	background-color: #808080;
+} 
+</style>
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">Table of contents</p>      
+<ul>
+<a href="../index-US.html" class="active">Chapter 1, Overview</a>
+		<a href="./FunctionList-US.html">Chapter 2, Function List</a>
+<li>
+<a href="#">Chapter 3, Function Sample Code</a> 
+<ul class="submenu">
+		  <li><a href="./Samplecode-CPP-US.html">C++ sample</a></li>
+		 <li><a href="./Samplecode-Charp-US.html">C# sample</a></li>
+		 <li><a href="./cSamplecode-java-US.html">java sample</a></li>
+		 <li><a href="./Samplecode-javascript-US.html">javascript sample</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="#">Chapter 4, Functional Interface</a>
+				<ul class="submenu">
+				  <li><a href="./CApiDef-US.html">C interface function prototype</a></li>
+				<li><a href="./WebApiDef-US.html">Web-end interface definition</a></li>
+				</ul>
+			</li>
+				<a href="./DemoInstruction-US.html">Chapter 5, DSTP2xDemo instructions</a>
+				<a href="./WebPrtServerInstruction-US.html">Chapter 6, DSTP2xWebPrtServer User Instructions</a>
+				<li>
+				  <a href="#">Chapter 7, Related Return Code List</a>
+				<ul class="submenu">
+					<li><a href="./ApiRtnCode-US.html">SDK interface return code</a></li>
+					<li><a href="./PrtStatusCode-US.html">Printer status code</a></li>
+				</ul>   
+			</li>
+			 <a href="./FAQ-US.html">Chapter 8, Frequently Asked Questions</a>
+		</ul>
+	</div> 
+<div class="content">  
+<style>
+	  body {
+			display: flex;
+			margin: 0;
+		}
+</style>
+<center>
+<b style="font-size:18pt">
+<h1 id="definition-of-printer-status-codes">Definition of printer status codes</h1>
+</b>
+</center>
+<ul>
+<li><a href="#definition-of-printer-status-codes">Definition of printer status codes</a>
+<ul>
+<li><a href="#main-status-code-code-segment-1---999">Main status code (code segment: 1 - 999)</a></li>
+<li><a href="#warning-code-code-segment-1000---1999">Warning code (code segment: 1000 - 1999)</a></li>
+<li><a href="#error-code-code-segment-2000---2999">Error code (code segment: 2000 - 2999)</a></li>
+</ul>
+</li>
+</ul>
+<style>
+    table {
+        border: 1px solid;
+    }
+	
+	th {
+	text-align: left;
+	border: 1px solid;
+}
+	
+table > thead > tr > th {
+	border: 1px solid;
+}
+	
+table > tbody > tr > td {
+	border: 1px solid;
+}
+</style>
+<h2 id="main-status-code-code-segment-1---999">Main status code (code segment: 1 - 999)</h2>
+<table>
+<thead>
+<tr>
+<th>Decimal Code Value</th>
+<th>Meaning of Status Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Device is idle</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Device is busy</td>
+</tr>
+<tr>
+<td>3</td>
+<td>There is printing data in the printer</td>
+</tr>
+<tr>
+<td>4</td>
+<td>There is no printing data in the printer</td>
+</tr>
+<tr>
+<td>5</td>
+<td>USB anti-pulse mode communication failed</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Label reading and writing completed</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Retry cancellation process is in progress</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Reprint process is in progress</td>
+</tr>
+<tr>
+<td>9</td>
+<td>RFID automatic verification is in progress</td>
+</tr>
+<tr>
+<td>10</td>
+<td>RFID custom instruction is in progress</td>
+</tr>
+<tr>
+<td>11</td>
+<td>There is no RFID module</td>
+</tr>
+</tbody>
+</table>
+<h2 id="warning-code-code-segment-1000---1999">Warning code (code segment: 1000 - 1999)</h2>
+<table>
+<thead>
+<tr>
+<th>Decimal Code Value</th>
+<th>Meaning of Warning Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1000</td>
+<td>The paper is nearly running out</td>
+</tr>
+</tbody>
+</table>
+<h2 id="error-code-code-segment-2000---2999">Error code (code segment: 2000 - 2999)</h2>
+<table>
+<thead>
+<tr>
+<th>Decimal Code Value</th>
+<th>Meaning of Error Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2000</td>
+<td>Label or black mark positioning error</td>
+</tr>
+<tr>
+<td>2001</td>
+<td>Paper jam</td>
+</tr>
+<tr>
+<td>2002</td>
+<td>Paper tearing error</td>
+</tr>
+<tr>
+<td>2003</td>
+<td>Out of paper</td>
+</tr>
+<tr>
+<td>2004</td>
+<td>Cutter error</td>
+</tr>
+<tr>
+<td>2005</td>
+<td>Paper loading error</td>
+</tr>
+<tr>
+<td>2006</td>
+<td>Ribbon error</td>
+</tr>
+<tr>
+<td>2007</td>
+<td>Print head lifted</td>
+</tr>
+<tr>
+<td>2008</td>
+<td>Print head overheated</td>
+</tr>
+<tr>
+<td>2009</td>
+<td>EPC data missing in print data</td>
+</tr>
+<tr>
+<td>2010</td>
+<td>RFID re - printing failed</td>
+</tr>
+<tr>
+<td>2011</td>
+<td>RFID calibration failed</td>
+</tr>
+<tr>
+<td>2012</td>
+<td>RFID error reported</td>
+</tr>
+<tr>
+<td>2013</td>
+<td>Paused or offline</td>
+</tr>
+<tr>
+<td>2014</td>
+<td>The stripper has an error</td>
+</tr>
+</tbody>
+</table>
+
+            
+            
+        </body>
+        </html>

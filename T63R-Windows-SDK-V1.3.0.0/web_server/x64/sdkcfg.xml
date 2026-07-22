@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PrtCfg>
+	<!-- 组合设置 (combined-printing) -->
+	<CmbnPrt>
+		<!-- 是否保存套打过程中产生的中间图层。 0:不保存（默认）; 1:保存; -->		
+		<!-- Do you want to save the intermediate layers generated during the template printing process. 0: Do not save (default); 1: Save; -->
+		<SaveTempPic>0</SaveTempPic>
+		<!-- 是否忽略32位bmp格式图片的alpha通道 0:使用alpha通道; 1:忽略alpha通道; 该功能暂时不做实现-->
+		<!-- Do you want to ignore the alpha channel of 32-bit BMP format images. 0:No; 1:Yes; Note: Other values are illegal -->
+		<IsDisable32BitBmpAlpha>1</IsDisable32BitBmpAlpha>
+		<!-- 是否忽略套打画布的底部余白 0:不忽略，1:忽略-->
+		<!-- Does the canvas ignore the blank content at the bottom. 0 for dont ignore, 1 for ignore-->
+		<IsIgnoreBottomBlank>0</IsIgnoreBottomBlank>
+		<!--保存预览图片的数量-->
+		<!-- Number of temporary preview images to save -->
+		<SaveTempImgCount>10</SaveTempImgCount>
+		<!--设备印头DPI数值（像素转毫米或英寸时使用）-->
+		<!-- Device print head DPI value -->
+		<MachineDpi>203</MachineDpi>
+		<!-- 并口通讯延时 -->
+		<!-- Parallel communication delay -->
+		<LptDelay>300</LptDelay>
+		<!-- 设置网口枚举打印机应答时，允许连续读不到数据的次数 -->
+		<!-- When setting the network port to enumerate printer responses, the number of consecutive times data cannot be read is allowed -->
+		<NetEnumRecvTimes>8</NetEnumRecvTimes>
+		<!-- 动态库与设备之间TCP通讯时是否使用长连接; 0: 短连接; 1: 长连接;-->
+		<!-- Long connection between dynamic library and device TCP; 0: Short connection; 1: Long connection;-->
+		<TcpConnectKeep>0</TcpConnectKeep>
+	</CmbnPrt>
+	<!-- 日志设置 (log-setting) -->
+	<Log>
+		<!-- 日志级别。  
+		-1 不输出任何日志
+		2  输出错误日志
+		3  输出警告、错误日志
+		4  输出调试、警告、错误日志
+		5  输出一般信息、调试、警告、错误日志 -->
+		<!-- Log Level  
+		1: Do not output logs
+		2: output error logs
+		3: Output error, warning log
+		4: Output errors, warnings, information logs
+		5: Output errors, warnings, messages, debug logs
+		Note: Other values are illegal-->
+		<Level>5</Level>	
+		<!-- 日志保存路径 -->
+		<!-- Log save path. 
+		Log folder name: DSSDKTemp
+		Windows: There are three ways
+		1.Temp directory (default); Win+R, enter %temp% in the run box, and press Enter key to open the temp folder, such as: C:\Users\xxx\AppData\Local\Temp\DSSDKTemp\
+		2.Same level directory as the main DLL/SO dynamic library; Enter %Current% in the LogPath structure node, such as: set to <LogPath>%Current%</LogPath>, Save path as \DSSDTemp\
+		3.Customize any path (pay attention to directory access permissions for storage); Enter specify path in the LogPath structure node, such as: set to <LogPath>D:\</LogPath>，Save path as D:\DSSDKTemp\
+		linux: 
+		1. The default save path is: /home/xxx/DSSDKTemp/
+		The other two methods are the same as Windows -->
+		<LogPath>%temp%</LogPath>
+		<!-- 是否输出IO原始数据。0:不输出（默认）; 1:输出; -->
+		<!-- Whether to output IO raw data. 0: Do not output (default); 1: Output; -->
+		<OutputIORaw>0</OutputIORaw>
+		<!-- 是否输出json传入内容。0:不输出（默认）; 1:输出; -->
+		<!-- Whether to output JSON input content. 0: Do not output (default); 1: Output; -->
+		<OutputJsonRaw>1</OutputJsonRaw>
+		<!-- 多线程下是否每个线程单独创建一份日志文件，0：多线程合用一份日志文件；1：每条线程有自己的日志文件 -->
+		<!-- Whether to create a separate log file for each thread under multithreading, 0: Multiple threads share one log file; 1: Each thread has its own log file -->
+		<WriteMode>0</WriteMode>
+		<!-- 设置日志保存的天数，最少保存天数为1天-->
+		<!-- Set the number of days to save logs, with a minimum of 1 day -->
+		<SetLogClearDay>3</SetLogClearDay>
+	</Log>
+	<!-- 插件配置信息 (Plugin Configuration Information) -->
+	<PlugInConfig>
+		<!--PDF插件BIN文件所在路径，如果路径设置为0，则不依赖插件，但需要依赖授权文件-->
+		<!-- The path where the PDF plugin BIN file is located is. If the path is set to 0, it does not depend on the plugin, but authorization documents are required -->
+		<!-- D:/SDk/STD/C++/3PP/XPDF/xpdf-tools-win-4.02_2020-10-16/bin32 -->
+		<!-- /mnt/hgfs/SDk/STD/C++/3PP/XPDF/x86_64 -->
+		<PdfPlugInBinPath>./plugins/xpdf</PdfPlugInBinPath>
+	</PlugInConfig>	
+</PrtCfg>

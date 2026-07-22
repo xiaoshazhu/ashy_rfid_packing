@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PdfPrintOnly</title>
+    <link rel="stylesheet" type="text/css" href="./css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+</head>
+
+<body>
+    <div class="header">
+        <img src="./images/tp.png" height="32px" style="margin-top:16px;" />
+    </div>
+    <div class="main">
+        <span class="tag">
+            PdfPrintOnly
+        </span>
+        <div class="content_wrap">
+            <div class="setting">
+                <p class="title">pdf文件：</p>
+                <div class="file_input border">
+                    <input style="display: none;" type="file" name="pdfSrc" id="pdfSrc" />
+                    <input type="text" id="pdfDisplay" readonly />
+                    <button onclick="choosePDF('pdfSrc')">浏览</button>
+                </div>
+                
+                <p class="title">打印设置：</p>
+                <div class="options border">                  
+                    <div class="label">
+                        <label style=" margin-left: 55px;margin-right: 20px">总页数</label>
+                        <div class="pdfHdl" style="display:none;"></div>
+                        <div class="total">0</div>
+                    </div>
+                    <div class="label">
+                        <label for="pageNumber">待打印页码</label>
+                        <input type="number" id="pageNumber" value="1" name="pageNumber">
+                    </div>
+                </div>
+
+                <div class="data_set border">
+                    <div class="wrap">                                        
+                        <section>   
+                            <label for="EMU_SEL" style=" margin-right: 50px;">仿真选择</label>    
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ZPL_EMU" value="1" name="EMU_RADIO" checked>
+                                <label for="ZPL" name="ZPL">ZPL</label>
+                            </div>                         
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="TSPL_EMU" value="2" name="EMU_RADIO" >
+                                <label for="TSPL" name="TSPL">TSPL</label>
+                            </div>
+                            <div class="set_label" style=" margin-right: 45px">
+                                <input type="radio" id="ESCPOS_EMU" value="3" name="EMU_RADIO">
+                                <label for="ESCPOS" name="ESCPOS">ESCPOS</label>
+                            </div>                            
+                        </section>
+                    </div>
+                </div>
+
+                <div class="btn"><button class="success" onclick="handlePrint()">打印</button></div>
+                <div class="terminal_wrap">
+                    <div class="top">
+                        <p class="title">信息输出：</p>
+                        <button onclick="clearLog()">清空输出</button>
+                    </div>
+                    <div class="terminal border">
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="popup_tips" style="display: none;">
+        <div class="popup_tips_mask"></div>
+        <div class="popup_tips_content"></div>
+    </div>
+
+</body>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/common.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {    //刷新后回到顶部
+        $(window).scrollTop(0)
+    }
+
+    //开始打印
+    async function handlePrint() {
+        var data = {};
+        $("input[name]").each(function () {
+            var name = $(this).attr("name");
+            var isFile = $(this).attr("type") == "file";
+            var isRadio = $(this).attr("type") == "radio";
+            var isCheckBox = $(this).attr("type") == "checkbox";
+            if (isFile) {
+                data[name] = $("input[name=" + name + "]").get(0).files[0] || "";
+            } else if (isCheckBox) {
+                data[name] = $(this).is(":checked")
+            } else if (isRadio) {
+                data[name] = $("input[name=" + name + "]:checked").val()
+            } else {
+                data[name] = $("input[name=" + name + "]").val() || "";
+            }
+        });
+
+        data.printCount = $(".total").val()
+        if (!data.pdfSrc) {
+            openMask("请选择PDF文件", true)
+            return
+        }
+
+        print(await handleParams(data))
+    }
+
+    //处理参数
+    async function handleParams(data) {
+        data.pdfHdl = $(".pdfHdl").text()
+        data.pdfSrc = await fileToBase64(data.pdfSrc)
+        return data
+    }
+
+    //开始打印
+    async function print(params) {
+        try {
+            await sendPostRequest("web_DSTP2x_SetLibLang", "设置语言", { "language":"0" })
+
+            //枚举设备
+            const devRes = await sendPostRequest("web_DSTP2x_EnumDev", "枚举设备", { "enumType": "1" })
+            
+            let index = devRes.enumList.indexOf(",")
+            if(index != -1)
+            {
+                const devList = devRes.enumList.split(",")
+                devRes.enumList = devList[0]
+            }
+
+            //连接设备
+            const connectRes = await sendPostRequest("web_DSTP2x_ConnEnumeratedDev", "连接设备", { "devName": devRes.enumList })
+            //获取打印状态
+            const statusRes = await sendPostRequest("web_DSTP2x_GetPrtStatus", "获取打印状态", { "devHdl": connectRes.devHdl })
+            if (statusRes.isReady != "1") {
+                openMask("打印机状态异常", true)
+                //断开连接
+                await sendPostRequest("web_DSTP2x_DisconnDev", "断开连接", { "devHdl": connectRes.devHdl })
+                return
+            }
+
+            //设置仿真类型
+            await sendPostRequest("web_DSTP2x_SetPrnEmulation", "设置仿真类型", { "devHdl": connectRes.devHdl, "emulation": params.EMU_RADIO })
+
+            var rfidType = 0;           
+            //设置PDF绘制尺寸
+            await sendPostRequest("web_DSTP2x_SetPdfPrnSize", "设置PDF绘制尺寸", { "pdfHdl": params.pdfHdl, "width": "110", "height": "100" })
+            //打印
+            await sendPostRequest("web_DSTP2x_PrintPdf", "打印", { "devHdl": connectRes.devHdl, "pdfHdl": params.pdfHdl, "pageNo": params.pageNumber, "outFileType": "0", "rfidReadType": rfidType.toString() })
+            //删除pdf句柄
+            await sendPostRequest("web_DSTP2x_DeletePdf", "删除pdf句柄", { "pdfHdl": params.pdfHdl })
+            //断开连接
+            await sendPostRequest("web_DSTP2x_DisconnDev", "断开连接", { "devHdl": connectRes.devHdl })
+            openMask("打印PDF成功", true)
+
+            
+        } catch (error) {
+            let errText = error ? error : "请求失败"
+            openMask(errText, true)
+        }
+
+    }
+
+</script>
+
+</html>

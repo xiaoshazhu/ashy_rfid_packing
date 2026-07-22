@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Chapter 1&comma; Overview</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <style>
+       
+
+        /* Content area on the right */
+        .content {
+            margin-left: 10px; /* Leave space on the left side of the content area */
+            padding: 20px;
+            flex: 1; /* Content area fills the remaining space */
+            background-color: #f9f9f9;
+        }
+
+        /* Responsive: When the screen width is less than 768px, the navigation bar becomes foldable */
+        @media (max-width: 768px) {
+            .toc {
+                width: 200px; /* Reduce the navigation bar width on a small screen */
+            }
+
+            .content {
+                margin-left: 0; /* No more space for navigation bar in the content area */
+            }
+        }
+       
+/* Submenu style */
+.submenu {
+    display: none; /* Default hidden submenu */
+    list-style: none;
+    padding-left: 20px;
+}
+
+.submenu li a {
+    background-color: #555;
+}
+
+/* Show submenu when mouse hover */
+.sidebar li:hover .submenu {
+    display: block;
+    text-indent: 5ch;
+}
+/* Set basic styles*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Left navigation bar style */
+.sidebar {
+    position: sticky;  /* Adhesive positioning */
+    top: 0;             /* When scrolling to the top, fixed */
+    width: 300px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    position: relative;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #444;
+    margin: 5px 0;
+    border-radius: 4px;
+}
+
+.sidebar a:hover {
+    background-color: #808080;
+} 
+</style>
+<!-- </head> -->
+<body>
+<div class="sidebar">
+<p align="center" style="font-size:32pt; font-weight:bold">Table of contents</p>      
+<ul>
+<a href="./index-US.html" class="active">Chapter 1, Overview</a>
+        <a href="./chapters/FunctionList-US.html">Chapter 2, Function List</a>
+<li>
+<a href="#">Chapter 3, Function Sample Code</a> 
+<ul class="submenu">
+          <li><a href="./chapters/Samplecode-CPP-US.html">C++ sample</a></li>
+         <li><a href="./chapters/Samplecode-Charp-US.html">C# sample</a></li>
+         <li><a href="./chapters/Samplecode-java-US.html">java sample</a></li>
+         <li><a href="./chapters/Samplecode-javascript-US.html">javascript sample</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#">Chapter 4, Functional Interface</a>
+                <ul class="submenu">
+                  <li><a href="./chapters/CApiDef-US.html">C interface function prototype</a></li>
+                <li><a href="./chapters/WebApiDef-US.html">Web-end interface definition</a></li>
+                </ul>
+            </li>
+                <a href="./chapters/DemoInstruction-US.html">Chapter 5, DSTP2xDemo instructions</a>
+                <a href="./chapters/WebPrtServerInstruction-US.html">Chapter 6, DSTP2xWebPrtServer User Instructions</a>
+                <li>
+                  <a href="#">Chapter 7, Related Return Code List</a>
+                <ul class="submenu">
+                    <li><a href="./chapters/ApiRtnCode-US.html">SDK interface return code</a></li>
+                    <li><a href="./chapters/PrtStatusCode-US.html">Printer status code</a></li>
+                </ul>   
+            </li>
+             <a href="./chapters/FAQ-US.html">Chapter 8, Frequently Asked Questions</a>
+        </ul>
+    </div> 
+<div class="content">  
+<style>
+    body {
+            display: flex;
+            margin: 0;
+        }
+</style>
+<center>
+<b style="font-size:18pt">
+<h1 id="chapter-1-overview">Chapter 1, Overview</h1>
+</b>
+</center>
+<ul>
+<li><a href="#chapter-1-overview">Chapter 1, Overview</a>
+<ul>
+<li><a href="#1scope-of-application">1、Scope of application</a></li>
+<li><a href="#2system-platform">2、System Platform</a></li>
+<li><a href="#3programming-language">3、programming language</a></li>
+<li><a href="#4related-dependencies">4、Related dependencies</a></li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+<p>SDK is a flexible and controllable application development support without installation. <br> This document will explain from: environment requirements, printer adaptation, support functions, call flow, functional interfaces, demo instructions, FAQs and related return code schedules, etc., to help developers quickly build applications for their required printing functions based on this SDK.</p>
+<h2 id="1scope-of-application">1、Scope of application</h2>
+<p>This SDK is suitable for the majority of program developers who have the following capabilities or conditions: <br>
+① Write applications based on the C language dynamic library functional interface under Windows or Linux systems. <br>
+② Persons who have a certain understanding of the functions and usage specifications of barcode label printers. <br>
+③ Personnel who have a certain understanding of RFID reading and writing functions. <br></p>
+<h2 id="2system-platform">2、System Platform</h2>
+<p>① Windows PC platform (32/64 bit): XP, win7, win8, win8.1, win10, etc. <br>
+② VC runtime environment support, etc. <br>
+③ Linux platform, supports x86_64 and aarch64 platforms. <br></p>
+<h2 id="3programming-language">3、programming language</h2>
+<p>Programming languages ​​that support .dll-based programming languages ​​include but are not limited to: C/C++, C#, Basic (VB, VB .NET), Pascal (Delphi), Java, PowerScript (PB). <br>
+Support .so-based programming languages ​​include but are not limited to: C/C++, Java. <br>
+Supports web API calls based on http include but are not limited to: javascript, C#, C++.</p>
+<h2 id="4related-dependencies">4、Related dependencies</h2>
+<table border="1">
+  <tr>
+    <th style="text-align:center">type</th>
+    <th style="text-align:center">path</th>
+    <th style="text-align:center">file name</th>
+  </tr>
+  <tr>
+    <td>Header file</td>
+    <td>include</td>
+    <td>DSTP2x.h</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Library files</td>
+    <td>lib/x64</td>
+    <td rowspan="2">libDSTP2x.dll</td>
+  </tr>
+  <tr>
+    <td>lib/Win32</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Dynamic library dependencies files</td>
+    <td>lib/x64</td>
+    <td rowspan="2">sdkcfg.xml<br>dssdk.img<br>ewl.img</td>
+  </tr>
+  <tr>
+    <td>lib/Win32</td>
+  </tr>
+  <tr>
+    <td rowspan="3">pdf plugin</td>
+    <td>bin/Win32/plugins/xpdf</td>
+    <td rowspan="3">xpdf</td>
+  </tr>
+  <tr>
+    <td>bin/x64/plugins/xpdf</td>
+  </tr>
+  <tr>
+    <td>web_server/Win32/plugins/xpdf</td>
+  </tr>
+</table>
+
+            
+            
+        </body>
+        </html>
