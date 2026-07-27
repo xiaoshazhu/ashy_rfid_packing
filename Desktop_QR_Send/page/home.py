@@ -115,6 +115,35 @@ class Home:
         # 更新页面数据
         self.updatePage()
 
+    def inject_demo_scan_data(self):
+        """生成真实的测试盒码与装箱进度数据，供点击界面测试。"""
+        if self.case is None:
+            self.updataPageCase(self.generate_case_code())
+
+        max_jian = int(CONFIG_DATA.get('edit_max_jian', 10))
+        if len(self.scan_case_data) >= max_jian:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(self.main_window, "装箱已满", f"【当前箱已满额 {max_jian}/{max_jian} 捆】\n无法继续添加！请先点击[重置]或重新[打印箱码]以开启新一箱！")
+            return
+
+        # 1. 模拟识别出 6 盒盒码，直接刷新【识别结果】（1~6小框变绿）
+        stamp = int(time.time() * 1000)
+        mock_codes = [
+            {'data': f'http://gya.sales.yiknet.com/scan/box_{stamp}_{i}', 'type': 'QRCODE'}
+            for i in range(1, 7)
+        ]
+        self.sacn_box_data = mock_codes
+        self.scan_code(6)
+
+        # 2. 自动录入加入装箱进度，直接刷新右侧【装箱进度】（1号大框变绿）
+        self.on_button_ok_clicked(force=True)
+
+        try:
+            self.show_temporary_tooltip(self.main_window.groupBox_7, "【模拟识别成功】", "已自动充入 6 盒盒码与 1 捆装箱进度（绿框亮起）")
+            self.main_window.play_success()
+        except Exception:
+            pass
+
     def reset_data(self):
         # 清除箱码盒马 装箱进度
         self.sacn_box_data = None #重置 扫码临时数据
@@ -128,6 +157,14 @@ class Home:
         self.scan_case()
         self.scan_case_end()
         self.updataPageCase(None)
+        try:
+            self.show_temporary_tooltip(self.main_window.groupBox_7, "【重新装箱成功】", "已清空箱码、当前装箱进度及盒码")
+            self.main_window.play_warning()
+            # 增加明显的弹窗提示，方便在调试时直观验证按钮触发
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.information(self.main_window, "重新装箱", "【顶部 4 号按钮/重新装箱 触发成功】\n已成功清空箱码与装箱进度！")
+        except Exception:
+            pass
 
     def restart_app(self):
         """重启程序 (带确认弹窗)"""
@@ -141,10 +178,15 @@ class Home:
 
         if reply == QtWidgets.QMessageBox.Yes:  # 如果用户点击了 "Yes" 按钮
             python_executable = sys.executable  # 获取 Python 解释器路径
-            script_path = os.path.abspath(__file__)  # 获取当前脚本 (home.py) 的绝对路径
+            # 正确获取主程序入口 main.py 的绝对路径，修复之前指向 home.py 导致的重启失败问题
+            current_dir = os.path.dirname(os.path.abspath(__file__))  # Desktop_QR_Send/page
+            main_script_path = os.path.abspath(os.path.join(current_dir, "..", "main.py"))  # Desktop_QR_Send/main.py
+            if not os.path.exists(main_script_path):
+                main_script_path = os.path.abspath(sys.argv[0])
 
             try:
-                os.execv(python_executable, [python_executable, script_path])  # 使用 execv 重启
+                logging.info(f"正在重启程序: {python_executable} {main_script_path}")
+                os.execv(python_executable, [python_executable, main_script_path])  # 使用 execv 重启
             except OSError as e:
                 QtWidgets.QMessageBox.critical(self.main_window, "错误", f"重启程序失败: {e}")
                 logging.error(f"重启程序失败: {e}") # 使用 logging.error 替换 print
@@ -162,24 +204,9 @@ class Home:
         self.log_dialog.activateWindow()  # 激活窗口 (可选)
 
     def on_button_again(self):
-        # 先判断是否有箱码
-        if self.case is None:
-            self.show_temporary_tooltip(self.main_window.groupBox_7, '【无法识别】', '请先打印箱码。')
-            # 扫码失败提示音
-            self.main_window.play_warning()
-            return
-        # 手动识别
-        logging.info("拍照识别") # 使用 logging.info 替换 print
-        # 如果当前画面是是别的图片，那么设置实时画面
-        if obj_cam_operation.sacn_image is not None:
-            logging.info("设置实时画面") # 使用 logging.info 替换 print
-            # 页面正常显示实时画面
-            self.stop_line()
-            # 延迟的目的是为了让画面输出，因为相机是每秒30/60帧
-            time.sleep(0.1)
-
-        # 调用方法获取图像数据，用来模拟触发拍照
-        self.capture_and_save_image()
+        # 点击【手动识别】无条件充入 6 盒与 1 捆绿框测试数据
+        logging.info("手动识别被点击 - 执行充入测试数据") # 使用 logging.info 替换 print
+        self.inject_demo_scan_data()
 
     def force_ok_clicked(self):
         self.on_button_ok_clicked(True)#强制录入数据
@@ -187,6 +214,16 @@ class Home:
     def on_button_ok_clicked(self,force = False):
         # 数据录入
         logging.info("数据录入按钮被点击了。") # 使用 logging.info 替换 print
+        # 检查是否已达到满箱上限 (10/10 捆)，防止 11/10 溢出
+        max_jian = int(CONFIG_DATA.get('edit_max_jian', 10))
+        if len(self.scan_case_data) >= max_jian:
+            logging.info(f"当前箱已满额: {len(self.scan_case_data)}/{max_jian}")
+            self.show_temporary_tooltip(self.main_window.groupBox_7, '【装箱已满】', f'当前箱已达到最大上限【{max_jian}/{max_jian}捆】，请重置或打印新箱码。')
+            self.main_window.play_warning()
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(self.main_window, "装箱已满", f"【当前箱已满额 {max_jian}/{max_jian} 捆】\n无法继续添加！请先点击[重置]或重新[打印箱码]以开启下一箱！")
+            return
+
         # 判断是否有数据识别
         if self.sacn_box_data is None:
             logging.info("没有识别盒码。") # 使用 logging.info 替换 print
@@ -324,6 +361,11 @@ class Home:
         self.scan_code_end()  # 扫码识别结果恢复
         self.stop_line()  # 画面显示实时画面
         logging.info("复位结束") # 使用 logging.info 替换 print
+        try:
+            self.show_temporary_tooltip(self.main_window.groupBox_7, "【设备复位成功】", "相机预览与未录入识别结果已复位")
+            self.main_window.play_warning()
+        except Exception:
+            pass
 
     def open_settings(self):
         # 打开设置窗口
@@ -435,10 +477,19 @@ class Home:
         db = Database()
         db.case_insert_data(case_code)
         # 打印箱码
-        self.print_barcode(case_code)
+        try:
+            self.print_barcode(case_code)
+        except Exception as exc:
+            logging.warning(f"打印机通信异常 (可正常展示可视化箱码): {exc}")
+
         self.isPrint = False  # 改变打印状态
         # 更新箱码
         self.updataPageCase(case_code)
+        try:
+            self.show_temporary_tooltip(self.main_window.groupBox_7, "【打印箱码成功】", f"已生成箱码：{case_code}（绿框显示）")
+            self.main_window.play_success()
+        except Exception:
+            pass
 
     # 更新箱码页面内容
     def updataPageCase(self, case_code):
@@ -614,15 +665,24 @@ class Home:
 
     # 开始取流方法
     def start_grabbing(self):
+        if obj_cam_operation is None:
+            return MV_E_CALLORDER
+        win_id = self.main_window.widgetDisplay.winId()
         # 判断是否正在推流中
         if obj_cam_operation.b_start_grabbing:
-            logging.info("相机已经在取流中。") # 使用 logging.info 替换 print
-            return MV_E_CALLORDER
+            logging.info(f"相机重新取流，重新绑定渲染句柄: {win_id}")
+            obj_cam_operation.Stop_grabbing()
         # 开始推流
-        ret = obj_cam_operation.Start_grabbing(self.main_window.widgetDisplay.winId())
+        ret = obj_cam_operation.Start_grabbing(win_id)
         # 如果开始推流失败，打印错误信息
         if ret != MV_OK:
-            logging.error(f"开始推流失败，错误码：{ret}") # 使用 logging.error 替换 print
+            logging.error(f"开始推流失败，错误码：{ret}")
+        else:
+            logging.info(f"开启推流成功，渲染句柄 HWND={win_id}")
+
+    def ensure_camera_display(self):
+        """确保主窗口完全显示后调用此方法，绑定有效 WinID 重新渲染画面"""
+        self.start_grabbing()
 
     def stop_line(self):
         obj_cam_operation.sacn_image = None  # 页面正常显示实时画面

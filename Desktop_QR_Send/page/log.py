@@ -98,11 +98,20 @@ class LogDialog(QtWidgets.QDialog, Ui_Dialog_log):
 
     def get_latest_log_file(self, log_dir, log_file_prefix):
         """获取最新的日志文件路径 (保持不变)"""
+        # 正式程序始终写入 app_log.log。轮转文件名中带日期，按文件名
+        # 倒序排序会误选历史文件，导致现场看到的日志不是本次启动日志。
+        active_log_file = os.path.join(log_dir, f"{log_file_prefix}.log")
+        if os.path.isfile(active_log_file):
+            return active_log_file
+
         log_files = [f for f in os.listdir(log_dir) if f.startswith(log_file_prefix) and f.endswith(".log")] # 获取所有日志文件
         if not log_files:
             return None # 没有日志文件
 
-        log_files.sort(reverse=True) # 按文件名倒序排序，最新的文件在最前面
+        log_files.sort(
+            key=lambda file_name: os.path.getmtime(os.path.join(log_dir, file_name)),
+            reverse=True,
+        ) # 活动日志不存在时，按实际修改时间选择最近的日志
         return os.path.join(log_dir, log_files[0]) # 返回最新的日志文件路径
 
 

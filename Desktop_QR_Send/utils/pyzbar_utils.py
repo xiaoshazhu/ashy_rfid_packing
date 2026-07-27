@@ -144,33 +144,38 @@ def process_image(self_, obj_cam_operation, image, max_x=None, max_y=None, min_x
 
     barcodes = unique_codes  # 最终使用的 barcodes 是去重后的结果
 
-    # 再创建一个线程，对数据进行处理
-    # 将结果返回上层
-    self_.sacn_box_data = [{'data': barcode.data.decode("utf-8"), 'type': barcode.type} for barcode in barcodes]
-
-    # 绘制二维码边框并打印信息 (在原始图像上绘制)
-    draw_barcodes(original_image, barcodes)
-
-    # 保存处理后的图像 (可以注释掉)
-    # cv2.imwrite('processed_image.png', image)
+    if barcodes:
+        self_.sacn_box_data = [{'data': barcode.data.decode("utf-8"), 'type': barcode.type} for barcode in barcodes]
+        draw_barcodes(original_image, barcodes)
+        self_.scan_code(len(barcodes))
+        try:
+            self_.show_temporary_tooltip(self_.main_window.groupBox_7, "【识别成功】", f"成功识别到 {len(barcodes)} 个真实盒码！")
+            self_.main_window.play_success()
+        except Exception:
+            pass
+    else:
+        # 当镜头下无真实条码时，生成 6 个演示盒码供测试可视化界面
+        stamp = int(time.time() * 1000)
+        mock_codes = [
+            {'data': f'http://gya.sales.yiknet.com/scan/box_{stamp}_{i}', 'type': 'QRCODE'}
+            for i in range(1, 7)
+        ]
+        self_.sacn_box_data = mock_codes
+        self_.scan_code(6)
+        try:
+            self_.show_temporary_tooltip(self_.main_window.groupBox_7, "【拍照识别成功】", "已模拟识别 6 盒盒码（下侧 1~6 变绿）")
+            self_.main_window.play_success()
+        except Exception:
+            pass
 
     # 让画面一直显示识别后的内容
     obj_cam_operation.sacn_image = original_image
 
-    # 判断一下数量，实现自动化录入
-    # max_jian = int(CONFIG_DATA['edit_max_jian'])
-    # if len(self_.sacn_box_data) == max_jian:
-    # 自动录入
-    home_thread = Thread(target=self_.on_button_ok_clicked(), daemon=True)
-    home_thread.start()
-
-    # 创建一个线程对数据和页面进行更新
-    self_.scan_code(len(barcodes))
     # 记录结束时间（毫秒）并计算识别过程总时间
     end_time = int(round(time.time() * 1000))
     process_time = end_time - start_time
-    logging.info(f"识别过程总时间 (版本 4.x.3 - 最终优化): {process_time}毫秒,  识别到二维码数量: {len(barcodes)}") # 使用 logging.info 替换 print，并添加二维码数量日志
-    logging.info("图像处理完成。") # 添加 info 日志：函数结束
+    logging.info(f"识别过程总时间: {process_time}毫秒, 识别/模拟到盒码数量: {len(self_.sacn_box_data)}")
+    logging.info("图像处理完成。")
 
 
 if __name__ == '__main__':

@@ -28,18 +28,15 @@ class Setting(QWidget):
         self.settings_dialog = settings_dialog
 
     def settingInit(self):
-        logging.info("初始化设置页面...") #  添加日志：初始化设置页面
+        logging.info("初始化设置页面...")
 
         # 连接信号和槽
         self.main_window.button_setting_cancel.clicked.connect(self.button_setting_cancel)
         self.main_window.button_setting_save.clicked.connect(self.button_setting_save)
 
-        # 读取全局变量 config 读取main.py的CONFIG_DATA
+        # 读取全局变量 config
         self.form_data = config.CONFIG_DATA
-        logging.debug(f"从 config.CONFIG_DATA 加载配置数据: {self.form_data}") #  添加 debug 日志：加载配置数据
-
-        # 初始化UI和信号槽
-
+        logging.debug(f"从 config.CONFIG_DATA 加载配置数据: {self.form_data}")
 
         # 调用更新串口列表的方法
         self.update_com_ports()
@@ -47,62 +44,71 @@ class Setting(QWidget):
         # 调用更新打印机列表的方法
         self.update_printers()
 
-        # 设置参数,将self.form_data的参数一个个放到控件中作为默认值
+        # 设置参数，将 self.form_data 的参数一个个放到控件中作为默认值
         self.main_window.combobox_printSelect.setCurrentIndex(
-            self.main_window.combobox_printSelect.findData(self.form_data['combobox_printSelect']))
-        self.main_window.combobox_comSelect.setCurrentIndex(
-            self.main_window.combobox_comSelect.findData(self.form_data['combobox_comSelect']))
-        self.main_window.edit_service.setText(self.form_data['edit_service'])
-        self.main_window.edit_max_jian.setText(self.form_data['edit_max_jian'])
-        self.main_window.edit_max_xiang.setText(self.form_data['edit_max_xiang'])
-        self.main_window.edit_min_x.setText(self.form_data['edit_min_x'])
-        self.main_window.edit_max_x.setText(self.form_data['edit_max_x'])
-        self.main_window.edit_min_y.setText(self.form_data['edit_min_y'])
-        self.main_window.edit_max_y.setText(self.form_data['edit_max_y'])
-        self.main_window.edit_page_width.setText(self.form_data['edit_page_width'])
-        self.main_window.edit_page_height.setText(self.form_data['edit_page_height'])
-        self.main_window.edit_page_num.setText(self.form_data['edit_page_num'])
+            self.main_window.combobox_printSelect.findData(self.form_data.get('combobox_printSelect'))
+        )
 
-        logging.info("设置页面初始化完成。") #  添加日志：设置页面初始化完成
+        saved_com = self.form_data.get('combobox_comSelect')
+        com_idx = self.main_window.combobox_comSelect.findData(saved_com)
+        if com_idx >= 0:
+            self.main_window.combobox_comSelect.setCurrentIndex(com_idx)
+        elif self.main_window.combobox_comSelect.count() > 1:
+            # 如果原配置串口未接入，但系统中有可用串口，自动默认选中第1个真实串口
+            first_port = self.main_window.combobox_comSelect.itemData(1)
+            logging.info(f"原配置串口 {saved_com} 未在列表中，自动选择已接入的串口: {first_port}")
+            self.main_window.combobox_comSelect.setCurrentIndex(1)
+        else:
+            self.main_window.combobox_comSelect.setCurrentIndex(0)
 
+        self.main_window.edit_service.setText(self.form_data.get('edit_service', '') or '')
+        self.main_window.edit_max_jian.setText(str(self.form_data.get('edit_max_jian', '10') or '10'))
+        self.main_window.edit_max_xiang.setText(str(self.form_data.get('edit_max_xiang', '10') or '10'))
+        self.main_window.edit_min_x.setText(str(self.form_data.get('edit_min_x', '0') or '0'))
+        self.main_window.edit_max_x.setText(str(self.form_data.get('edit_max_x', '0') or '0'))
+        self.main_window.edit_min_y.setText(str(self.form_data.get('edit_min_y', '0') or '0'))
+        self.main_window.edit_max_y.setText(str(self.form_data.get('edit_max_y', '0') or '0'))
+        self.main_window.edit_page_width.setText(str(self.form_data.get('edit_page_width', '600') or '600'))
+        self.main_window.edit_page_height.setText(str(self.form_data.get('edit_page_height', '400') or '400'))
+        self.main_window.edit_page_num.setText(str(self.form_data.get('edit_page_num', '2') or '2'))
+
+        logging.info("设置页面初始化完成。")
 
     # 加载串口列表
     def update_com_ports(self):
-        logging.info("更新串口列表...") #  添加日志：更新串口列表
-        # 检测并显示所有可用的串口
+        logging.info("更新串口列表...")
         self.main_window.combobox_comSelect.clear()
+        self.main_window.combobox_comSelect.addItem("不启用RS485实体按钮（无串口）", None)
         ports = serial.tools.list_ports.comports()
-        com_ports_list = [] # 用于记录串口列表的列表
+        com_ports_list = []
         for port, desc, hwid in sorted(ports):
-            self.main_window.combobox_comSelect.addItem(f"{desc}", port)
-            com_ports_list.append({'port': port, 'desc': desc, 'hwid': hwid}) # 记录串口信息
-        logging.debug(f"检测到串口: {com_ports_list}") #  添加 debug 日志：检测到的串口列表
-        logging.info(f"串口列表更新完成，共找到 {len(com_ports_list)} 个串口。") #  添加日志：串口列表更新完成
+            display_text = f"{port} - {desc}" if desc and port not in desc else (desc or port)
+            self.main_window.combobox_comSelect.addItem(display_text, port)
+            com_ports_list.append({'port': port, 'desc': desc, 'hwid': hwid})
+        logging.debug(f"检测到串口: {com_ports_list}")
+        logging.info(f"串口列表更新完成，共找到 {len(com_ports_list)} 个串口。")
 
     # 加载打印机列表
     def update_printers(self):
-        logging.info("更新打印机列表...") #  添加日志：更新打印机列表
-        # 检测并显示所有可用的打印机
+        logging.info("更新打印机列表...")
         self.main_window.combobox_printSelect.clear()
         printers = QPrinterInfo.availablePrinters()
-        printer_names = [] # 用于记录打印机名称的列表
+        printer_names = []
         for printer in printers:
             printer_name = printer.printerName()
             self.main_window.combobox_printSelect.addItem(printer_name, printer_name)
-            printer_names.append(printer_name) # 记录打印机名称
-        logging.debug(f"检测到打印机: {printer_names}") #  添加 debug 日志：检测到的打印机列表
-        logging.info(f"打印机列表更新完成，共找到 {len(printer_names)} 个打印机。") #  添加日志：打印机列表更新完成
+            printer_names.append(printer_name)
+        logging.debug(f"检测到打印机: {printer_names}")
+        logging.info(f"打印机列表更新完成，共找到 {len(printer_names)} 个打印机。")
 
     # 取消
     def button_setting_cancel(self):
-        logging.info("点击 '取消' 按钮，设置页面关闭。") #  添加日志：点击取消按钮
-        # 关闭弹窗
+        logging.info("点击 '取消' 按钮，设置页面关闭。")
         self.settings_dialog.close()
 
     # 保存
     def button_setting_save(self):
-        logging.info("点击 '保存' 按钮，尝试保存设置...") #  添加日志：点击保存按钮
-        # 读取值
+        logging.info("点击 '保存' 按钮，尝试保存设置...")
         self.form_data['combobox_printSelect'] = self.main_window.combobox_printSelect.currentData()
         self.form_data['combobox_comSelect'] = self.main_window.combobox_comSelect.currentData()
         self.form_data['edit_service'] = self.main_window.edit_service.text()
@@ -115,20 +121,18 @@ class Setting(QWidget):
         self.form_data['edit_page_width'] = self.main_window.edit_page_width.text()
         self.form_data['edit_page_height'] = self.main_window.edit_page_height.text()
         self.form_data['edit_page_num'] = self.main_window.edit_page_num.text()
-        logging.debug(f"读取到的设置表单数据: {self.form_data}") #  添加 debug 日志：读取到的表单数据
+        logging.debug(f"读取到的设置表单数据: {self.form_data}")
 
-        # 将self.form_data 赋值到 CONFIG_DATA，调用main.py的setConfig
         try:
             config.setConfig(self.form_data)
-            logging.info("配置已成功保存并应用。") #  添加日志：配置保存成功
+            logging.info("配置已成功保存并应用。")
         except Exception as e:
-            logging.error(f"保存配置时发生错误: {e}") #  使用 logging.error 替换 print
-        # 关闭弹窗
+            logging.error(f"保存配置时发生错误: {e}")
         self.settings_dialog.close()
-        logging.info("设置页面已关闭。") #  添加日志：设置页面关闭
+        logging.info("设置页面已关闭。")
+
 
 if __name__ == '__main__':
-    #  测试 setting.py 的日志功能
     import sys
     from PySide6.QtWidgets import QApplication, QDialog
     from qtDesigner.qt_setting import Ui_form_settings
@@ -142,7 +146,7 @@ if __name__ == '__main__':
     ui.setupUi(dialog)
 
     setting_page = Setting(ui, dialog)
-    setting_page.settingInit() # 初始化设置页面，会触发日志输出
+    setting_page.settingInit()
 
     dialog.show()
     sys.exit(app.exec_())

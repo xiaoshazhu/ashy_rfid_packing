@@ -14,6 +14,7 @@ configure_runtime()
 
 import asyncio
 import threading
+import time
 
 from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtGui import QGuiApplication
@@ -28,6 +29,7 @@ from utils.web_socket_client import startWS
 import logging
 import datetime
 from logging.handlers import TimedRotatingFileHandler
+from serial.tools import list_ports
 
 class MainWindow(QMainWindow, Ui_HomeWindow):
     def __init__(self):
@@ -122,16 +124,71 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
     def listen_to_rs485(self):
         """监听 RS485 数据"""
         global rs485
-        comSelect = config.CONFIG_DATA["combobox_comSelect"]
-        rs485 = RS485Utils(port=comSelect, baudrate=9600, home_instance=self.home)
-        rs485.connect()
-        try:
-            rs485.listen()
-        except KeyboardInterrupt:
-            logging.info("RS485 监听停止 (KeyboardInterrupt).") # 使用 logging.info 替换 print
-        finally:
-            rs485.close()
-            logging.info("RS485 端口已关闭.") # 使用 logging.info 替换 print
+        while True:
+            config.loadConfig()
+            comSelect = config.CONFIG_DATA.get("combobox_comSelect")
+
+            port_items = list(list_ports.comports())
+            all_ports = [port.device for port in port_items]
+
+            # 区分 USB 串口芯片（如 CH340, FTDI）与主板原生 COM1/COM2
+            usb_ports = []
+            other_ports = []
+            for item in port_items:
+                desc = (item.description or "").upper()
+                hwid = (item.hwid or "").upper()
+                if any(token in desc or token in hwid for token in ("USB", "CH34", "FTDI", "PL2303", "CP210", "SERIAL", "UART")):
+                    usb_ports.append(item.device)
+                else:
+                    other_ports.append(item.device)
+
+            preferred_ports = usb_ports + other_ports
+            logging.info(f"当前可用串口: {all_ports} (按 USB 转换器优先排序: {preferred_ports})")
+
+            target_port = None
+            if comSelect and comSelect in all_ports:
+                target_port = comSelect
+            elif preferred_ports:
+                target_port = preferred_ports[0]
+                logging.info(
+                    f"配置串口 ({comSelect}) 未连接或未配置，优先自适应匹配端口: {target_port}"
+                )
+            else:
+                logging.warning("未检测到任何可用串口，3秒后重试...")
+                time.sleep(3)
+                continue
+
+            rs485 = RS485Utils(port=target_port, baudrate=9600, home_instance=self.home)
+            try:
+                rs485.connect()
+                rs485.listen()
+            except KeyboardInterrupt:
+                logging.info("RS485 监听停止 (KeyboardInterrupt).")
+                break
+            except Exception as exc:
+                logging.error(f"RS485 [{target_port}] 连接或监听失败: {exc}")
+            finally:
+                rs485.close()
+                logging.info(f"RS485 端口 [{target_port}] 已关闭.")
+
+            logging.warning("3秒后重新连接RS485串口...")
+            time.sleep(3)
+
+    def centerWindow(self):
+        """设置窗口居中"""
+        screen = QGuiApplication.primaryScreen().geometry()
+        x = (screen.width() - self.width()) // 2
+        y = (screen.height() - self.height()) // 2
+        self.move(x, y)
+
+    def closeEvent(self, event):
+        """窗口关闭事件"""
+        logging.info("程序开始关闭...") # 记录程序关闭日志
+        self.home.stop_grabbing()
+        self.home.close_device()
+        if self.client and self.client.get_connection_status():
+            asyncio.run_coroutine_threadsafe(self.client.close(), self.loop)
+        self.loop.stop()
 
     def centerWindow(self):
         """设置窗口居中"""
@@ -156,9 +213,12 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
 
 if __name__ == "__main__":
     import sys
+    from PySide6.QtCore import QTimer
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.showFullScreen()  # 全屏显示
     main_window.show()
+    # 延时 300ms 绑定渲染窗口句柄 HWND，解决黑屏问题
+    QTimer.singleShot(300, main_window.home.ensure_camera_display)
     logging.info("GUI 程序启动。") # 记录 GUI 程序启动日志
     sys.exit(app.exec())
