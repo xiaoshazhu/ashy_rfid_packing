@@ -32,7 +32,7 @@ if not defined APP_PYTHON (
 echo [INFO] Python: %APP_PYTHON%
 echo ===================================================
 echo.
-"%APP_PYTHON%" "%~dp0rs485_input_probe.py"
+"%APP_PYTHON%" "%~dp0rs485_input_probe.py" --port COM3
 set "EXIT_CODE=%ERRORLEVEL%"
 goto :finished
 

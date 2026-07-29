@@ -16,10 +16,23 @@ Desktop_QR_Send/build/
 Desktop_QR_Send/dist/
 Desktop_QR_Send/*.spec
 
-# 忽略大数据库和本地日志
-**/example.db
+# 忽略数据库、运行记录和本地日志
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+**/records/
+**/*.csv
 **/logs/
 *.log
+
+# 忽略本地密钥和私有配置
+**/.env
+**/.env.*
+!**/.env.example
+**/*.pem
+**/*.key
+**/secrets.json
+**/config.local.json
 
 # 忽略 PyCharm 配置
 .idea/

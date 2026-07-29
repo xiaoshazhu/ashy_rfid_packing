@@ -1,0 +1,33 @@
+{
+  "vendor_dir": "vendor/t63r_x64",
+  "label": {
+    "width_mm": 100.0,
+    "height_mm": 80.0,
+    "gap_mm": 3.0,
+    "darkness": 14,
+    "speed": 2,
+    "copies": 1
+  },
+  "rfid": {
+    "target_region": "EPC",
+    "region_type_code": 1,
+    "data_format_code": 2,
+    "read_type_mask": 0,
+    "allow_reprint_same_code": true
+  },
+  "layout": {
+    "barcode_type_code": 20,
+    "elements": [
+      { "type": "brand", "x": 8.0, "y": 6.0, "w": 84.0, "h": 5.0 },
+      { "type": "product_name", "x": 8.0, "y": 12.0, "w": 84.0, "h": 5.0 },
+      { "type": "spec", "x": 8.0, "y": 18.0, "w": 84.0, "h": 5.0 },
+      { "type": "box_spec", "x": 8.0, "y": 24.0, "w": 84.0, "h": 5.0 },
+      { "type": "shelf_life", "x": 8.0, "y": 30.0, "w": 84.0, "h": 5.0 },
+      { "type": "produce_date", "x": 8.0, "y": 36.0, "w": 84.0, "h": 5.0 },
+      { "type": "storage", "x": 8.0, "y": 42.0, "w": 84.0, "h": 5.0 },
+      { "type": "manufacturer", "x": 8.0, "y": 48.0, "w": 84.0, "h": 5.0 },
+      { "type": "barcode", "x": 10.0, "y": 56.0, "w": 80.0, "h": 18.0 }
+    ]
+  },
+  "csv_record_path": "records/test_records.csv"
+}

@@ -34,6 +34,9 @@ from PySide6.QtCore import QTimer, QDateTime
 from utils.SQLite import Database
 from utils.upload_data_worker_thread import UploadDataWorkerThread
 
+from page.light_control_dialog import LightControlDialog
+from page.print_template_dialog import PrintTemplateDialog
+
 # 定义全局相机操作对象 (在 Home 类外部)
 obj_cam_operation = None
 # 主页类
@@ -42,6 +45,8 @@ class Home:
     def __init__(self, main_window):
         # 初始化主窗口变量
         self.log_dialog = None #日志窗口是否被打开
+        self.light_dialog = None
+        self.template_dialog = None
         self.timer = None  # 时间钟
         self.isPrint = None  # 是否正在打印箱码
 
@@ -60,6 +65,7 @@ class Home:
         self.eventInit()
         self.hiKInit()
         self.pageInit()
+        self.setup_manual_operation_pagination()
         self.autoPageData()#自动更新未上传数据
         # 实时显示时间
         # 创建定时器
@@ -92,6 +98,160 @@ class Home:
         self.main_window.button_Restart.clicked.connect(self.restart_app)  # 重启程序
         self.main_window.button_reset.clicked.connect(self.reset_data)  # 重置数据
 
+    def setup_manual_operation_pagination(self):
+        """配置左下角【手动操作/手动设置】区域 (self.main_window.groupBox) 的 2 页切换"""
+        group_box = getattr(self.main_window, "groupBox", None)
+        if not group_box:
+            return
+
+        if getattr(self, "_manual_page_stack", None):
+            return
+
+        # 与‘计数归零’完全一致的 UI 原生渐变按钮样式
+        native_btn_style = (
+            "QPushButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F8F8F8, stop:1 #E0E0E0); "
+            "border: 1px solid #707070; border-radius: 2px; font-weight: bold; color: #000; min-height: 28px; font-size: 13px; } "
+            "QPushButton:hover { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFFFFF, stop:1 #D8D8D8); border-color: #505050; } "
+            "QPushButton:pressed { background: #D0D0D0; border-color: #404040; }"
+        )
+
+        # 1. 调整原有的 self.taps_1 标题对象宽度 (10, 7, 85, 23)，支持在‘手动操作’与‘手动设置’间无缝切换
+        self.taps_1 = getattr(self.main_window, "taps_1", None)
+        if self.taps_1:
+            self.taps_1.setGeometry(10, 7, 85, 23)
+            font_title = self.taps_1.font()
+            font_title.setPointSize(13)
+            font_title.setBold(True)
+            self.taps_1.setFont(font_title)
+            self.taps_1.setText("手动操作")
+
+        # 2. 在标题右侧紧凑无缝排列‘上一页’与‘下一页’双按钮 (绝对不重叠遮挡标题)
+        self.btn_prev_page = QtWidgets.QPushButton("◀ 上一页", group_box)
+        self.btn_prev_page.setGeometry(98, 5, 54, 24)
+        self.btn_prev_page.clicked.connect(self.goto_prev_manual_page)
+        self.btn_prev_page.show()
+
+        self.btn_next_page = QtWidgets.QPushButton("下一页 ▶", group_box)
+        self.btn_next_page.setGeometry(155, 5, 54, 24)
+        self.btn_next_page.clicked.connect(self.goto_next_manual_page)
+        self.btn_next_page.show()
+
+        # 3. 获取 4 个原始按钮 (button_cancel 是 设备复位)
+        btn_cancel = getattr(self.main_window, "button_cancel", None) # 设备复位
+        btn_ok = getattr(self.main_window, "button_ok", None)         # 确认录入
+        btn_again = getattr(self.main_window, "button_again", None)   # 手动识别
+        btn_print = getattr(self.main_window, "button_print", None)   # 打印箱码
+
+        for b in [btn_cancel, btn_ok, btn_again, btn_print]:
+            if b:
+                b.setStyleSheet(native_btn_style)
+
+        # 4. 创建第 2 页的 3 个新功能按钮控件
+        self.button_print_template = QtWidgets.QPushButton("打印模板")
+        self.button_light_control = QtWidgets.QPushButton("亮度控制")
+        self.button_light_calibrate = QtWidgets.QPushButton("亮度校准")
+
+        for b in [self.button_print_template, self.button_light_control, self.button_light_calibrate]:
+            b.setStyleSheet(native_btn_style)
+
+        self.button_print_template.clicked.connect(self.open_print_template_dialog)
+        self.button_light_control.clicked.connect(self.open_light_control_dialog)
+        self.button_light_calibrate.clicked.connect(self.on_light_calibrate_clicked)
+
+        # 5. 构建 2 页 StackedWidget
+        self._manual_page_stack = QtWidgets.QStackedWidget(group_box)
+        self._manual_page_stack.setGeometry(10, 42, 200, 95)
+
+        # 第 1 页 (手动操作: 设备复位, 确认录入, 手动识别, 打印箱码)
+        page1 = QtWidgets.QWidget()
+        grid1 = QtWidgets.QGridLayout(page1)
+        grid1.setContentsMargins(0, 0, 0, 0)
+        grid1.setHorizontalSpacing(10)
+        grid1.setVerticalSpacing(8)
+        if btn_cancel: grid1.addWidget(btn_cancel, 0, 0)
+        if btn_ok: grid1.addWidget(btn_ok, 0, 1)
+        if btn_again: grid1.addWidget(btn_again, 1, 0)
+        if btn_print: grid1.addWidget(btn_print, 1, 1)
+
+        # 第 2 页 (手动设置: 打印模板, 亮度控制, 亮度校准，右下留空)
+        page2 = QtWidgets.QWidget()
+        grid2 = QtWidgets.QGridLayout(page2)
+        grid2.setContentsMargins(0, 0, 0, 0)
+        grid2.setHorizontalSpacing(10)
+        grid2.setVerticalSpacing(8)
+        grid2.addWidget(self.button_print_template, 0, 0)
+        grid2.addWidget(self.button_light_control, 0, 1)
+        grid2.addWidget(self.button_light_calibrate, 1, 0)
+
+        self._manual_page_stack.addWidget(page1)
+        self._manual_page_stack.addWidget(page2)
+        self._manual_page_stack.show()
+
+        # 初始高亮状态刷新
+        self.update_manual_page_buttons_style()
+
+    def update_manual_page_buttons_style(self):
+        """刷新‘上一页/下一页’的灰亮高亮状态与‘手动操作/手动设置’标题切换"""
+        curr = self._manual_page_stack.currentIndex()
+
+        active_btn_style = (
+            "QPushButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFFFFF, stop:1 #D0D0D0); "
+            "border: 1px solid #505050; border-radius: 2px; font-weight: bold; color: #000; font-size: 11px; padding: 2px 4px; } "
+            "QPushButton:hover { background: #E5E5E5; }"
+        )
+
+        disabled_btn_style = (
+            "QPushButton { background: #F0F0F0; border: 1px solid #C5C5C5; border-radius: 2px; color: #959595; font-size: 11px; padding: 2px 4px; }"
+        )
+
+        if curr == 0:
+            if self.taps_1:
+                self.taps_1.setText("手动操作")
+            self.btn_prev_page.setEnabled(False)
+            self.btn_prev_page.setStyleSheet(disabled_btn_style)
+            self.btn_next_page.setEnabled(True)
+            self.btn_next_page.setStyleSheet(active_btn_style)
+        else:
+            if self.taps_1:
+                self.taps_1.setText("手动设置")
+            self.btn_prev_page.setEnabled(True)
+            self.btn_prev_page.setStyleSheet(active_btn_style)
+            self.btn_next_page.setEnabled(False)
+            self.btn_next_page.setStyleSheet(disabled_btn_style)
+
+    def goto_prev_manual_page(self):
+        curr = self._manual_page_stack.currentIndex()
+        if curr > 0:
+            self._manual_page_stack.setCurrentIndex(curr - 1)
+            self.update_manual_page_buttons_style()
+
+    def goto_next_manual_page(self):
+        curr = self._manual_page_stack.currentIndex()
+        if curr < self._manual_page_stack.count() - 1:
+            self._manual_page_stack.setCurrentIndex(curr + 1)
+            self.update_manual_page_buttons_style()
+
+    def open_light_control_dialog(self):
+        """打开【亮度控制与二分法调光】弹窗"""
+        if not self.light_dialog:
+            self.light_dialog = LightControlDialog(self, parent=self.main_window)
+        self.light_dialog.load_current_camera_brightness()
+        self.light_dialog.exec_()
+
+    def on_light_calibrate_clicked(self):
+        """主界面左下角第 2 页【亮度校准】按钮触发"""
+        if not self.light_dialog:
+            self.light_dialog = LightControlDialog(self, parent=self.main_window)
+        self.light_dialog.on_calibrate_clicked()
+
+    def open_print_template_dialog(self):
+        """打开【打印模板管理】弹窗"""
+        if not self.template_dialog:
+            self.template_dialog = PrintTemplateDialog(config_path="config/settings.json", parent=self.main_window)
+        self.template_dialog.load_elements_config()
+        self.template_dialog.populate_table()
+        self.template_dialog.exec_()
+
     def pageInit(self):
         #  读取缓存的信息 将缓存的信息存入到对应的对象
         # 统计数据
@@ -115,35 +275,6 @@ class Home:
         # 更新页面数据
         self.updatePage()
 
-    def inject_demo_scan_data(self):
-        """生成真实的测试盒码与装箱进度数据，供点击界面测试。"""
-        if self.case is None:
-            self.updataPageCase(self.generate_case_code())
-
-        max_jian = int(CONFIG_DATA.get('edit_max_jian', 10))
-        if len(self.scan_case_data) >= max_jian:
-            from PySide6.QtWidgets import QMessageBox
-            QMessageBox.warning(self.main_window, "装箱已满", f"【当前箱已满额 {max_jian}/{max_jian} 捆】\n无法继续添加！请先点击[重置]或重新[打印箱码]以开启新一箱！")
-            return
-
-        # 1. 模拟识别出 6 盒盒码，直接刷新【识别结果】（1~6小框变绿）
-        stamp = int(time.time() * 1000)
-        mock_codes = [
-            {'data': f'http://gya.sales.yiknet.com/scan/box_{stamp}_{i}', 'type': 'QRCODE'}
-            for i in range(1, 7)
-        ]
-        self.sacn_box_data = mock_codes
-        self.scan_code(6)
-
-        # 2. 自动录入加入装箱进度，直接刷新右侧【装箱进度】（1号大框变绿）
-        self.on_button_ok_clicked(force=True)
-
-        try:
-            self.show_temporary_tooltip(self.main_window.groupBox_7, "【模拟识别成功】", "已自动充入 6 盒盒码与 1 捆装箱进度（绿框亮起）")
-            self.main_window.play_success()
-        except Exception:
-            pass
-
     def reset_data(self):
         # 清除箱码盒马 装箱进度
         self.sacn_box_data = None #重置 扫码临时数据
@@ -160,9 +291,6 @@ class Home:
         try:
             self.show_temporary_tooltip(self.main_window.groupBox_7, "【重新装箱成功】", "已清空箱码、当前装箱进度及盒码")
             self.main_window.play_warning()
-            # 增加明显的弹窗提示，方便在调试时直观验证按钮触发
-            from PySide6.QtWidgets import QMessageBox
-            QMessageBox.information(self.main_window, "重新装箱", "【顶部 4 号按钮/重新装箱 触发成功】\n已成功清空箱码与装箱进度！")
         except Exception:
             pass
 
@@ -204,9 +332,36 @@ class Home:
         self.log_dialog.activateWindow()  # 激活窗口 (可选)
 
     def on_button_again(self):
-        # 点击【手动识别】无条件充入 6 盒与 1 捆绿框测试数据
-        logging.info("手动识别被点击 - 执行充入测试数据") # 使用 logging.info 替换 print
-        self.inject_demo_scan_data()
+        # 先判断是否有箱码，测试模式下若无箱码自动生成一个
+        if self.case is None:
+            self.updataPageCase(self.generate_case_code())
+
+        # 检查是否已达到满箱上限 (10/10 捆)
+        max_jian = int(CONFIG_DATA.get('edit_max_jian', 10))
+        if len(self.scan_case_data) >= max_jian:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(self.main_window, "装箱已满", f"【当前箱已满额 {max_jian}/{max_jian} 捆】\n无法继续添加！请先点击[重置]或重新[打印箱码]以开启新一箱！")
+            return
+
+        logging.info("手动识别/拍照识别被触发 (硬件解包与测试模拟)") # 使用 logging.info 替换 print
+        if obj_cam_operation and obj_cam_operation.sacn_image is not None:
+            self.stop_line()
+            time.sleep(0.1)
+
+        # 1. 尝试抓取真实相机画面并解包
+        self.capture_and_save_image()
+
+        # 2. 如果画面无真实条码 (sacn_box_data 为空)，充入测试盒码数据与 1 捆装箱进度供测试
+        if self.sacn_box_data is None:
+            logging.info("【测试模拟】镜头前无真实条码，自动充入 6 盒测试盒码与 1 捆装箱进度")
+            stamp = int(time.time() * 1000)
+            mock_codes = [
+                {'data': f'http://gya.sales.yiknet.com/scan/box_{stamp}_{i}', 'type': 'QRCODE'}
+                for i in range(1, 7)
+            ]
+            self.sacn_box_data = mock_codes
+            self.scan_code(6)
+            self.on_button_ok_clicked(force=True)
 
     def force_ok_clicked(self):
         self.on_button_ok_clicked(True)#强制录入数据
@@ -505,20 +660,26 @@ class Home:
             # 更新缓存的内容
             config.setConfig({"caseCode": case_code})
 
-    # 生成一个时间戳当箱码
+    # 生成一个 13 位纯数字时间戳作为箱码
     def generate_case_code(self):
         timestamp = int(round(time.time() * 1000))
-        return str(timestamp)
+        code_str = str(timestamp)
+        if len(code_str) > 13:
+            code_str = code_str[:13]
+        elif len(code_str) < 13:
+            code_str = code_str.zfill(13)
+        return code_str
 
-    # 打印箱码
+    # 打印箱码 (调用 T63R RFID 打印写卡闭环引擎)
     def print_barcode(self, case_code):
-        printer_name = CONFIG_DATA['combobox_printSelect']  # 读取设置的打印机
-        page_width = int(CONFIG_DATA['edit_page_width'])
-        page_height = int(CONFIG_DATA['edit_page_height'])
-        page_num = int(CONFIG_DATA['edit_page_num'])
-        # 将条形码数据发送到打印机
-        print_barcode(case_code, printer_name, page_width, page_height,page_num)
-        logging.info(f"打印箱码: {case_code}") # 使用 logging.info 替换 print
+        printer_name = CONFIG_DATA.get('combobox_printSelect', '')
+        page_width = int(CONFIG_DATA.get('edit_page_width', 500))
+        page_height = int(CONFIG_DATA.get('edit_page_height', 400))
+        page_num = int(CONFIG_DATA.get('edit_page_num', 1))
+        # 调用 printUtils 中的 T63R RFID 闭环打印引擎
+        res = print_barcode(case_code, printer_name, page_width, page_height, page_num)
+        logging.info(f"打印箱码闭环完成: {case_code}")
+        return res # 使用 logging.info 替换 print
 
     # ========================打印箱码结束=========================
 
