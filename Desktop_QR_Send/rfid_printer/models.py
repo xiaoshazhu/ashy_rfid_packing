@@ -21,7 +21,7 @@ class PrinterDeviceInfo:
 @dataclass
 class LabelPrintData:
     """真实生产箱标签模板数据字段（后续可由 API / 数据库直接赋值）"""
-    box_code: str = "0123456789012"                   # 13 位箱码
+    box_code: str = ""                                # 相机真实识别箱码，保持原文
     brand: str = "高原安"                             # 品牌
     product_name: str = "高原安藏式甜茶"               # 产品名称
     spec: str = "200g(20g*10条)/盒"                   # 规格

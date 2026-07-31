@@ -41,14 +41,14 @@ def get_rfid_service(config_path: str = "config/settings.json") -> Optional['Rfi
 def print_rfid_box_label(
     case_code: str,
     label_data: Optional['LabelPrintData'] = None,
-    allow_reprint: bool = True  # 默认为 True：方便调试测试期间对同一箱码重复测试打纸写卡
+    allow_reprint: bool = True  # 当前调试阶段关闭防二次写入锁，允许同一箱码重复测试
 ) -> 'PrintResult':
     """
     核心 RFID 箱标签打印、写卡与 TID 闭环核验入口：
     1. 自动连接 64 位 T63R USB 打印机。
     2. 在 100x80mm 300DPI 画布上绘制“高原安”全字段生产箱标签及 Code 128 条码。
-    3. 将 13 位箱码写入 RFID EPC 区域 (Hex 直读模式)。
-    4. 默认设 allow_reprint=True，解除二次写入锁，方便调试反复打印。
+    3. 标签条码使用相机真实识别箱码；RFID EPC 单独写入13位毫秒时间戳。
+    4. 当前设 allow_reprint=True，关闭二次写入保护，便于确认后重复测试。
     """
     service = get_rfid_service()
     if service is None:
@@ -64,7 +64,7 @@ def print_rfid_box_label(
 def print_barcode(case_code, printer_name=None, page_width=500, page_height=400, page_num=1, scale_factor=1.0, left_margin=0, top_margin=0):
     """
     兼容原有系统调用的打印函数接口。
-    驱动 T63R RFID 打印机执行单张打印与 13 位 EPC 写卡比对。
+    驱动 T63R RFID 打印机执行单张打印，并为RFID生成独立13位时间戳。
     """
     logging.info(f"开始执行 T63R RFID 箱码打印: {case_code}, 原设打印机: {printer_name}, 尺寸: {page_width}x{page_height}")
 
@@ -76,11 +76,3 @@ def print_barcode(case_code, printer_name=None, page_width=500, page_height=400,
         logging.warning(f"箱码 '{case_code}' 打印写卡未通过/被拦截: {result.error_message}")
 
     return result
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    test_code = "0123456789020"
-    print(f"测试打印 13 位箱码: {test_code}")
-    res = print_barcode(test_code)
-    print("结果:", res.to_dict())

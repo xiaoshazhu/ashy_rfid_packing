@@ -7,11 +7,13 @@ cd /d "%~dp0"
 if not exist "logs" mkdir "logs" >nul 2>&1
 
 echo ===================================================
-echo          RS485 Top Button Channel Probe
+echo          TD-39 RS485 Input Monitor V2.1
 echo ===================================================
-echo [INFO] Formal program and old button test must be closed.
+echo [INFO] Close the formal program before running this monitor.
 echo [INFO] Only read-only Modbus commands are sent.
-echo [INFO] Camera, printer, server and database are disabled.
+echo [INFO] Monitoring all 12 inputs DI0-DI11.
+echo [INFO] Business actions currently use DI0-DI4.
+echo [INFO] Press and release each input after a valid port is found.
 
 set "APP_PYTHON="
 call :try_python "%PROJECT_PYTHON%"
@@ -32,7 +34,7 @@ if not defined APP_PYTHON (
 echo [INFO] Python: %APP_PYTHON%
 echo ===================================================
 echo.
-"%APP_PYTHON%" "%~dp0rs485_input_probe.py" --port COM3
+"%APP_PYTHON%" "%~dp0rs485_input_probe.py" %*
 set "EXIT_CODE=%ERRORLEVEL%"
 goto :finished
 
@@ -50,9 +52,9 @@ exit /b 0
 echo.
 echo ===================================================
 if "%EXIT_CODE%"=="0" (
-    echo [INFO] Probe closed normally.
+    echo [INFO] Monitor closed normally.
 ) else (
-    echo [ERROR] Probe finished with exit code: %EXIT_CODE%
+    echo [ERROR] Monitor finished with exit code: %EXIT_CODE%
 )
 echo [INFO] Result: logs\rs485_input_probe.log
 echo ===================================================

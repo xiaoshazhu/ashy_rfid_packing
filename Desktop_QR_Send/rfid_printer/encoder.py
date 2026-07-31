@@ -3,26 +3,48 @@
 """
 
 import re
+import time
 from .errors import InvalidBoxCodeError
+
+
+def normalize_scanned_box_code(box_code: str) -> str:
+    """原样保留相机真实识别内容，不截取、不清洗，也不改写为时间戳。"""
+    if not isinstance(box_code, str):
+        raise InvalidBoxCodeError(f"真实箱码必须为字符串，传入类型为: {type(box_code).__name__}")
+    if not box_code.strip():
+        raise InvalidBoxCodeError("真实箱码不能为空")
+    if len(box_code.encode("utf-8")) > 512:
+        raise InvalidBoxCodeError("真实箱码内容超过512字节，不能生成标签条码")
+    return box_code
+
+
+def generate_rfid_timestamp() -> str:
+    """生成只用于RFID写入的13位毫秒时间戳。"""
+    value = str(int(time.time() * 1000))
+    if len(value) > 13:
+        value = value[-13:]
+    elif len(value) < 13:
+        value = value.zfill(13)
+    return validate_box_code(value)
 
 
 def validate_box_code(box_code: str) -> str:
     """
-    校验 13 位数字箱码。
-    在程序内始终使用字符串类型保存，保留前导零。
+    校验用于RFID写入的13位数字时间戳。
+    保留旧函数名以兼容原有调用；真实识别箱码请使用 normalize_scanned_box_code。
     """
     if not isinstance(box_code, str):
-        raise InvalidBoxCodeError(f"箱码必须为字符串类型，传入类型为: {type(box_code).__name__}")
+        raise InvalidBoxCodeError(f"RFID时间戳必须为字符串类型，传入类型为: {type(box_code).__name__}")
 
     code = box_code.strip()
     if not code:
-        raise InvalidBoxCodeError("箱码不能为空")
+        raise InvalidBoxCodeError("RFID时间戳不能为空")
 
     if len(code) != 13:
-        raise InvalidBoxCodeError(f"箱码必须刚好为 13 位数字，当前长度为 {len(code)} 位 (输入: '{code}')")
+        raise InvalidBoxCodeError(f"RFID时间戳必须刚好为13位数字，当前长度为{len(code)}位")
 
     if not code.isdigit():
-        raise InvalidBoxCodeError(f"箱码必须全为数字，包含非数字字符 (输入: '{code}')")
+        raise InvalidBoxCodeError("RFID时间戳必须全为数字")
 
     return code
 

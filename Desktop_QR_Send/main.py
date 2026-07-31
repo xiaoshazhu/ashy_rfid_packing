@@ -30,6 +30,7 @@ import logging
 import datetime
 from logging.handlers import TimedRotatingFileHandler
 from serial.tools import list_ports
+from page.light_control_dialog import load_light_config
 
 class MainWindow(QMainWindow, Ui_HomeWindow):
     def __init__(self):
@@ -127,6 +128,7 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
         while True:
             config.loadConfig()
             comSelect = config.CONFIG_DATA.get("combobox_comSelect")
+            light_port = str(load_light_config().get("port") or "").strip()
 
             port_items = list(list_ports.comports())
             all_ports = [port.device for port in port_items]
@@ -145,18 +147,25 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
             preferred_ports = usb_ports + other_ports
             logging.info(f"当前可用串口: {all_ports} (按 USB 转换器优先排序: {preferred_ports})")
 
-            target_port = None
-            if comSelect and comSelect in all_ports:
-                target_port = comSelect
-            elif preferred_ports:
-                target_port = preferred_ports[0]
-                logging.info(
-                    f"配置串口 ({comSelect}) 未连接或未配置，优先自适应匹配端口: {target_port}"
-                )
-            else:
-                logging.warning("未检测到任何可用串口，3秒后重试...")
+            # 串口用途必须明确配置。没有启用实体按钮时，不能自动占用首个 USB
+            # 串口，否则会把 WDIP 补光灯的 COM 口误当成 TD-39 按钮端口。
+            if not comSelect:
+                logging.info("RS485实体按钮未启用，不占用任何串口；3秒后检查配置...")
                 time.sleep(3)
                 continue
+            if light_port and str(comSelect).upper() == light_port.upper():
+                logging.warning(
+                    f"串口分配冲突：{comSelect} 已明确分配给WDIP补光灯，"
+                    "顶部按钮监听不会占用该端口；请在设置中为TD-39选择其他串口。"
+                )
+                time.sleep(3)
+                continue
+            if comSelect not in all_ports:
+                logging.warning(f"已配置的RS485实体按钮串口 {comSelect} 未连接，3秒后重试...")
+                time.sleep(3)
+                continue
+
+            target_port = comSelect
 
             rs485 = RS485Utils(port=target_port, baudrate=9600, home_instance=self.home)
             try:
@@ -184,22 +193,8 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
     def closeEvent(self, event):
         """窗口关闭事件"""
         logging.info("程序开始关闭...") # 记录程序关闭日志
-        self.home.stop_grabbing()
-        self.home.close_device()
-        if self.client and self.client.get_connection_status():
-            asyncio.run_coroutine_threadsafe(self.client.close(), self.loop)
-        self.loop.stop()
-
-    def centerWindow(self):
-        """设置窗口居中"""
-        screen = QGuiApplication.primaryScreen().geometry()
-        x = (screen.width() - self.width()) // 2
-        y = (screen.height() - self.height()) // 2
-        self.move(x, y)
-
-    def closeEvent(self, event):
-        """窗口关闭事件"""
-        logging.info("程序开始关闭...") # 记录程序关闭日志
+        if not self.home.shutdown_light_output():
+            logging.warning("程序将继续退出，但WDIP灯光关闭未得到有效回读确认。")
         self.home.stop_grabbing()
         self.home.close_device()
         if self.client and self.client.get_connection_status():

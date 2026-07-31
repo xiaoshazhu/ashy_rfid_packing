@@ -144,6 +144,24 @@ class T63RSdk:
         dll.DSTP2x_Lbl_DrawText.argtypes = [c_uint64, c_double, c_double, c_double, c_double, c_char_p]
         dll.DSTP2x_Lbl_DrawText.restype = c_uint
 
+        if hasattr(dll, "DSTP2x_Lbl_DrawLine"):
+            dll.DSTP2x_Lbl_DrawLine.argtypes = [
+                c_uint64, c_double, c_double, c_double, c_double, c_int, c_int
+            ]
+            dll.DSTP2x_Lbl_DrawLine.restype = c_uint
+
+        if hasattr(dll, "DSTP2x_Lbl_DrawImage"):
+            dll.DSTP2x_Lbl_DrawImage.argtypes = [
+                c_uint64, c_double, c_double, c_double, c_double,
+                c_double, c_int, c_char_p, c_uint,
+            ]
+            dll.DSTP2x_Lbl_DrawImage.restype = c_uint
+        if hasattr(dll, "DSTP2x_LcDraw_SetImageHalftoneAlgo"):
+            dll.DSTP2x_LcDraw_SetImageHalftoneAlgo.argtypes = [
+                c_uint64, c_int, c_int, c_int,
+            ]
+            dll.DSTP2x_LcDraw_SetImageHalftoneAlgo.restype = c_uint
+
         dll.DSTP2x_Lbl_DrawBarCode.argtypes = [c_uint64, c_double, c_double, c_double, c_double, c_int, c_char_p]
         dll.DSTP2x_Lbl_DrawBarCode.restype = c_uint
 
@@ -171,9 +189,11 @@ class T63RSdk:
             dll.DSTP2x_RFID_LockOperate.restype = c_uint
 
     def set_text_font(self, lc_hdl: int, font_name: str = "Arial", font_size: float = 10.0, is_bold: bool = False):
-        """还原最初效果极佳的矢量渲染 (Arial 10pt，标准黑度笔画，清晰无锯齿)"""
+        """设置下一段文字使用的 Windows 字体、字号与粗体。"""
         if hasattr(self._dll, "DSTP2x_LcDraw_SetTextFontName"):
-            self._dll.DSTP2x_LcDraw_SetTextFontName(c_uint64(lc_hdl), 0, "Arial".encode('utf-8'))
+            self._dll.DSTP2x_LcDraw_SetTextFontName(
+                c_uint64(lc_hdl), 0, str(font_name or "Microsoft YaHei").encode("utf-8")
+            )
         if hasattr(self._dll, "DSTP2x_LcDraw_SetTextFontSize"):
             self._dll.DSTP2x_LcDraw_SetTextFontSize(c_uint64(lc_hdl), 0, c_double(font_size))
         if hasattr(self._dll, "DSTP2x_LcDraw_SetTextBold"):
@@ -334,14 +354,92 @@ class T63RSdk:
             except Exception as e:
                 logger.error(f"释放标签画布失败: {e}")
 
-    def draw_text(self, lc_hdl: int, x: float, y: float, w: float, h: float, text: str, font_size: float = 10.0):
+    def draw_text(
+        self,
+        lc_hdl: int,
+        x: float,
+        y: float,
+        w: float,
+        h: float,
+        text: str,
+        font_size: float = 10.0,
+        font_name: str = "Microsoft YaHei",
+        is_bold: bool = False,
+    ):
         text_bytes = text.encode('utf-8')
-        self.set_text_font(lc_hdl, font_name="Arial", font_size=font_size, is_bold=False)
+        self.set_text_font(
+            lc_hdl,
+            font_name=font_name,
+            font_size=font_size,
+            is_bold=is_bold,
+        )
         res = self._dll.DSTP2x_Lbl_DrawText(
             c_uint64(lc_hdl), c_double(x), c_double(y), c_double(w), c_double(h), text_bytes
         )
         if res != 0:
             logger.warning(f"绘制文本 '{text}' 返回非零码: {res}")
+
+    def draw_line(
+        self,
+        lc_hdl: int,
+        start_x: float,
+        start_y: float,
+        end_x: float,
+        end_y: float,
+        line_width: int = 1,
+        line_type: int = 0,
+    ):
+        """在标签画布上绘制线段；坐标单位毫米，线宽单位像素。"""
+        if not hasattr(self._dll, "DSTP2x_Lbl_DrawLine"):
+            logger.warning("当前 T63R SDK 不支持 DSTP2x_Lbl_DrawLine，已跳过分隔线")
+            return
+        res = self._dll.DSTP2x_Lbl_DrawLine(
+            c_uint64(lc_hdl),
+            c_double(start_x),
+            c_double(start_y),
+            c_double(end_x),
+            c_double(end_y),
+            c_int(max(1, int(line_width))),
+            c_int(int(line_type)),
+        )
+        if res != 0:
+            logger.warning(f"绘制分隔线返回非零码: {res}")
+
+    def draw_image(
+        self,
+        lc_hdl: int,
+        x: float,
+        y: float,
+        w: float,
+        h: float,
+        image_path: str,
+    ):
+        """按官方 SDK 的本地图片模式绘制品牌图，坐标和尺寸单位为毫米。"""
+        if not hasattr(self._dll, "DSTP2x_Lbl_DrawImage"):
+            logger.warning("当前 T63R SDK 不支持 DSTP2x_Lbl_DrawImage，已跳过品牌图片")
+            return
+        abs_path = os.path.abspath(image_path)
+        if not os.path.exists(abs_path):
+            logger.warning(f"品牌图片不存在，已跳过: {abs_path}")
+            return
+        path_bytes = abs_path.encode("utf-8")
+        if hasattr(self._dll, "DSTP2x_LcDraw_SetImageHalftoneAlgo"):
+            self._dll.DSTP2x_LcDraw_SetImageHalftoneAlgo(
+                c_uint64(lc_hdl), c_int(1), c_int(3), c_int(180)
+            )
+        res = self._dll.DSTP2x_Lbl_DrawImage(
+            c_uint64(lc_hdl),
+            c_double(x),
+            c_double(y),
+            c_double(w),
+            c_double(h),
+            c_double(1.0),
+            c_int(0),
+            path_bytes,
+            c_uint(len(path_bytes)),
+        )
+        if res != 0:
+            logger.warning(f"绘制品牌图片返回非零码: {res}")
 
     def draw_barcode(self, lc_hdl: int, x: float, y: float, w: float, h: float, code_type: int, data: str, show_text: bool = True):
         data_bytes = data.encode('utf-8')

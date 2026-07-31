@@ -2,79 +2,85 @@
 import serial
 import time
 import logging
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+
 from serial.tools import list_ports
 from page import config
 
-WDIP_DEFAULT_SLAVE = 1
-WDIP_BAUDRATE = 9600
-WDIP_READ_FUNCTION = 0x03
-WDIP_REGISTER_START = 0
-WDIP_REGISTER_COUNT = 8
-WDIP_POLL_INTERVAL_SECONDS = 0.2
+from utils.td39_protocol import (
+    TD39_ACTION_DI_COUNT,
+    TD39_BAUDRATE,
+    TD39_DEFAULT_SLAVE,
+    TD39_DI_COUNT,
+    TD39_DI_FUNCTION,
+    TD39_DI_START,
+    TD39_MONITOR_VERSION,
+    build_read_inputs as build_modbus_read_di,
+    crc16_modbus,
+    decode_input_mask,
+    format_input_states,
+    is_valid_frame as is_valid_modbus_frame,
+    states_from_mask,
+)
 
 
-def crc16_modbus(data: bytes) -> int:
-    crc = 0xFFFF
-    for byte in data:
-        crc ^= byte
-        for _ in range(8):
-            if crc & 1:
-                crc = (crc >> 1) ^ 0xA001
-            else:
-                crc >>= 1
-    return crc
+TD39_POLL_INTERVAL_SECONDS = 0.05
+TD39_MONITOR_HEARTBEAT_SECONDS = 5.0
+TD39_UNCHANGED_NOTICE_SECONDS = 10.0
+TD39_RAW_LOG_INTERVAL_SECONDS = 1.0
 
 
-def build_modbus_read_registers(
-    slave_addr: int = WDIP_DEFAULT_SLAVE,
-    start: int = WDIP_REGISTER_START,
-    count: int = WDIP_REGISTER_COUNT,
-) -> bytes:
-    """按 WDIP24-15-R 手册使用 0x03 读取保持寄存器。"""
-    if not 1 <= slave_addr <= 247:
-        raise ValueError("Modbus 从站地址必须在 1~247 之间")
-    if not 0 <= start <= 0xFFFF:
-        raise ValueError("Modbus 起始地址必须在 0~65535 之间")
-    if not 1 <= count <= 125:
-        raise ValueError("Modbus 0x03 读取寄存器数量必须在 1~125 之间")
+def _get_input_monitor_logger():
+    """创建独立监听日志，避免与业务日志混在一起难以查找。"""
+    logger = logging.getLogger("td39_input_monitor")
+    if getattr(logger, "_td39_configured", False):
+        return logger
 
-    payload = bytes([
-        slave_addr,
-        WDIP_READ_FUNCTION,
-        (start >> 8) & 0xFF,
-        start & 0xFF,
-        (count >> 8) & 0xFF,
-        count & 0xFF,
-    ])
-    crc = crc16_modbus(payload)
-    return payload + bytes([crc & 0xFF, (crc >> 8) & 0xFF])
-
-
-def is_valid_modbus_frame(frame: bytes) -> bool:
-    """校验完整 Modbus-RTU 帧的 CRC（CRC 低字节在前）。"""
-    if len(frame) < 4:
-        return False
-    expected = crc16_modbus(frame[:-2])
-    received = frame[-2] | (frame[-1] << 8)
-    return expected == received
+    log_dir = Path(__file__).resolve().parents[1] / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    handler = RotatingFileHandler(
+        log_dir / "rs485_input_monitor.log",
+        maxBytes=5 * 1024 * 1024,
+        backupCount=2,
+        encoding="utf-8",
+    )
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    )
+    logger.handlers.clear()
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+    logger._td39_configured = True
+    return logger
 
 
 class RS485Utils:
-    def __init__(self, port, baudrate, home_instance, slave_addr=WDIP_DEFAULT_SLAVE):
+    def __init__(self, port, baudrate, home_instance, slave_addr=TD39_DEFAULT_SLAVE):
         logging.info(f"RS485Utils 初始化，初始端口: {port}, 波特率: {baudrate}")
         self.port = port
-        self.baudrate = int(baudrate or WDIP_BAUDRATE)
+        self.baudrate = int(baudrate or TD39_BAUDRATE)
         self.slave_addr = int(slave_addr)
         self.ser = None
         self._receive_buffer = bytearray()
         self.home_instance = home_instance
         self._last_trigger_time = {}
-        self._last_wdip_registers = None
+        self._prev_modbus_mask = None
+        self._idle_modbus_mask = None
         self._listen_started_at = None
         self._last_valid_response_at = None
         self._last_no_response_warning_at = None
+        self._last_monitor_heartbeat_at = None
+        self._last_state_change_at = None
+        self._last_unchanged_notice_at = None
+        self._last_raw_sample_log_at = None
+        self._monitor_rx_bytes = 0
+        self._monitor_valid_frames = 0
+        self._monitor_events = 0
+        self._monitor_logger = _get_input_monitor_logger()
         self.running = True
-        logging.debug("RS485Utils 对象创建完成，按 WDIP24-15-R Modbus-RTU 只读协议监听。")
+        logging.debug("RS485Utils 对象创建完成，按 TD-39 Modbus-RTU 协议监听。")
 
     def get_available_ports(self):
         """获取系统当前可用端口，优先真实 USB 串口芯片，排查主板虚拟 COM2/COM1。"""
@@ -122,18 +128,33 @@ class RS485Utils:
 
     def listen(self):
         logging.info(
-            f"开始监听 WDIP24-15-R RS485（只读测试）: 端口={self.port}, 波特率={self.baudrate}, "
-            f"从站={self.slave_addr}, 功能码=0x{WDIP_READ_FUNCTION:02X}"
+            f"开始监听 TD-39 RS485: 端口={self.port}, 波特率={self.baudrate}, "
+            f"从站={self.slave_addr}, 功能码=0x{TD39_DI_FUNCTION:02X}, "
+            f"监测=全部{TD39_DI_COUNT}路(DI0~DI{TD39_DI_COUNT - 1}), "
+            f"业务触发=前{TD39_ACTION_DI_COUNT}路(DI0~DI{TD39_ACTION_DI_COUNT - 1})"
         )
         last_poll_time = 0
         self._listen_started_at = time.monotonic()
+        query_frame = build_modbus_read_di(slave_addr=self.slave_addr)
+        self._monitor_logger.info(
+            "START version=%s port=%s baud=%s format=8N1 slave=%s function=0x%02X "
+            "monitor_channels=DI0~DI%s action_channels=DI0~DI%s query=%s",
+            TD39_MONITOR_VERSION,
+            self.port,
+            self.baudrate,
+            self.slave_addr,
+            TD39_DI_FUNCTION,
+            TD39_DI_COUNT - 1,
+            TD39_ACTION_DI_COUNT - 1,
+            query_frame.hex(" "),
+        )
 
         try:
             if not self.ser or not self.ser.is_open:
                 self.connect()
-            logging.info(f"WDIP24-15-R 串口已打开: [{self.port}] @ {self.baudrate} baud")
+            logging.info(f"TD-39 串口已打开: [{self.port}] @ {self.baudrate} baud")
         except Exception as exc:
-            logging.error(f"WDIP24-15-R 串口打开失败 [{self.port}]: {exc}")
+            logging.error(f"TD-39 串口打开失败 [{self.port}]: {exc}")
             raise
 
         try:
@@ -151,23 +172,38 @@ class RS485Utils:
 
                 now = time.monotonic()
 
-                # WDIP24-15-R 手册：0x03 只读寄存器 0x0000~0x0007。
-                if now - last_poll_time >= WDIP_POLL_INTERVAL_SECONDS:
+                # 读取整块 12 路板的 DI0~DI11。
+                if now - last_poll_time >= TD39_POLL_INTERVAL_SECONDS:
                     if self.ser and self.ser.is_open:
                         try:
-                            poll_cmd = build_modbus_read_registers(slave_addr=self.slave_addr)
+                            poll_cmd = build_modbus_read_di(slave_addr=self.slave_addr)
                             self.ser.write(poll_cmd)
-                            logging.debug(f"WDIP24-15-R 发送只读查询: {poll_cmd.hex(' ')}")
+                            logging.debug(f"TD-39 发送查询: {poll_cmd.hex(' ')}")
                         except Exception as exc:
-                            logging.error(f"WDIP24-15-R 查询发送失败: {exc}")
+                            logging.error(f"TD-39 查询发送失败: {exc}")
                             raise
                     last_poll_time = now
 
                 if self.ser and self.ser.is_open and self.ser.in_waiting > 0:
                     data = self.ser.read(self.ser.in_waiting)
                     hex_data = data.hex(" ")
+                    self._monitor_rx_bytes += len(data)
 
-                    logging.info(f"RS485 [{self.port}] 收到数据 (Hex): {hex_data}")
+                    logging.debug(f"RS485 [{self.port}] 收到数据 (Hex): {hex_data}")
+                    # 保持50ms实体按钮轮询，但原始帧最多每秒记录一次，避免持续磁盘写入拖慢界面。
+                    if (
+                        self._last_raw_sample_log_at is None
+                        or now - self._last_raw_sample_log_at
+                        >= TD39_RAW_LOG_INTERVAL_SECONDS
+                    ):
+                        self._monitor_logger.info(
+                            "RX-SAMPLE port=%s bytes=%s total_bytes=%s hex=%s",
+                            self.port,
+                            len(data),
+                            self._monitor_rx_bytes,
+                            hex_data,
+                        )
+                        self._last_raw_sample_log_at = now
 
                     raw_data_callback = getattr(
                         self.home_instance, "on_rs485_raw_data", None
@@ -178,15 +214,27 @@ class RS485Utils:
                     self._receive_buffer.extend(data)
                     self._process_receive_buffer()
 
-                if self._last_valid_response_at is None and now - self._listen_started_at >= 3.0:
+                response_reference = (
+                    self._last_valid_response_at
+                    if self._last_valid_response_at is not None
+                    else self._listen_started_at
+                )
+                if now - response_reference >= 3.0:
                     if (
                         self._last_no_response_warning_at is None
                         or now - self._last_no_response_warning_at >= 10.0
                     ):
                         logging.warning(
-                            "WDIP24-15-R 未收到有效响应：请核对设置中的 COM 口、A/B 接线、"
-                            f"站号 {self.slave_addr}、9600/8N1；当前只读查询帧="
-                            f"{build_modbus_read_registers(self.slave_addr).hex(' ')}"
+                            "TD-39 未收到有效响应：请核对设置中的 COM 口、A/B 接线、"
+                            f"站号 {self.slave_addr}、9600/8N1；当前查询帧="
+                            f"{build_modbus_read_di(self.slave_addr).hex(' ')}"
+                        )
+                        self._monitor_logger.warning(
+                            "NO-VALID-RESPONSE port=%s silence=%.1fs "
+                            "check=COM/A-B/power/slave/9600-8N1 query=%s",
+                            self.port,
+                            now - response_reference,
+                            query_frame.hex(" "),
                         )
                         self._last_no_response_warning_at = now
 
@@ -198,9 +246,16 @@ class RS485Utils:
             logging.error(f"监听线程发生未知错误: {e}")
         finally:
             logging.info(f"停止监听 RS485 串口数据 ({self.port})。")
+            self._monitor_logger.info(
+                "STOP port=%s valid_frames=%s rx_bytes=%s channel_events=%s",
+                self.port,
+                self._monitor_valid_frames,
+                self._monitor_rx_bytes,
+                self._monitor_events,
+            )
 
     def _process_receive_buffer(self):
-        """从连续字节流中提取完整的 WDIP Modbus 帧或兼容 AA 帧。"""
+        """从连续字节流中提取完整的 TD-39 Modbus 帧或兼容 AA 帧。"""
         while self._receive_buffer:
             first = self._receive_buffer[0]
 
@@ -235,12 +290,12 @@ class RS485Utils:
             func_code = self._receive_buffer[1]
             if func_code & 0x80:
                 frame_len = 5
-            elif func_code == WDIP_READ_FUNCTION:
+            elif func_code == TD39_DI_FUNCTION:
                 if len(self._receive_buffer) < 3:
                     return
                 byte_count = self._receive_buffer[2]
                 if byte_count > 250:
-                    logging.warning(f"WDIP24-15-R 响应字节数异常: {byte_count}")
+                    logging.warning(f"TD-39 响应字节数异常: {byte_count}")
                     del self._receive_buffer[0]
                     continue
                 frame_len = 3 + byte_count + 2
@@ -255,51 +310,139 @@ class RS485Utils:
             frame = bytes(self._receive_buffer[:frame_len])
             if not is_valid_modbus_frame(frame):
                 logging.warning(f"Modbus CRC 校验失败，丢弃起始字节；候选帧: {frame.hex(' ')}")
+                self._monitor_logger.warning(
+                    "CRC-ERROR port=%s candidate=%s",
+                    self.port,
+                    frame.hex(" "),
+                )
                 del self._receive_buffer[0]
                 continue
 
             del self._receive_buffer[:frame_len]
             if func_code & 0x80:
                 logging.error(
-                    f"WDIP24-15-R 返回 Modbus 异常: 功能码=0x{func_code:02X}, "
+                    f"TD-39 返回 Modbus 异常: 功能码=0x{func_code:02X}, "
                     f"异常码=0x{frame[2]:02X}"
+                )
+                self._monitor_logger.error(
+                    "MODBUS-EXCEPTION port=%s function=0x%02X code=0x%02X frame=%s",
+                    self.port,
+                    func_code,
+                    frame[2],
+                    frame.hex(" "),
                 )
                 continue
 
             self._process_modbus_response(frame)
 
     def _process_modbus_response(self, data: bytes):
-        """解析已通过 CRC 校验的 WDIP24-15-R 0x03 寄存器响应。"""
-        if len(data) < 7 or data[0] != self.slave_addr or data[1] != WDIP_READ_FUNCTION:
-            logging.warning(f"忽略非 WDIP24-15-R 寄存器响应: {data.hex(' ')}")
+        """解析已通过 CRC 校验的 TD-39 0x01 输入状态响应。"""
+        if len(data) < 6 or data[0] != self.slave_addr or data[1] != TD39_DI_FUNCTION:
+            logging.warning(f"忽略非 TD-39 输入状态响应: {data.hex(' ')}")
             return
 
         byte_count = data[2]
-        expected_byte_count = WDIP_REGISTER_COUNT * 2
-        if byte_count != expected_byte_count or len(data) != 3 + byte_count + 2:
-            logging.warning(
-                f"WDIP24-15-R 寄存器响应长度错误: 期望 {expected_byte_count} 字节，"
-                f"实际 {byte_count} 字节；帧={data.hex(' ')}"
-            )
+        if byte_count < 1 or len(data) != 3 + byte_count + 2:
+            logging.warning(f"TD-39 输入响应长度错误: {data.hex(' ')}")
             return
 
-        registers = tuple(
-            (data[3 + index * 2] << 8) | data[4 + index * 2]
-            for index in range(WDIP_REGISTER_COUNT)
-        )
-        self._last_valid_response_at = time.monotonic()
-        if registers != self._last_wdip_registers:
-            logging.info(
-                "WDIP24-15-R 有效响应: "
-                f"Reg0(保留)={registers[0]}, "
-                f"输出电压={registers[1] / 100:.2f}V, "
-                f"输出电流={registers[2] / 1000:.3f}A, "
-                f"设定电压={registers[3] / 100:.2f}V, "
-                f"设定电流={registers[4] / 1000:.3f}A, "
-                f"输出控制={registers[5]}, 波特率编号={registers[6]}, "
-                f"串口保存={registers[7]}"
+        try:
+            mask = decode_input_mask(data, self.slave_addr, TD39_DI_COUNT)
+        except ValueError as exc:
+            logging.warning(f"TD-39 输入响应解析失败: {exc}; frame={data.hex(' ')}")
+            self._monitor_logger.warning(
+                "DECODE-ERROR port=%s reason=%s frame=%s",
+                self.port,
+                exc,
+                data.hex(" "),
             )
-            self._last_wdip_registers = registers
+            return
+        now = time.monotonic()
+        self._last_valid_response_at = now
+        self._monitor_valid_frames += 1
+        states_text = format_input_states(states_from_mask(mask, TD39_DI_COUNT))
+        if self._prev_modbus_mask is None:
+            self._prev_modbus_mask = mask
+            self._idle_modbus_mask = mask
+            self._last_state_change_at = now
+            logging.info(f"TD-39 输入初始状态: 0b{mask:08b}")
+            self._monitor_logger.info(
+                "RX-VALID port=%s frame_no=%s frame=%s states=[%s]",
+                self.port,
+                self._monitor_valid_frames,
+                data.hex(" "),
+                states_text,
+            )
+            self._last_monitor_heartbeat_at = now
+            return
+
+        changed = mask ^ self._prev_modbus_mask
+        if changed:
+            self._last_state_change_at = now
+            self._monitor_logger.info(
+                "STATE-CHANGE port=%s frame_no=%s frame=%s states=[%s]",
+                self.port,
+                self._monitor_valid_frames,
+                data.hex(" "),
+                states_text,
+            )
+            for bit in range(TD39_DI_COUNT):
+                if changed & (1 << bit):
+                    channel = bit + 1
+                    raw_closed = bool(mask & (1 << bit))
+                    idle_closed = bool(self._idle_modbus_mask & (1 << bit))
+                    is_press = raw_closed != idle_closed
+                    self._monitor_events += 1
+                    logging.info(
+                        f"TD-39 输入通道 {channel}: 原始状态="
+                        f"{'闭合' if raw_closed else '断开'}, 解释为="
+                        f"{'按下' if is_press else '释放'}"
+                    )
+                    self._monitor_logger.info(
+                        "CHANNEL-EVENT event_no=%s channel=%s module_input=DI%s "
+                        "electrical=%s interpreted=%s",
+                        self._monitor_events,
+                        channel,
+                        bit,
+                        "CLOSED" if raw_closed else "OPEN",
+                        "PRESSED" if is_press else "RELEASED",
+                    )
+                    self._handle_button_event(channel, is_press)
+            self._last_monitor_heartbeat_at = now
+        elif (
+            self._last_monitor_heartbeat_at is None
+            or now - self._last_monitor_heartbeat_at
+            >= TD39_MONITOR_HEARTBEAT_SECONDS
+        ):
+            self._monitor_logger.info(
+                "HEARTBEAT port=%s valid_frames=%s rx_bytes=%s states=[%s]",
+                self.port,
+                self._monitor_valid_frames,
+                self._monitor_rx_bytes,
+                states_text,
+            )
+            self._last_monitor_heartbeat_at = now
+
+        if (
+            self._last_state_change_at is not None
+            and now - self._last_state_change_at >= TD39_UNCHANGED_NOTICE_SECONDS
+            and (
+                self._last_unchanged_notice_at is None
+                or now - self._last_unchanged_notice_at
+                >= TD39_UNCHANGED_NOTICE_SECONDS
+            )
+        ):
+            self._monitor_logger.info(
+                "INPUTS-UNCHANGED port=%s seconds=%.1f states=[%s] "
+                "meaning=通信正常但端子电平没有变化；TD-39的干接点需要外部输入配电，"
+                "不能只短接ICOM-DI。若ICOM接GND，应使用+VS-按钮-DI；"
+                "若ICOM接+VS，应使用GND-按钮-DI",
+                self.port,
+                now - self._last_state_change_at,
+                states_text,
+            )
+            self._last_unchanged_notice_at = now
+        self._prev_modbus_mask = mask
 
     def _queue_button_click(self, button_name: str):
         """把串口线程中的按钮动作排队投递到 Qt 主线程。"""
@@ -345,11 +488,13 @@ class RS485Utils:
         # 按钮 2 (通道 2): 打印箱码 -> button_print
         # 按钮 3 (通道 3): 拍照识别 -> button_again
         # 按钮 4 (通道 4): 重新装箱 -> button_reset
+        # 输入 5 (通道 5): 光电传感器/到位信号 -> button_again
         event_mapping = {
             1: ("button_cancel", "复位"),
             2: ("button_print", "打印箱码"),
             3: ("button_again", "拍照识别"),
             4: ("button_reset", "重新装箱"),
+            5: ("button_again", "光电触发拍照识别"),
         }
 
         mapping = event_mapping.get(door_number)

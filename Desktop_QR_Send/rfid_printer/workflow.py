@@ -19,7 +19,8 @@ from .errors import (
     WriteVerifyMismatchError,
 )
 from .models import PrinterDeviceInfo, PrintResult, LabelPrintData
-from .encoder import validate_box_code, parse_rfid_read_back, hex_to_ascii, verify_box_code_match
+from .encoder import generate_rfid_timestamp, normalize_scanned_box_code
+from .label_layout import render_text, resolve_asset_path, resolve_layout_elements
 from .sdk import T63RSdk
 
 logger = logging.getLogger("RfidPrintWorkflow")
@@ -35,7 +36,7 @@ class RfidPrintService:
         self.sdk = T63RSdk(vendor_dir=vendor_dir)
         self.connected_dev_name: str = ""
         self.dev_hdl: int = 0
-        self.csv_path = os.path.abspath(self.config.get("csv_record_path", "records/test_records.csv"))
+        self.csv_path = os.path.abspath(self.config.get("csv_record_path", "records/print_records.csv"))
 
         self._print_lock = threading.Lock()
         self._ensure_csv_header()
@@ -92,7 +93,7 @@ class RfidPrintService:
                     header = next(reader, None)
                     for row in reader:
                         if len(row) >= 9 and row[8] == "PASS":
-                            printed_set.add(row[1].strip())
+                            printed_set.add(row[3].strip())
             except Exception as e:
                 logger.warning(f"读取 CSV 历史记录失败: {e}")
         return printed_set
@@ -166,85 +167,125 @@ class RfidPrintService:
             return res
 
         start_time = time.perf_counter()
-        result = PrintResult(box_code=box_code, written_value=box_code)
+        result = PrintResult(box_code=box_code, written_value="")
 
         try:
-            clean_code = validate_box_code(box_code)
-            result.box_code = clean_code
-            result.written_value = clean_code
+            scanned_box_code = normalize_scanned_box_code(box_code)
+            rfid_code = generate_rfid_timestamp()
+            result.box_code = scanned_box_code
+            result.written_value = rfid_code
+
+            label_cfg = self.config.get("label", {})
+            width_mm = float(label_cfg.get("width_mm", 100.0))
+            height_mm = float(label_cfg.get("height_mm", 80.0))
+            layout = self.config.get("layout", {})
+            elements = resolve_layout_elements(layout, width_mm, height_mm)
+            element_values = {
+                str(item.get("type")): item.get("value", "")
+                for item in elements
+                if item.get("type")
+            }
 
             if label_data is None:
                 tmpl_cfg = self.config.get("template", {})
                 label_data = LabelPrintData(
-                    box_code=clean_code,
-                    brand=tmpl_cfg.get("brand", "高原安"),
-                    product_name=tmpl_cfg.get("product_name", "高原安藏式甜茶"),
-                    spec=tmpl_cfg.get("spec", "200g(20g*10条)/盒"),
-                    box_spec=tmpl_cfg.get("box_spec", "200g*40盒/箱"),
-                    shelf_life=tmpl_cfg.get("shelf_life", "18个月"),
+                    box_code=scanned_box_code,
+                    brand=tmpl_cfg.get("brand", element_values.get("brand", "高原安")),
+                    product_name=tmpl_cfg.get("product_name", element_values.get("product_name", "高原安藏式甜茶")),
+                    spec=tmpl_cfg.get("spec", element_values.get("spec", "200g (20g×10条)/盒")),
+                    box_spec=tmpl_cfg.get("box_spec", element_values.get("box_spec", "200g*40盒/箱")),
+                    shelf_life=tmpl_cfg.get("shelf_life", element_values.get("shelf_life", "18个月")),
                     produce_date=tmpl_cfg.get("produce_date", datetime.now().strftime("%Y/%m/%d")),
-                    storage=tmpl_cfg.get("storage", "干燥、阴凉、通风处"),
-                    manufacturer=tmpl_cfg.get("manufacturer", "乌兰察布蒙帝乳业有限责任公司")
+                    storage=tmpl_cfg.get("storage", element_values.get("storage", "干燥、阴凉、通风处")),
+                    manufacturer=tmpl_cfg.get("manufacturer", element_values.get("manufacturer", "乌兰察布蒙帝乳业有限责任公司"))
                 )
             else:
-                label_data.box_code = clean_code
+                label_data.box_code = scanned_box_code
 
             if not allow_reprint_same_code:
                 printed_codes = self.list_printed_epcs_from_csv()
-                if clean_code in printed_codes:
+                if rfid_code in printed_codes:
                     result.success = False
                     result.error_code = -89
-                    result.error_message = f"防二次打印拦截！箱码 '{clean_code}' 之前已成功打印写卡过，禁止二次重复打印！"
+                    result.error_message = f"防二次写入拦截！RFID时间戳 '{rfid_code}' 已成功写入过。"
                     self.append_record_to_csv(result)
                     return result
 
             if not self.dev_hdl:
                 self.connect()
 
-            label_cfg = self.config.get("label", {})
-            width_mm = float(label_cfg.get("width_mm", 100.0))
-            height_mm = float(label_cfg.get("height_mm", 80.0))
-
             lc_hdl = self.sdk.create_label(width_mm, height_mm)
             self.sdk.set_lc_prn_mode(lc_hdl, 0)
 
             try:
-                layout = self.config.get("layout", {})
-                elements = layout.get("elements", [])
                 barcode_type = int(layout.get("barcode_type_code", 20))
-
-                data_map = {
-                    "brand": f"品牌：{label_data.brand}",
-                    "product_name": f"产品名称：{label_data.product_name}",
-                    "spec": f"规格：{label_data.spec}",
-                    "box_spec": f"箱规：{label_data.box_spec}",
-                    "shelf_life": f"保质期：{label_data.shelf_life}",
-                    "produce_date": f"生产日期：{label_data.produce_date}",
-                    "storage": f"储存条件：{label_data.storage}",
-                    "manufacturer": f"生产商：{label_data.manufacturer}",
-                }
+                data_map = label_data.to_dict()
+                box_spec_elem = next(
+                    (item for item in elements if item.get("type") == "box_spec"),
+                    None,
+                )
 
                 for elem in elements:
-                    # 检查复选框勾选状态 (13位条形码强制绘制)
-                    if elem.get("type") != "barcode" and not elem.get("enabled", True):
+                    # 检查复选框勾选状态（真实识别箱码条形码强制绘制）
+                    elem_type = elem.get("type")
+                    if elem_type in ("box_count", "box_unit"):
+                        if not box_spec_elem or not box_spec_elem.get("enabled", True):
+                            continue
+                    elif elem_type != "barcode" and not elem.get("enabled", True):
+                        continue
+                    if elem.get("print_direct") is False:
                         continue
 
-                    elem_type = elem.get("type")
                     x = float(elem.get("x", 8.0))
                     y = float(elem.get("y", 5.0))
                     w = float(elem.get("w", 84.0))
                     h = float(elem.get("h", 6.0))
 
-                    if elem_type == "barcode":
-                        self.sdk.draw_barcode(lc_hdl, x, y, w, h, barcode_type, clean_code, show_text=True)
-                    elif elem_type in data_map:
-                        self.sdk.draw_text(lc_hdl, x, y, w, h, data_map[elem_type], font_size=10.0)
+                    if elem_type == "divider":
+                        self.sdk.draw_line(
+                            lc_hdl,
+                            x,
+                            y,
+                            x + w,
+                            y,
+                            line_width=int(elem.get("line_width", 1)),
+                            line_type=int(elem.get("line_type", 0)),
+                        )
+                    elif elem_type == "brand_logo":
+                        self.sdk.draw_image(
+                            lc_hdl,
+                            x,
+                            y,
+                            w,
+                            h,
+                            resolve_asset_path(str(elem.get("asset_path") or elem.get("value") or "")),
+                        )
+                    elif elem_type == "barcode":
+                        self.sdk.draw_barcode(
+                            lc_hdl,
+                            x,
+                            y,
+                            w,
+                            h,
+                            barcode_type,
+                            scanned_box_code,
+                            show_text=bool(elem.get("show_text", True)),
+                        )
                     else:
-                        # 支持用户自定义添加的新字段绘制
-                        custom_label = elem.get("label", elem_type)
-                        custom_val = elem.get("value", "")
-                        draw_str = f"{custom_label}：{custom_val}"
-                        self.sdk.draw_text(lc_hdl, x, y, w, h, draw_str, font_size=10.0)
+                        draw_str = render_text(elem, data_map)
+                        if not draw_str:
+                            continue
+                        self.sdk.draw_text(
+                            lc_hdl,
+                            x,
+                            y,
+                            w,
+                            h,
+                            draw_str,
+                            font_size=float(elem.get("font_size", 8.0)),
+                            font_name=str(elem.get("font_name", "Microsoft YaHei")),
+                            is_bold=bool(elem.get("bold", False)),
+                        )
 
                 rfid_cfg = self.config.get("rfid", {})
                 rgn_type = int(rfid_cfg.get("region_type_code", 1))
@@ -252,9 +293,9 @@ class RfidPrintService:
                 read_type_mask = int(rfid_cfg.get("read_type_mask", 0))
 
                 if fmt_code == 2:
-                    rfid_payload = clean_code.ljust(24, '0')
+                    rfid_payload = rfid_code.ljust(24, '0')
                 else:
-                    rfid_payload = clean_code
+                    rfid_payload = rfid_code
                     if len(rfid_payload) % 2 != 0:
                         rfid_payload += "\x00"
 
@@ -269,7 +310,9 @@ class RfidPrintService:
                 result.read_user = chip_info.get("user", "")
 
                 result.success = True
-                result.error_message = "单张打印写入并核验一致 (PASS)"
+                result.error_message = (
+                    f"标签使用真实箱码，RFID写入13位时间戳 {rfid_code} (PASS)"
+                )
 
             finally:
                 self.sdk.delete_label(lc_hdl)

@@ -15,19 +15,43 @@
     "read_type_mask": 0,
     "allow_reprint_same_code": true
   },
+  "light_controller": {
+    "port": "COM3",
+    "baudrate": 9600,
+    "slave_addr": 1,
+    "timeout_seconds": 0.8,
+    "allow_stable_crc_mismatch_readback": true,
+    "direct_voltage_control": true,
+    "minimum_request_interval_ms": 250,
+    "write_settle_ms": 400,
+    "minimum_voltage_v": 8.0,
+    "maximum_voltage_v": 12.0,
+    "enable_binary_calibration": false,
+    "minimum_percent": 0,
+    "samples_per_level": 5,
+    "settle_ms": 500
+  },
   "layout": {
+    "template_id": "box_design_v1",
+    "profile": "100x80",
     "barcode_type_code": 20,
     "elements": [
-      { "type": "brand", "x": 8.0, "y": 6.0, "w": 84.0, "h": 5.0 },
-      { "type": "product_name", "x": 8.0, "y": 12.0, "w": 84.0, "h": 5.0 },
-      { "type": "spec", "x": 8.0, "y": 18.0, "w": 84.0, "h": 5.0 },
-      { "type": "box_spec", "x": 8.0, "y": 24.0, "w": 84.0, "h": 5.0 },
-      { "type": "shelf_life", "x": 8.0, "y": 30.0, "w": 84.0, "h": 5.0 },
-      { "type": "produce_date", "x": 8.0, "y": 36.0, "w": 84.0, "h": 5.0 },
-      { "type": "storage", "x": 8.0, "y": 42.0, "w": 84.0, "h": 5.0 },
-      { "type": "manufacturer", "x": 8.0, "y": 48.0, "w": 84.0, "h": 5.0 },
-      { "type": "barcode", "x": 10.0, "y": 56.0, "w": 80.0, "h": 18.0 }
+      { "type": "product_caption", "label": "产品名称标题", "value": "产品名称/PRODUCT NAME", "enabled": true, "required": true, "template_visible": true, "type_desc": "固定文字（不可取消）", "x": 5.0, "y": 4.5, "w": 62.0, "h": 4.0, "font_name": "Microsoft YaHei", "font_size": 7.0, "bold": false, "color": "#2B2B2B" },
+      { "type": "brand_logo", "label": "高原安品牌图片", "value": "assets/gaoyuanan_logo.png", "asset_path": "assets/gaoyuanan_logo.png", "enabled": true, "required": true, "template_visible": true, "type_desc": "固定图片（不可取消）", "x": 72.0, "y": 4.5, "w": 23.0, "h": 8.0, "color": "#000000" },
+      { "type": "product_name", "label": "产品名称", "value": "高原安藏式甜茶", "enabled": true, "type_desc": "可选产品字段", "x": 5.0, "y": 10.0, "w": 66.0, "h": 10.0, "font_name": "Microsoft YaHei", "font_size": 20.0, "bold": true, "color": "#000000" },
+      { "type": "spec", "label": "产品规格", "value": "200g (20g×10条)/盒", "enabled": true, "type_desc": "可选产品字段", "x": 5.0, "y": 23.5, "w": 61.0, "h": 4.2, "font_name": "Microsoft YaHei", "font_size": 7.2, "bold": false, "color": "#2B2B2B" },
+      { "type": "shelf_life", "label": "保质期", "value": "18个月", "enabled": true, "type_desc": "可选产品字段", "x": 5.0, "y": 28.3, "w": 61.0, "h": 4.2, "font_name": "Microsoft YaHei", "font_size": 7.2, "bold": false, "color": "#2B2B2B" },
+      { "type": "storage", "label": "储存条件", "value": "干燥、阴凉、通风处", "enabled": true, "type_desc": "可选产品字段", "x": 5.0, "y": 33.1, "w": 61.0, "h": 4.2, "font_name": "Microsoft YaHei", "font_size": 7.2, "bold": false, "color": "#2B2B2B" },
+      { "type": "manufacturer", "label": "生产商", "value": "乌兰察布蒙帝乳业有限责任公司", "enabled": true, "type_desc": "可选产品字段", "x": 5.0, "y": 37.9, "w": 61.0, "h": 4.2, "font_name": "Microsoft YaHei", "font_size": 7.0, "bold": false, "color": "#2B2B2B" },
+      { "type": "produce_date_label", "label": "生产日期标题", "value": "生产日期", "enabled": true, "required": true, "template_visible": true, "type_desc": "固定文字（不可取消）", "x": 70.0, "y": 24.5, "w": 25.0, "h": 4.0, "font_name": "Microsoft YaHei", "font_size": 7.0, "bold": false, "color": "#2B2B2B" },
+      { "type": "produce_date", "label": "日期", "value": "", "enabled": true, "type_desc": "可选产品字段（默认当天）", "x": 67.0, "y": 29.5, "w": 28.0, "h": 6.0, "font_name": "Microsoft YaHei", "font_size": 12.0, "bold": true, "color": "#000000" },
+      { "type": "divider", "label": "上下区域分隔线", "value": "", "enabled": true, "required": true, "template_visible": true, "type_desc": "固定分隔线（不可取消）", "x": 5.0, "y": 46.0, "w": 90.0, "h": 0.0, "line_width": 1, "line_type": 0, "color": "#B7B7B7" },
+      { "type": "box_count", "label": "每箱数量", "value": "40", "enabled": true, "template_visible": false, "type_desc": "由箱规计算", "x": 5.0, "y": 49.5, "w": 22.5, "h": 17.0, "font_name": "Microsoft YaHei", "font_size": 38.0, "bold": true, "color": "#000000" },
+      { "type": "box_unit", "label": "箱规单位", "value": "盒/箱", "enabled": true, "template_visible": false, "type_desc": "由箱规计算", "x": 28.0, "y": 61.0, "w": 13.0, "h": 5.0, "font_name": "Microsoft YaHei", "font_size": 9.0, "bold": true, "color": "#000000" },
+      { "type": "unit_net_weight", "label": "单盒内容", "value": "单盒净含量 200 g", "enabled": true, "type_desc": "可选产品字段，可填写支数或ml", "x": 5.0, "y": 71.0, "w": 35.0, "h": 4.0, "font_name": "Microsoft YaHei", "font_size": 7.2, "bold": false, "color": "#2B2B2B" },
+      { "type": "barcode", "label": "真实识别箱码条形码", "value": "", "enabled": true, "required": true, "template_visible": true, "type_desc": "真实扫码原文（不可取消）", "x": 43.0, "y": 51.5, "w": 52.0, "h": 21.0, "show_text": true, "color": "#000000" },
+      { "type": "box_spec", "label": "箱规", "value": "40盒/箱", "enabled": true, "print_direct": false, "type_desc": "可选产品字段", "x": 5.0, "y": 42.0, "w": 61.0, "h": 4.0, "font_name": "Microsoft YaHei", "font_size": 7.0, "bold": false, "color": "#2B2B2B" }
     ]
   },
-  "csv_record_path": "records/test_records.csv"
+  "csv_record_path": "records/print_records.csv"
 }

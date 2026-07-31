@@ -58,6 +58,7 @@ class Home:
         }
         self.scan_case_data = []  # 存储扫描的临时数据 整箱
         self.case = None  # 箱码
+        self.preview_case_code = None  # 相机真实识别箱码原文，仅供预览/后续打印
         self.main_window = main_window
 
         # 调用样式初始化、事件初始化和海康相机初始化方法
@@ -235,20 +236,44 @@ class Home:
         """打开【亮度控制与二分法调光】弹窗"""
         if not self.light_dialog:
             self.light_dialog = LightControlDialog(self, parent=self.main_window)
-        self.light_dialog.load_current_camera_brightness()
+        if self.light_dialog.direct_voltage_control:
+            self.light_dialog.prepare_direct_voltage_control()
+        else:
+            self.light_dialog.load_current_camera_brightness()
         self.light_dialog.exec_()
 
     def on_light_calibrate_clicked(self):
         """主界面左下角第 2 页【亮度校准】按钮触发"""
         if not self.light_dialog:
             self.light_dialog = LightControlDialog(self, parent=self.main_window)
-        self.light_dialog.on_calibrate_clicked()
+        if self.light_dialog.direct_voltage_control:
+            self.light_dialog.prepare_direct_voltage_control()
+        else:
+            self.light_dialog.load_current_camera_brightness()
+        if not self.light_dialog.light_config.get("enable_binary_calibration", False):
+            logging.info("二分法校准暂未启用，本次只打开WDIP手动电压控制。")
+            self.light_dialog.exec_()
+            return
+        # 先显示对话框，再启动真实校准，保证进度和实测结果对操作员可见。
+        QTimer.singleShot(0, self.light_dialog.on_calibrate_clicked)
+        self.light_dialog.exec_()
+
+    def shutdown_light_output(self) -> bool:
+        """主程序退出清理：只关闭本次运行已连接的WDIP灯光。"""
+        if not self.light_dialog:
+            logging.info("程序退出：本次运行未打开灯光控制，不接管WDIP当前输出状态。")
+            return True
+        return self.light_dialog.shutdown_output()
 
     def open_print_template_dialog(self):
         """打开【打印模板管理】弹窗"""
         if not self.template_dialog:
             self.template_dialog = PrintTemplateDialog(config_path="config/settings.json", parent=self.main_window)
         self.template_dialog.load_elements_config()
+        self.template_dialog.set_preview_data({
+            "barcode": self.preview_case_code or "",
+            "produce_date": datetime.datetime.now().strftime("%Y.%m.%d"),
+        })
         self.template_dialog.populate_table()
         self.template_dialog.exec_()
 
@@ -278,6 +303,7 @@ class Home:
     def reset_data(self):
         # 清除箱码盒马 装箱进度
         self.sacn_box_data = None #重置 扫码临时数据
+        self.preview_case_code = None # 清除上一次真实识别预览箱码，避免误用旧码
         self.case = None #重置 当前操作的箱码
         self.scan_case_data = [] # 重置 当前正在扫码的 箱码的绑定记录
         config.setConfig({"caseData": self.scan_case_data})
@@ -332,10 +358,6 @@ class Home:
         self.log_dialog.activateWindow()  # 激活窗口 (可选)
 
     def on_button_again(self):
-        # 先判断是否有箱码，测试模式下若无箱码自动生成一个
-        if self.case is None:
-            self.updataPageCase(self.generate_case_code())
-
         # 检查是否已达到满箱上限 (10/10 捆)
         max_jian = int(CONFIG_DATA.get('edit_max_jian', 10))
         if len(self.scan_case_data) >= max_jian:
@@ -343,7 +365,9 @@ class Home:
             QMessageBox.warning(self.main_window, "装箱已满", f"【当前箱已满额 {max_jian}/{max_jian} 捆】\n无法继续添加！请先点击[重置]或重新[打印箱码]以开启新一箱！")
             return
 
-        logging.info("手动识别/拍照识别被触发 (硬件解包与测试模拟)") # 使用 logging.info 替换 print
+        logging.info("手动识别/红外触发拍照识别被触发（仅接受真实识别结果）")
+        # 本次识别开始即清除旧预览箱码；即使识别失败也不能沿用上一箱的码。
+        self.preview_case_code = None
         if obj_cam_operation and obj_cam_operation.sacn_image is not None:
             self.stop_line()
             time.sleep(0.1)
@@ -351,17 +375,32 @@ class Home:
         # 1. 尝试抓取真实相机画面并解包
         self.capture_and_save_image()
 
-        # 2. 如果画面无真实条码 (sacn_box_data 为空)，充入测试盒码数据与 1 捆装箱进度供测试
-        if self.sacn_box_data is None:
-            logging.info("【测试模拟】镜头前无真实条码，自动充入 6 盒测试盒码与 1 捆装箱进度")
-            stamp = int(time.time() * 1000)
-            mock_codes = [
-                {'data': f'http://gya.sales.yiknet.com/scan/box_{stamp}_{i}', 'type': 'QRCODE'}
-                for i in range(1, 7)
-            ]
-            self.sacn_box_data = mock_codes
-            self.scan_code(6)
-            self.on_button_ok_clicked(force=True)
+        # 2. 真实识别成功后，保持识别内容原样并打开排版预览。
+        # 不调用确认录入、不写数据库、不调用打印机或RFID。
+        if self.sacn_box_data:
+            self.preview_case_code = str(self.sacn_box_data[0].get("data", ""))
+            logging.info(
+                f"真实识别成功，预览箱码保持扫码原文: {self.preview_case_code}；"
+                f"本帧共识别 {len(self.sacn_box_data)} 个码，标签采用第一个识别结果；"
+                "本次仅显示打印预览，不写数据库、不打印、不写RFID"
+            )
+            self.show_scanned_print_preview()
+
+    def show_scanned_print_preview(self):
+        """使用本次相机真实识别原文作为箱码，显示标签预览。"""
+        if not self.preview_case_code or not self.sacn_box_data:
+            return False
+        if not self.template_dialog:
+            self.template_dialog = PrintTemplateDialog(
+                config_path="config/settings.json",
+                parent=self.main_window,
+            )
+        self.template_dialog.load_elements_config()
+        self.template_dialog.set_preview_data({
+            "barcode": self.preview_case_code,
+            "produce_date": datetime.datetime.now().strftime("%Y.%m.%d"),
+        })
+        return self.template_dialog.show_preview_dialog(parent=self.main_window)
 
     def force_ok_clicked(self):
         self.on_button_ok_clicked(True)#强制录入数据
@@ -591,15 +630,44 @@ class Home:
     # 拍照并保存图片
     def capture_and_save_image(self):
         # 确保相机已经开始推流
-        if not obj_cam_operation.b_start_grabbing:
+        if obj_cam_operation is None or not obj_cam_operation.b_start_grabbing:
             logging.info("相机尚未开始推流") # 使用 logging.info 替换 print
+            self.sacn_box_data = None
+            self.preview_case_code = None
+            self.scan_code(0)
+            self.show_temporary_tooltip(
+                self.main_window.groupBox_7,
+                "【识别失败】",
+                "相机尚未开始推流，未使用任何模拟数据。",
+            )
             return
         # 获取图像数据
         if obj_cam_operation.buf_save_image is None:
             logging.info("没有图像数据") # 使用 logging.info 替换 print
+            self.sacn_box_data = None
+            self.preview_case_code = None
+            self.scan_code(0)
+            self.show_temporary_tooltip(
+                self.main_window.groupBox_7,
+                "【识别失败】",
+                "相机没有有效图像帧，未使用任何模拟数据。",
+            )
             return
 
         np_array_image = obj_cam_operation.get_np_array_image()
+        if np_array_image is None or getattr(np_array_image, "size", 0) == 0:
+            logging.warning("相机帧转换失败，未得到可识别图像")
+            self.sacn_box_data = None
+            self.preview_case_code = None
+            self.scan_code(0)
+            return
+        logging.info(
+            "真实相机帧状态: shape=%s, 平均亮度=%.1f, 最暗=%s, 最亮=%s",
+            tuple(np_array_image.shape),
+            float(np_array_image.mean()),
+            int(np_array_image.min()),
+            int(np_array_image.max()),
+        )
 
         # 调用pyzbar_utils中的process_image方法处理图像
         process_image(self, obj_cam_operation, np_array_image)
@@ -613,21 +681,18 @@ class Home:
         if self.isPrint:
             logging.info("正在打印") # 使用 logging.info 替换 print
             return
-        # 判断箱码是否已经存在
-        if self.case:
-            logging.info("箱码已经存在，重新打印箱码") # 使用 logging.info 替换 print
-            # 恢复识别结果
-            self.sacn_box_data = None
-            self.scan_code_end()
-            # 恢复装箱进度
-            self.scan_case_data = []
-            self.scan_case_end()
-            # 回复缓存的内容
-            config.setConfig({"caseData": self.scan_case_data})
+        case_code = self.preview_case_code or self.case
+        if not case_code:
+            logging.warning("尚未取得相机真实识别箱码，拒绝打印")
+            self.show_temporary_tooltip(
+                self.main_window.groupBox_7,
+                "【无法打印】",
+                "请先由红外线触发相机并成功识别真实箱码。",
+            )
+            self.main_window.play_warning()
+            return
 
         self.isPrint = True  # 改变打印状态
-        # 生成一个箱码
-        case_code = self.generate_case_code()
         # 存储箱码
         db = Database()
         db.case_insert_data(case_code)
@@ -659,16 +724,6 @@ class Home:
                 "QGroupBox { background-color: #CAF982; border: 1px solid #797979; border-radius: 5px; }")
             # 更新缓存的内容
             config.setConfig({"caseCode": case_code})
-
-    # 生成一个 13 位纯数字时间戳作为箱码
-    def generate_case_code(self):
-        timestamp = int(round(time.time() * 1000))
-        code_str = str(timestamp)
-        if len(code_str) > 13:
-            code_str = code_str[:13]
-        elif len(code_str) < 13:
-            code_str = code_str.zfill(13)
-        return code_str
 
     # 打印箱码 (调用 T63R RFID 打印写卡闭环引擎)
     def print_barcode(self, case_code):

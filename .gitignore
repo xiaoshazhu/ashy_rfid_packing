@@ -40,3 +40,23 @@ Desktop_QR_Send/*.spec
 # 忽略临时测试大图片
 **/test2.bmp
 **/processed_image.png
+
+# 厂家运行库、设备电脑备份和本地硬件资料不进入公开代码仓库
+Desktop_QR_Send/vendor/
+Desktop_QR_Send/Template/
+Desktop_QR_Send/Template_en/
+Desktop_QR_Send/plugins/
+Desktop_QR_Send/res/
+Desktop_QR_Send/*.dll
+Desktop_QR_Send/*.img
+Desktop_QR_Send/sdkcfg.xml
+Desktop_QR_Send/原设备电脑备份信息/
+WDIP24-15-R导轨式隔离型可调电源上位机软件及Modbus通讯协议/
+TD-39系列*.pdf
+*.ocx
+*.scc
+
+# 设计源文件、渲染结果和临时工作目录
+*.ai
+output/
+tmp/

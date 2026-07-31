@@ -21,7 +21,7 @@ from hikUtils.MvImport.MvCameraControl_class import *
 from hikUtils.MvImport.CameraParams_header import *
 
 
-# 强制关闭线程
+# 强制关闭线程（保留设备电脑已验证可显示画面的原SDK取流方式）
 def Async_raise(tid, exctype):
     tid = ctypes.c_long(tid)
     if not inspect.isclass(exctype):
@@ -34,7 +34,6 @@ def Async_raise(tid, exctype):
         raise SystemError("PyThreadState_SetAsyncExc failed")
 
 
-# 停止线程
 def Stop_thread(thread):
     Async_raise(thread.ident, SystemExit)
 
@@ -189,6 +188,7 @@ class CameraOperation:
             ret = self.obj_cam.MV_CC_SetEnumValue("TriggerMode", MV_TRIGGER_MODE_OFF)
             if ret != 0:
                 logging.warning("set trigger mode fail! ret[0x%x]" % ret)
+
             return MV_OK
 
     # 开始取图
@@ -214,7 +214,7 @@ class CameraOperation:
     # 停止取图
     def Stop_grabbing(self):
         if self.b_start_grabbing and self.b_open_device:
-            # 退出线程
+            # 使用设备电脑此前已验证可正常重新绑定渲染句柄的原SDK线程停止方式。
             if self.b_thread_closed:
                 Stop_thread(self.h_thread_handle)
                 self.b_thread_closed = False
@@ -231,7 +231,6 @@ class CameraOperation:
     # 关闭相机
     def Close_device(self):
         if self.b_open_device:
-            # 退出线程
             if self.b_thread_closed:
                 Stop_thread(self.h_thread_handle)
                 self.b_thread_closed = False

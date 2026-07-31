@@ -7,6 +7,7 @@
 import os
 import json
 import logging
+from datetime import datetime
 from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtCore import Qt, QRectF
 from PySide6.QtGui import QPixmap, QPainter, QColor, QFont, QPen
@@ -15,20 +16,17 @@ from PySide6.QtWidgets import (
     QPushButton, QHeaderView, QCheckBox, QMessageBox, QInputDialog, QLineEdit,
     QDoubleSpinBox, QComboBox
 )
+from rfid_printer.label_layout import (
+    TEMPLATE_ID,
+    is_required_element,
+    is_template_visible,
+    profile_name_for_size,
+    render_text,
+    resolve_asset_path,
+    resolve_layout_elements,
+)
 
 logger = logging.getLogger("PrintTemplateDialog")
-
-DEFAULT_ELEMENTS = [
-    {"type": "brand", "label": "品牌", "value": "高原安", "enabled": True, "type_desc": "基础文本", "x": 8.0, "y": 6.0, "w": 84.0, "h": 5.0},
-    {"type": "product_name", "label": "产品名称", "value": "高原安藏式甜茶", "enabled": True, "type_desc": "基础文本", "x": 8.0, "y": 12.0, "w": 84.0, "h": 5.0},
-    {"type": "spec", "label": "规格", "value": "200g(20g*10条)/盒", "enabled": True, "type_desc": "基础文本", "x": 8.0, "y": 18.0, "w": 84.0, "h": 5.0},
-    {"type": "box_spec", "label": "箱规", "value": "200g*40盒/箱", "enabled": True, "type_desc": "基础文本", "x": 8.0, "y": 24.0, "w": 84.0, "h": 5.0},
-    {"type": "shelf_life", "label": "保质期", "value": "18个月", "enabled": True, "type_desc": "基础文本", "x": 8.0, "y": 30.0, "w": 84.0, "h": 5.0},
-    {"type": "produce_date", "label": "生产日期", "value": "2026/07/28", "enabled": True, "type_desc": "基础文本", "x": 8.0, "y": 36.0, "w": 84.0, "h": 5.0},
-    {"type": "storage", "label": "储存条件", "value": "干燥、阴凉、通风处", "enabled": True, "type_desc": "基础文本", "x": 8.0, "y": 42.0, "w": 84.0, "h": 5.0},
-    {"type": "manufacturer", "label": "生产商", "value": "乌兰察布蒙帝乳业有限责任公司", "enabled": True, "type_desc": "基础文本", "x": 8.0, "y": 48.0, "w": 84.0, "h": 5.0},
-    {"type": "barcode", "label": "13位箱码条形码", "value": "1785200647700", "enabled": True, "type_desc": "13位条形码 (固定项)", "x": 10.0, "y": 56.0, "w": 80.0, "h": 18.0}
-]
 
 NATIVE_BTN_STYLE = (
     "QPushButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F8F8F8, stop:1 #E0E0E0); "
@@ -41,13 +39,14 @@ NATIVE_BTN_STYLE = (
 class PrintPreviewDialog(QDialog):
     """打印效果可视化预览弹窗 (支持动态自动避让排版，确保 100% 互不遮挡)"""
 
-    def __init__(self, elements, width_mm=100.0, height_mm=80.0, parent=None):
+    def __init__(self, elements, width_mm=100.0, height_mm=80.0, preview_data=None, parent=None):
         super().__init__(parent)
         self.width_mm = width_mm
         self.height_mm = height_mm
         self.setWindowTitle(f"🏷️ 标签纸排版打印效果预览 ({width_mm:.0f}mm x {height_mm:.0f}mm)")
         self.resize(540, 460)
         self.elements = elements
+        self.preview_data = dict(preview_data or {})
         self.init_ui()
 
     def init_ui(self):
@@ -70,7 +69,7 @@ class PrintPreviewDialog(QDialog):
         self.render_preview()
 
     def render_preview(self):
-        """用 QPainter 实时绘制指定长宽比例的标签纸排版效果，自动避让布局确保互不遮挡"""
+        """按毫米坐标绘制与实际打印一致的固定版式预览。"""
         max_canvas_w, max_canvas_h = 460, 340
         aspect = self.width_mm / max(1.0, self.height_mm)
 
@@ -95,47 +94,81 @@ class PrintPreviewDialog(QDialog):
         scale_x = width_px / max(1.0, self.width_mm)
         scale_y = height_px / max(1.0, self.height_mm)
 
-        # 收集被勾选的文字元素与条码元素，进行动态纵向线性自动布局 (避让重叠)
-        enabled_text_elems = [e for e in self.elements if e.get("enabled", True) and e.get("type") != "barcode"]
-        barcode_elem = next((e for e in self.elements if e.get("type") == "barcode"), None)
+        # 可编辑字段使用弹窗当前值，真实扫码箱码和当天日期由外部预览数据覆盖。
+        preview_data = {
+            elem.get("type"): elem.get("value", "")
+            for elem in self.elements
+            if elem.get("type")
+        }
+        preview_data.update(self.preview_data)
+        preview_data.setdefault("produce_date", datetime.now().strftime("%Y.%m.%d"))
 
-        start_y_mm = 6.0
-        line_height_mm = 5.5
-        current_y_mm = start_y_mm
+        for elem in self.elements:
+            elem_type = elem.get("type")
+            if elem_type in ("box_count", "box_unit"):
+                box_spec_elem = next((item for item in self.elements if item.get("type") == "box_spec"), {})
+                if not box_spec_elem or not box_spec_elem.get("enabled", True):
+                    continue
+            elif elem_type != "barcode" and not elem.get("enabled", True):
+                continue
 
-        # 1. 依次从上到下等间距绘制文本字段 (互不遮挡)
-        for elem in enabled_text_elems:
-            x = 8.0 * scale_x
-            y = current_y_mm * scale_y
-            w = (self.width_mm - 16.0) * scale_x
-            h = 5.0 * scale_y
+            if elem.get("print_direct") is False:
+                continue
 
-            label_name = elem.get("label", "")
-            val_text = elem.get("value", "")
-            text_str = f"{label_name}：{val_text}" if label_name else val_text
-            font_text = QFont("Arial", 8, QFont.Normal)
-            painter.setFont(font_text)
-            painter.setPen(QPen(QColor(30, 30, 30)))
-            painter.drawText(QRectF(x, y, w, h), Qt.AlignLeft | Qt.AlignVCenter, text_str)
+            x = float(elem.get("x", 0.0)) * scale_x
+            y = float(elem.get("y", 0.0)) * scale_y
+            w = float(elem.get("w", 0.0)) * scale_x
+            h = float(elem.get("h", 0.0)) * scale_y
+            color = QColor(str(elem.get("color", "#000000")))
 
-            current_y_mm += line_height_mm
+            if elem_type == "divider":
+                pen = QPen(color, max(1, int(elem.get("line_width", 1))))
+                painter.setPen(pen)
+                painter.drawLine(int(x), int(y), int(x + w), int(y))
+                continue
 
-        # 2. 动态计算条形码位置：紧跟在最后一个文字下方，留出 4mm 边距 (绝不遮挡)
-        if barcode_elem:
-            barcode_y_mm = max(current_y_mm + 2.0, self.height_mm - 24.0)
-            x = 10.0 * scale_x
-            y = barcode_y_mm * scale_y
-            w = (self.width_mm - 20.0) * scale_x
-            h = 18.0 * scale_y
+            if elem_type == "brand_logo":
+                logo = QPixmap(resolve_asset_path(str(elem.get("asset_path") or elem.get("value") or "")))
+                if not logo.isNull():
+                    painter.drawPixmap(QRectF(x, y, w, h), logo, QRectF(logo.rect()))
+                continue
 
-            pen_bar = QPen(QColor(0, 0, 0), 2)
-            painter.setPen(pen_bar)
-            painter.drawRect(int(x), int(y), int(w), int(max(10, h - 14)))
-            for bx in range(int(x + 5), int(x + w - 5), 4):
-                painter.drawLine(bx, int(y + 2), bx, int(y + max(10, h - 16)))
-            font_code = QFont("Arial", 9, QFont.Bold)
-            painter.setFont(font_code)
-            painter.drawText(QRectF(x, y + max(10, h - 14), w, 14), Qt.AlignCenter, barcode_elem.get("value", "1785200647700"))
+            if elem_type == "barcode":
+                code = str(preview_data.get("barcode") or elem.get("value") or "")
+                text_height = max(10, int(3.4 * scale_y))
+                bars_bottom = int(y + h - text_height)
+                painter.setPen(Qt.NoPen)
+                painter.setBrush(QColor(0, 0, 0))
+                # 按 2/3/4 像素宽度循环绘制预览条，实际打印由 SDK 生成 Code 128。
+                bx = int(x)
+                index = 0
+                widths = (2, 1, 3, 1, 2, 2, 1, 4)
+                while bx < int(x + w):
+                    bar_w = max(1, int(widths[index % len(widths)] * scale_x / 2.5))
+                    if index % 2 == 0:
+                        painter.drawRect(bx, int(y), min(bar_w, int(x + w) - bx), max(1, bars_bottom - int(y)))
+                    bx += bar_w
+                    index += 1
+                font_code = QFont("Arial")
+                font_code.setPixelSize(max(8, int(2.8 * scale_y)))
+                painter.setFont(font_code)
+                painter.setPen(QPen(QColor(0, 0, 0)))
+                painter.drawText(QRectF(x, bars_bottom, w, text_height), Qt.AlignCenter, code)
+                continue
+
+            text_str = render_text(elem, preview_data)
+            if not text_str:
+                continue
+            font = QFont(str(elem.get("font_name", "Microsoft YaHei")))
+            font_size_pt = float(elem.get("font_size", 8.0))
+            font.setPixelSize(max(6, int(font_size_pt * 25.4 / 72.0 * scale_y)))
+            font.setBold(bool(elem.get("bold", False)))
+            painter.setFont(font)
+            painter.setPen(QPen(color))
+            alignment = Qt.AlignLeft | Qt.AlignVCenter
+            if elem_type in ("produce_date_label", "produce_date"):
+                alignment = Qt.AlignCenter
+            painter.drawText(QRectF(x, y, w, h), alignment, text_str)
 
         painter.end()
         self.preview_lbl.setPixmap(pix)
@@ -144,7 +177,7 @@ class PrintPreviewDialog(QDialog):
 class PrintTemplateDialog(QDialog):
     """本地化打印模板管理对话框 (飞书多维表格风格：支持 🔍 模糊搜索 与 🌪️ 可编辑类型说明)"""
 
-    def __init__(self, config_path="config/settings.json", parent=None):
+    def __init__(self, config_path="config/settings.json", preview_data=None, parent=None):
         super().__init__(parent)
         self.config_path = os.path.abspath(config_path)
         self.setWindowTitle("打印模板管理 (飞书表格风格与搜索筛选)")
@@ -154,54 +187,63 @@ class PrintTemplateDialog(QDialog):
         self.elements = []
         self.label_width_mm = 100.0
         self.label_height_mm = 80.0
+        self.preview_data = dict(preview_data or {})
         self.load_elements_config()
         self.init_ui()
         self.populate_table()
 
     def load_elements_config(self):
         """从本地 json 配置文件读取模板列表与纸张长宽"""
+        data = {}
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    label_cfg = data.get("label", {})
-                    self.label_width_mm = float(label_cfg.get("width_mm", 100.0))
-                    self.label_height_mm = float(label_cfg.get("height_mm", 80.0))
-
-                    cfg_elements = data.get("layout", {}).get("elements", [])
-                    if cfg_elements:
-                        merged = []
-                        for default_item in DEFAULT_ELEMENTS:
-                            found = False
-                            for item in cfg_elements:
-                                if item.get("type") == default_item["type"]:
-                                    item_copy = dict(default_item)
-                                    item_copy.update(item)
-                                    if "enabled" not in item_copy:
-                                        item_copy["enabled"] = True
-                                    merged.append(item_copy)
-                                    found = True
-                                    break
-                            if not found:
-                                merged.append(dict(default_item))
-
-                        for item in cfg_elements:
-                            if not any(m["type"] == item.get("type") for m in merged):
-                                item_copy = dict(item)
-                                if "label" not in item_copy:
-                                    item_copy["label"] = item_copy.get("type", "自定义")
-                                if "enabled" not in item_copy:
-                                    item_copy["enabled"] = True
-                                if "value" not in item_copy:
-                                    item_copy["value"] = ""
-                                if "type_desc" not in item_copy:
-                                    item_copy["type_desc"] = "自定义扩展"
-                                merged.append(item_copy)
-                        self.elements = merged
-                        return
             except Exception as e:
                 logger.error(f"读取模板配置失败: {e}")
-        self.elements = [dict(x) for x in DEFAULT_ELEMENTS]
+
+        label_cfg = data.get("label", {})
+        self.label_width_mm = float(label_cfg.get("width_mm", 100.0))
+        self.label_height_mm = float(label_cfg.get("height_mm", 80.0))
+        self.loaded_profile = profile_name_for_size(
+            self.label_width_mm, self.label_height_mm
+        )
+        self.elements = resolve_layout_elements(
+            data.get("layout", {}),
+            self.label_width_mm,
+            self.label_height_mm,
+        )
+        if hasattr(self, "spin_width"):
+            self.spin_width.setValue(self.label_width_mm)
+            self.spin_height.setValue(self.label_height_mm)
+
+    def set_preview_data(self, preview_data=None):
+        """设置来自本次真实扫码的临时预览数据，不保存到配置或数据库。"""
+        self.preview_data = dict(preview_data or {})
+        if hasattr(self, "table"):
+            self.populate_table()
+
+    def show_preview_dialog(self, elements=None, parent=None):
+        """显示内存预览；不保存配置，不连接打印机、RFID或数据库。"""
+        box_code = str(self.preview_data.get("barcode", "")).strip()
+        if not box_code:
+            QMessageBox.warning(
+                parent or self,
+                "无法预览",
+                "尚未取得相机真实识别箱码，请先触发相机完成真实识别。",
+            )
+            return False
+
+        self.preview_data["barcode"] = box_code
+        preview_dlg = PrintPreviewDialog(
+            elements or self.elements,
+            width_mm=self.spin_width.value() if hasattr(self, "spin_width") else self.label_width_mm,
+            height_mm=self.spin_height.value() if hasattr(self, "spin_height") else self.label_height_mm,
+            preview_data=self.preview_data,
+            parent=parent or self,
+        )
+        preview_dlg.exec_()
+        return True
 
     def save_elements_config(self):
         """保存配置及长宽尺寸到本地 settings.json"""
@@ -221,6 +263,21 @@ class PrintTemplateDialog(QDialog):
 
         if "layout" not in data:
             data["layout"] = {}
+        target_profile = profile_name_for_size(
+            self.spin_width.value(), self.spin_height.value()
+        )
+        if target_profile != getattr(self, "loaded_profile", target_profile):
+            self.elements = resolve_layout_elements(
+                {
+                    "template_id": TEMPLATE_ID,
+                    "profile": getattr(self, "loaded_profile", target_profile),
+                    "elements": self.elements,
+                },
+                self.spin_width.value(),
+                self.spin_height.value(),
+            )
+        data["layout"]["template_id"] = TEMPLATE_ID
+        data["layout"]["profile"] = target_profile
         data["layout"]["elements"] = self.elements
 
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
@@ -268,7 +325,7 @@ class PrintTemplateDialog(QDialog):
         # 🌪️ 飞书风格多维筛选下拉框
         filter_bar.addWidget(QLabel("🌪️ 筛选条件:"))
         self.combo_filter = QComboBox()
-        self.combo_filter.addItems(["全部字段", "仅看已勾选", "仅看未勾选", "基础文本", "13位条形码", "自定义扩展"])
+        self.combo_filter.addItems(["全部字段", "仅看已勾选", "仅看未勾选", "基础文本", "真实箱码条形码", "自定义扩展"])
         self.combo_filter.setFixedWidth(110)
         self.combo_filter.currentIndexChanged.connect(self.apply_filter_search)
         filter_bar.addWidget(self.combo_filter)
@@ -336,7 +393,10 @@ class PrintTemplateDialog(QDialog):
 
     def populate_table(self):
         self.table.setRowCount(0)
-        for row, elem in enumerate(self.elements):
+        for elem in self.elements:
+            if not is_template_visible(elem):
+                continue
+            row = self.table.rowCount()
             self.table.insertRow(row)
 
             # Column 0: 复选框
@@ -347,7 +407,7 @@ class PrintTemplateDialog(QDialog):
             chk = QCheckBox()
             chk.setChecked(elem.get("enabled", True))
 
-            if elem.get("type") == "barcode":
+            if is_required_element(elem):
                 chk.setEnabled(False)
                 chk.setChecked(True)
 
@@ -358,26 +418,34 @@ class PrintTemplateDialog(QDialog):
             label_name = elem.get("label", "")
             val_text = elem.get("value", "")
             if elem.get("type") == "barcode":
-                content_str = f"13位箱码条形码 ({val_text or '13位纯数字'})"
+                real_code = str(self.preview_data.get("barcode") or "")
+                content_str = f"真实识别箱码条形码：{real_code or '等待真实扫码'}"
+            elif elem.get("type") == "brand_logo":
+                content_str = "高原安品牌图片：图二"
             elif label_name:
                 content_str = f"{label_name}：{val_text}"
             else:
                 content_str = val_text
 
             content_item = QTableWidgetItem(content_str)
+            content_item.setData(Qt.UserRole, str(elem.get("type", "")))
+            if is_required_element(elem):
+                content_item.setFlags(content_item.flags() & ~Qt.ItemIsEditable)
             self.table.setItem(row, 1, content_item)
 
             # Column 2: 类型说明 (彻底开放为可编辑单元格，方便用户自由填写备注/读取类型)
             type_desc = elem.get("type_desc", "")
             if not type_desc:
                 if elem.get("type") == "barcode":
-                    type_desc = "13位条形码 (固定项)"
+                    type_desc = "真实识别箱码条形码 (固定项)"
                 elif elem.get("type") in ["brand", "product_name", "spec", "box_spec", "shelf_life", "produce_date", "storage", "manufacturer"]:
                     type_desc = "基础文本"
                 else:
                     type_desc = "自定义扩展"
 
             type_item = QTableWidgetItem(type_desc)
+            if is_required_element(elem):
+                type_item.setFlags(type_item.flags() & ~Qt.ItemIsEditable)
             self.table.setItem(row, 2, type_item)
 
     def apply_filter_search(self):
@@ -404,8 +472,8 @@ class PrintTemplateDialog(QDialog):
                 matches_filter = not is_checked
             elif filter_mode == "基础文本":
                 matches_filter = ("基础文本" in type_text)
-            elif filter_mode == "13位条形码":
-                matches_filter = ("13位条形码" in type_text or "条码" in type_text)
+            elif filter_mode == "真实箱码条形码":
+                matches_filter = ("真实识别箱码" in type_text or "条码" in type_text)
             elif filter_mode == "自定义扩展":
                 matches_filter = ("自定义" in type_text or "扩展" in type_text)
 
@@ -413,8 +481,12 @@ class PrintTemplateDialog(QDialog):
             self.table.setRowHidden(row, not show_row)
 
     def collect_elements_from_table(self):
-        new_elements = []
-        enabled_text_count = 0
+        updated_by_type = {
+            str(elem.get("type", "")): dict(elem)
+            for elem in self.elements
+            if elem.get("type")
+        }
+        original_order = [str(elem.get("type", "")) for elem in self.elements if elem.get("type")]
 
         for row in range(self.table.rowCount()):
             chk_widget = self.table.cellWidget(row, 0)
@@ -423,24 +495,15 @@ class PrintTemplateDialog(QDialog):
 
             content_str = self.table.item(row, 1).text().strip()
             type_desc_str = self.table.item(row, 2).text().strip() if self.table.item(row, 2) else ""
-            orig = self.elements[row] if row < len(self.elements) else {}
+            content_item = self.table.item(row, 1)
+            elem_type = str(content_item.data(Qt.UserRole) or f"custom_{row}")
+            orig = updated_by_type.get(elem_type, {})
+            if is_required_element(orig):
+                is_enabled = True
 
-            elem_type = orig.get("type", f"custom_{row}")
-
-            # 动态自动计算排版坐标 (实现 100% 互不遮挡)
-            if elem_type == "barcode":
-                x, y, w, h = 10.0, 56.0, 80.0, 18.0
-            else:
-                x = 8.0
-                y = 6.0 + enabled_text_count * 5.5
-                w = 84.0
-                h = 5.0
-                if is_enabled:
-                    enabled_text_count += 1
-
-            if elem_type == "barcode":
-                label_name = "13位箱码条形码"
-                val_text = orig.get("value", "1785200647700")
+            if is_required_element(orig):
+                label_name = str(orig.get("label", ""))
+                val_text = str(orig.get("value", ""))
             elif "：" in content_str:
                 parts = content_str.split("：", 1)
                 label_name = parts[0].strip()
@@ -453,18 +516,30 @@ class PrintTemplateDialog(QDialog):
                 label_name = content_str
                 val_text = ""
 
-            new_elements.append({
+            # 弹窗界面仍只编辑内容和勾选状态；毫米坐标、字号、粗体、颜色等
+            # 设计参数隐藏保留，避免保存一次后破坏箱码设计稿版式。
+            new_item = dict(orig)
+            new_item.update({
                 "type": elem_type,
                 "label": label_name,
                 "value": val_text,
                 "type_desc": type_desc_str,
                 "enabled": is_enabled,
-                "x": x,
-                "y": y,
-                "w": w,
-                "h": h
             })
-        return new_elements
+            new_item.setdefault("x", 8.0)
+            new_item.setdefault("y", 6.0 + row * 5.5)
+            new_item.setdefault("w", 84.0)
+            new_item.setdefault("h", 5.0)
+            new_item.setdefault("font_name", "Microsoft YaHei")
+            new_item.setdefault("font_size", 8.0)
+            new_item.setdefault("bold", False)
+            new_item.setdefault("color", "#000000")
+            updated_by_type[elem_type] = new_item
+
+        result = [updated_by_type[item_type] for item_type in original_order if item_type in updated_by_type]
+        known = set(original_order)
+        result.extend(item for item_type, item in updated_by_type.items() if item_type not in known)
+        return result
 
     def on_select_all(self):
         for row in range(self.table.rowCount()):
@@ -506,13 +581,14 @@ class PrintTemplateDialog(QDialog):
 
     def on_edit_field(self):
         row = self.table.currentRow()
-        if row < 0 or row >= len(self.elements):
+        if row < 0:
             QMessageBox.warning(self, "提示", "请先点击选中表格中要编辑的一行！")
             return
 
-        elem = self.elements[row]
-        if elem.get("type") == "barcode":
-            QMessageBox.information(self, "提示", "13 位箱码条形码由系统扫描或时间戳动态自动生成。")
+        elem_type = str(self.table.item(row, 1).data(Qt.UserRole) or "")
+        elem = next((item for item in self.elements if item.get("type") == elem_type), {})
+        if is_required_element(elem):
+            QMessageBox.information(self, "提示", "这是固定打印板块，不能编辑或取消。")
             return
 
         curr_content = self.table.item(row, 1).text()
@@ -523,7 +599,10 @@ class PrintTemplateDialog(QDialog):
 
     def on_delete_checked_fields(self):
         current_elems = self.collect_elements_from_table()
-        checked_count = sum(1 for e in current_elems if e.get("enabled", True) and e.get("type") != "barcode")
+        checked_count = sum(
+            1 for e in current_elems
+            if is_template_visible(e) and e.get("enabled", True) and not is_required_element(e)
+        )
         if checked_count <= 0:
             QMessageBox.warning(self, "提示", "没有被勾选的可删除字段！")
             return
@@ -533,7 +612,10 @@ class PrintTemplateDialog(QDialog):
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         )
         if reply == QMessageBox.Yes:
-            remaining = [e for e in current_elems if not e.get("enabled", True) or e.get("type") == "barcode"]
+            remaining = [
+                e for e in current_elems
+                if is_required_element(e) or not is_template_visible(e) or not e.get("enabled", True)
+            ]
             self.elements = remaining
             self.populate_table()
             self.apply_filter_search()
@@ -542,8 +624,16 @@ class PrintTemplateDialog(QDialog):
         curr_elems = self.collect_elements_from_table()
         w_mm = self.spin_width.value()
         h_mm = self.spin_height.value()
-        preview_dlg = PrintPreviewDialog(curr_elems, width_mm=w_mm, height_mm=h_mm, parent=self)
-        preview_dlg.exec_()
+        preview_elements = resolve_layout_elements(
+            {
+                "template_id": TEMPLATE_ID,
+                "profile": getattr(self, "loaded_profile", profile_name_for_size(w_mm, h_mm)),
+                "elements": curr_elems,
+            },
+            w_mm,
+            h_mm,
+        )
+        self.show_preview_dialog(preview_elements, parent=self)
 
     def on_save_and_close(self):
         self.elements = self.collect_elements_from_table()

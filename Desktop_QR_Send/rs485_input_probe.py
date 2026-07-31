@@ -1,34 +1,48 @@
-"""RS485 顶部按钮只读通信探针 v4.0。"""
+"""TD-39 12 路输入现场监听工具（重点核对前 5 路业务输入）。
+
+运行前必须关闭正式装箱扫码程序，因为同一个 Windows COM 口不能同时被两个
+程序占用。本工具只发送 TD-39 手册规定的 0x01 只读查询，不会写入设备参数。
+"""
 
 from __future__ import annotations
 
 import argparse
+import json
 import logging
-import os
 import sys
 import time
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import serial
 from serial.tools import list_ports
 
+from utils.td39_protocol import (
+    TD39_ACTION_DI_COUNT,
+    TD39_BAUDRATE,
+    TD39_DEFAULT_SLAVE,
+    TD39_DI_COUNT,
+    TD39_MONITOR_VERSION,
+    TD39ResponseParser,
+    build_read_inputs,
+    decode_input_mask,
+    format_input_states,
+    states_from_mask,
+)
+
 
 APP_DIR = Path(__file__).resolve().parent
 LOG_PATH = APP_DIR / "logs" / "rs485_input_probe.log"
-
-TEST_BAUDRATES = (9600, 4800, 19200, 38400, 57600, 115200)
-TEST_PARITIES = (
-    ("N", serial.PARITY_NONE),
-    ("E", serial.PARITY_EVEN),
-    ("O", serial.PARITY_ODD),
-)
-TEST_RTS_STATES = (False, True)
-TEST_SLAVES = tuple(range(1, 17))
+CONFIG_PATH = APP_DIR / "config.json"
+POLL_INTERVAL_SECONDS = 0.05
+PORT_PROBE_SECONDS = 3.0
+NO_RESPONSE_WARNING_SECONDS = 3.0
+HEARTBEAT_SECONDS = 5.0
+UNCHANGED_NOTICE_SECONDS = 10.0
 
 
 def setup_logging() -> None:
-    LOG_PATH.parent.mkdir(exist_ok=True)
+    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     root = logging.getLogger()
     root.handlers.clear()
@@ -43,249 +57,329 @@ def setup_logging() -> None:
     root.addHandler(console_handler)
 
 
-def crc16_modbus(data: bytes) -> int:
-    crc = 0xFFFF
-    for byte in data:
-        crc ^= byte
-        for _ in range(8):
-            if crc & 1:
-                crc = (crc >> 1) ^ 0xA001
-            else:
-                crc >>= 1
-    return crc
-
-
-def build_modbus_read(slave_addr: int, func_code: int, start: int = 0, count: int = 8) -> bytes:
-    payload = bytes([slave_addr, func_code, (start >> 8) & 0xFF, start & 0xFF, (count >> 8) & 0xFF, count & 0xFF])
-    crc = crc16_modbus(payload)
-    return payload + bytes([crc & 0xFF, (crc >> 8) & 0xFF])
-
-
-def parse_button_event(raw: bytes) -> Optional[str]:
-    """尝试将收到的字节解析为已知协议格式。"""
-    # 1. 尝试 AA 被动协议格式: AA channel state
-    buf = bytearray(raw)
-    while len(buf) >= 3:
-        if buf[0] == 0xAA and buf[1] in range(1, 17) and buf[2] in (0, 1):
-            ch = buf[1]
-            st = "按下" if buf[2] == 1 else "释放"
-            return f"AA协议 -> 通道【{ch}】 | 状态【{st}】"
-        buf.pop(0)
-
-    # 2. 尝试 TD-39 0x01 或 WDIP24-15-R 0x03 响应格式
-    if len(raw) >= 5 and raw[1] in (0x01, 0x03):
-        slave = raw[0]
-        func = raw[1]
-        byte_cnt = raw[2]
-        if len(raw) >= 3 + byte_cnt + 2:
-            frame = raw[:3 + byte_cnt + 2]
-            expected_crc = crc16_modbus(frame[:-2])
-            actual_crc = frame[-2] | (frame[-1] << 8)
-            if expected_crc != actual_crc:
-                return None
-            if func == 0x01:
-                mask = raw[3]
-                return f"TD-39响应(从站{slave}) -> 输入掩码: 0x{mask:02X} (二进制: {mask:08b})"
-            if func == 0x03 and byte_cnt == 16:
-                registers = [
-                    (raw[3 + index * 2] << 8) | raw[4 + index * 2]
-                    for index in range(8)
-                ]
-                return f"WDIP24-15-R响应(从站{slave}) -> Reg0~7={registers}"
-
-    return None
-
-
-def probe_port_mode(
-    port_name: str,
-    baud: int,
-    parity,
-    rts: bool,
-    duration: float = 0.8,
-) -> Tuple[bool, Optional[bytes]]:
-    """在指定的串口、波特率、RTS控制模式下测试并主动轮询。"""
+def configured_port() -> Optional[str]:
     try:
-        with serial.Serial(
-            port=port_name,
-            baudrate=baud,
-            bytesize=serial.EIGHTBITS,
-            parity=parity,
-            stopbits=serial.STOPBITS_ONE,
-            timeout=0.1,
-        ) as ser:
-            try:
-                ser.dtr = True
-                ser.rts = rts
-            except Exception:
-                pass
+        with CONFIG_PATH.open("r", encoding="utf-8") as stream:
+            value = json.load(stream).get("combobox_comSelect")
+        return str(value) if value else None
+    except (OSError, ValueError, TypeError):
+        return None
 
-            ser.reset_input_buffer()
 
-            # 只读扫描：TD-39 使用 0x01，WDIP24-15-R 使用 0x03。
-            for slave in TEST_SLAVES:
-                for func in (0x01, 0x03):
-                    try:
-                        cmd = build_modbus_read(slave, func, 0, 8)
-                        ser.write(cmd)
-                        ser.flush()
-                        time.sleep(0.01)
-                    except Exception:
-                        pass
+def _is_usb_serial(item) -> bool:
+    text = f"{item.description or ''} {item.hwid or ''}".upper()
+    return any(
+        token in text
+        for token in ("USB", "CH34", "FTDI", "PL2303", "CP210", "SERIAL", "UART")
+    )
 
-            # 监听该模式下是否有数据返回（主动响应或被动按键）
+
+def candidate_ports(explicit_port: Optional[str]) -> List[str]:
+    """按命令行、软件配置、USB 串口、其他串口的顺序返回去重列表。"""
+    items = list(list_ports.comports())
+    preferred = [item.device for item in items if _is_usb_serial(item)]
+    other = [item.device for item in items if not _is_usb_serial(item)]
+
+    ordered: List[str] = []
+    for value in (explicit_port, configured_port(), *preferred, *other):
+        if value and value not in ordered:
+            ordered.append(value)
+    return ordered
+
+
+def open_port(port: str, baudrate: int):
+    connection = serial.Serial(
+        port=port,
+        baudrate=baudrate,
+        bytesize=serial.EIGHTBITS,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        timeout=0.08,
+    )
+    try:
+        connection.dtr = True
+        connection.rts = True
+    except Exception as exc:
+        logging.warning("[%s] DTR/RTS 设置失败（自动收发转换器可忽略）: %s", port, exc)
+    return connection
+
+
+def read_valid_frames(connection, parser: TD39ResponseParser) -> Iterable[Tuple[bytes, int]]:
+    waiting = connection.in_waiting
+    if waiting <= 0:
+        return ()
+
+    data = connection.read(waiting)
+    logging.debug(
+        "RX-RAW port=%s bytes=%s hex=%s",
+        connection.port,
+        len(data),
+        data.hex(" "),
+    )
+
+    result = []
+    for frame in parser.feed(data):
+        if frame[1] & 0x80:
+            logging.error(
+                "设备返回 Modbus 异常: function=0x%02X code=0x%02X frame=%s",
+                frame[1],
+                frame[2],
+                frame.hex(" "),
+            )
+            continue
+        try:
+            mask = decode_input_mask(frame, parser.slave_addr, TD39_DI_COUNT)
+        except ValueError as exc:
+            logging.warning("忽略无法解析的响应 %s: %s", frame.hex(" "), exc)
+            continue
+        result.append((frame, mask))
+    return result
+
+
+def probe_port(
+    port: str,
+    baudrate: int,
+    slave_addr: int,
+    query: bytes,
+    duration: float = PORT_PROBE_SECONDS,
+) -> bool:
+    """在一个候选 COM 口上寻找至少一帧有效 TD-39 响应。"""
+    logging.info(
+        "检测串口 %s: baud=%s format=8N1 slave=%s query=%s",
+        port,
+        baudrate,
+        slave_addr,
+        query.hex(" "),
+    )
+    try:
+        with open_port(port, baudrate) as connection:
+            connection.reset_input_buffer()
+            parser = TD39ResponseParser(slave_addr)
             deadline = time.monotonic() + duration
-            received = bytearray()
+            last_poll = 0.0
 
             while time.monotonic() < deadline:
-                if ser.in_waiting > 0:
-                    data = ser.read(ser.in_waiting)
-                    received.extend(data)
-                    # 等待分段响应拼完整；只有识别出完整协议帧才提前返回。
-                    if parse_button_event(bytes(received)) is not None:
-                        return True, bytes(received)
-                time.sleep(0.03)
+                now = time.monotonic()
+                if now - last_poll >= POLL_INTERVAL_SECONDS:
+                    connection.write(query)
+                    connection.flush()
+                    last_poll = now
 
-            if received:
-                return True, bytes(received)
-
+                for frame, mask in read_valid_frames(connection, parser):
+                    logging.info(
+                        "找到有效 TD-39 响应: port=%s frame=%s states=[%s]",
+                        port,
+                        frame.hex(" "),
+                        format_input_states(states_from_mask(mask)),
+                    )
+                    return True
+                time.sleep(0.02)
     except (serial.SerialException, PermissionError, OSError) as exc:
-        exc_msg = str(exc)
-        if "Access is denied" in exc_msg or "拒绝访问" in exc_msg:
-            logging.error(f"⚠️ [{port_name}] 串口被独占！请务必关闭 start.bat 程序！")
-        return False, None
+        message = str(exc)
+        if "Access is denied" in message or "拒绝访问" in message:
+            logging.error(
+                "[%s] 串口被占用。请先关闭正式程序 start.bat 和其他串口工具。",
+                port,
+            )
+        else:
+            logging.error("[%s] 无法打开或读取: %s", port, exc)
+    return False
 
-    return False, None
+
+def monitor_port(
+    port: str,
+    baudrate: int,
+    slave_addr: int,
+    query: bytes,
+    duration: float,
+) -> int:
+    """持续显示全部 12 路的初始状态与每一次状态变化。"""
+    logging.info("=" * 72)
+    logging.info("已锁定 TD-39 串口: %s @ %s / 8N1 / 从站 %s", port, baudrate, slave_addr)
+    logging.info(
+        "正在监听全部 %s 路 DI0~DI%s；其中 DI0~DI%s 是当前业务触发范围。",
+        TD39_DI_COUNT,
+        TD39_DI_COUNT - 1,
+        TD39_ACTION_DI_COUNT - 1,
+    )
+    logging.info("请依次按下并释放按钮/传感器；按 Ctrl+C 可结束。")
+    logging.info("查询帧: %s", query.hex(" "))
+    logging.info("=" * 72)
+
+    with open_port(port, baudrate) as connection:
+        connection.reset_input_buffer()
+        parser = TD39ResponseParser(slave_addr)
+        previous_mask: Optional[int] = None
+        last_poll = 0.0
+        last_valid = time.monotonic()
+        last_warning = 0.0
+        last_heartbeat = 0.0
+        last_state_change = time.monotonic()
+        last_unchanged_notice = 0.0
+        valid_frames = 0
+        channel_events = 0
+        started_at = time.monotonic()
+
+        while True:
+            now = time.monotonic()
+            if duration > 0 and now - started_at >= duration:
+                break
+
+            if now - last_poll >= POLL_INTERVAL_SECONDS:
+                connection.write(query)
+                connection.flush()
+                last_poll = now
+
+            for frame, mask in read_valid_frames(connection, parser):
+                valid_frames += 1
+                last_valid = now
+                states = states_from_mask(mask)
+
+                if previous_mask is None:
+                    last_state_change = now
+                    logging.info(
+                        "INITIAL frame=%s states=[%s]",
+                        frame.hex(" "),
+                        format_input_states(states),
+                    )
+                elif mask != previous_mask:
+                    last_state_change = now
+                    changed = mask ^ previous_mask
+                    logging.info(
+                        "STATE-CHANGE frame=%s states=[%s]",
+                        frame.hex(" "),
+                        format_input_states(states),
+                    )
+                    for bit in range(TD39_DI_COUNT):
+                        if changed & (1 << bit):
+                            channel_events += 1
+                            logging.info(
+                                "CHANNEL-EVENT no=%s 通道%s(DI%s) -> %s scope=%s",
+                                channel_events,
+                                bit + 1,
+                                bit,
+                                "闭合" if states[bit] else "断开",
+                                "BUSINESS" if bit < TD39_ACTION_DI_COUNT else "DIAGNOSTIC",
+                            )
+                previous_mask = mask
+
+            if (
+                previous_mask is not None
+                and now - last_heartbeat >= HEARTBEAT_SECONDS
+            ):
+                logging.info(
+                    "HEARTBEAT valid_frames=%s states=[%s]",
+                    valid_frames,
+                    format_input_states(states_from_mask(previous_mask)),
+                )
+                last_heartbeat = now
+
+            if (
+                previous_mask is not None
+                and now - last_state_change >= UNCHANGED_NOTICE_SECONDS
+                and now - last_unchanged_notice >= UNCHANGED_NOTICE_SECONDS
+            ):
+                logging.warning(
+                    "INPUTS-UNCHANGED %.1f 秒：通信正常，但 DI0~DI%s 电平完全没有变化。"
+                    "TD-39 的干接点需要外部输入配电，不能只短接 ICOM-DI；"
+                    "若 ICOM 接 GND，请使用 +VS-按钮-DI；"
+                    "若 ICOM 接 +VS，请使用 GND-按钮-DI。"
+                    "同时检查常开/常闭触点和端子顺序。",
+                    now - last_state_change,
+                    TD39_DI_COUNT - 1,
+                )
+                last_unchanged_notice = now
+
+            if now - last_valid >= NO_RESPONSE_WARNING_SECONDS and now - last_warning >= 3.0:
+                logging.warning(
+                    "连续 %.1f 秒没有有效响应；请检查供电、COM 口、A/B 接线、"
+                    "从站地址和 9600/8N1 参数。",
+                    now - last_valid,
+                )
+                last_warning = now
+
+            time.sleep(0.02)
+
+    logging.info(
+        "监听结束: port=%s valid_frames=%s channel_events=%s log=%s",
+        port,
+        valid_frames,
+        channel_events,
+        LOG_PATH,
+    )
+    return 0
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="TD-39 12 路输入监听工具")
+    parser.add_argument("--port", help="指定串口，例如 COM21；省略时自动检测")
+    parser.add_argument(
+        "--baud",
+        type=int,
+        default=TD39_BAUDRATE,
+        help=f"波特率，默认 {TD39_BAUDRATE}",
+    )
+    parser.add_argument(
+        "--slave",
+        type=int,
+        default=TD39_DEFAULT_SLAVE,
+        help=f"Modbus 从站地址，默认 {TD39_DEFAULT_SLAVE}",
+    )
+    parser.add_argument(
+        "--duration",
+        type=float,
+        default=0.0,
+        help="监听秒数；0 表示一直监听到 Ctrl+C",
+    )
+    return parser.parse_args()
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Multi-Mode Auto Sweeper Probe")
-    parser.add_argument("--port", help="指定探测串口 (例如 COM3)")
-    args = parser.parse_args()
-
+    args = parse_args()
     setup_logging()
 
-    logging.info("=========================================================")
-    logging.info("       RS485 顶部按钮只读通信探针 v4.0                ")
-    logging.info("=========================================================")
+    logging.info("TD-39 全 12 路输入监听检测（业务重点为前 5 路）")
+    logging.info("监听工具版本: %s", TD39_MONITOR_VERSION)
+    logging.info("本工具只发送功能码 0x01 的只读查询，不修改设备参数。")
 
-    items = list(list_ports.comports())
-    if not items:
-        logging.error("❌ 错误：当前系统没有检测到任何串口设备！请检查插头。")
-        return 1
+    try:
+        query = build_read_inputs(args.slave, count=TD39_DI_COUNT)
+    except ValueError as exc:
+        logging.error("参数错误: %s", exc)
+        return 2
 
-    usb_ports = []
-    other_ports = []
-    for item in items:
-        desc = (item.description or "").upper()
-        hwid = (item.hwid or "").upper()
-        info = f"{item.device} ({item.description})"
-        if any(token in desc or token in hwid for token in ("USB", "CH34", "FTDI", "PL2303", "CP210", "SERIAL", "UART")):
-            usb_ports.append((item.device, info))
-        else:
-            other_ports.append((item.device, info))
+    ports = candidate_ports(args.port)
+    if not ports:
+        logging.error("Windows 未检测到任何串口。请检查 USB-RS485 转换器和驱动。")
+        return 2
 
-    ports_to_test = [dev for dev, info in usb_ports + other_ports]
-    if args.port:
-        ports_to_test = [args.port]
+    logging.info("候选串口顺序: %s", ", ".join(ports))
+    working_port = None
+    for port in ports:
+        if probe_port(port, args.baud, args.slave, query):
+            working_port = port
+            break
 
-    logging.info(f"优先测试串口序列: {', '.join(ports_to_test)}")
-    logging.info("说明：仅发送 Modbus 读取命令，扫描常见波特率、N/E/O校验、RTS状态和1~16站号。")
-    logging.info("读取协议：TD-39=0x01；WDIP24-15-R=0x03；不会写寄存器、数据库或配置。")
-    logging.info("💡 提示：在扫描过程中，请保持【反复按下顶部第 1 个按钮】！")
-    logging.info("---------------------------------------------------------")
+    if working_port is None:
+        logging.error("所有候选串口均未收到有效 TD-39 响应。")
+        logging.error("请优先检查：模块 9~30V 供电、RS485 A/B 是否接反、站号是否为 1。")
+        logging.error("完整结果已保存到 %s", LOG_PATH)
+        return 2
 
-    found_working_config = False
-
-    for port_name in ports_to_test:
-        logging.info(f"\n🔍 >>> 开始测试串口: 【{port_name}】 <<<")
-
-        for baud in TEST_BAUDRATES:
-            for parity_name, parity_value in TEST_PARITIES:
-                for rts in TEST_RTS_STATES:
-                    mode_str = f"{port_name} @ {baud} baud | {parity_name}81 | RTS={rts}"
-                    logging.info(f"正在扫描: {mode_str} ... (请持续按住/反复点击顶部按钮)")
-
-                    got_data, raw_bytes = probe_port_mode(
-                        port_name,
-                        baud,
-                        parity_value,
-                        rts,
-                        duration=0.8,
-                    )
-
-                    if got_data and raw_bytes:
-                        hex_repr = raw_bytes.hex(" ")
-                        parsed_info = parse_button_event(raw_bytes)
-
-                        logging.info("=" * 60)
-                        logging.info("【成功接收到串口数据】")
-                        logging.info(f"匹配串口组合: {mode_str}")
-                        logging.info(f"接收到的原始 Hex 数据: {hex_repr}")
-                        if parsed_info:
-                            logging.info(f"自动协议解包成功: {parsed_info}")
-                        else:
-                            logging.warning("收到字节，但尚未形成CRC正确的TD-39/WDIP完整响应。")
-                        logging.info("=" * 60)
-
-                        found_working_config = True
-
-                        # 发现工作模式后，进入相同参数的持续只读监听。
-                        logging.info(f"\n进入【{mode_str}】模式的实时只读监听...")
-                        logging.info("现在请依次按下顶部 4 个按钮，观察通道显示：")
-
-                        try:
-                            with serial.Serial(
-                                port=port_name,
-                                baudrate=baud,
-                                bytesize=serial.EIGHTBITS,
-                                parity=parity_value,
-                                stopbits=serial.STOPBITS_ONE,
-                                timeout=0.1,
-                            ) as live_ser:
-                                live_ser.dtr = True
-                                live_ser.rts = rts
-                                live_ser.reset_input_buffer()
-
-                                last_poll = 0
-
-                                while True:
-                                    now = time.monotonic()
-                                    if now - last_poll > 0.5:
-                                        for slave in TEST_SLAVES:
-                                            for func in (0x01, 0x03):
-                                                try:
-                                                    live_ser.write(build_modbus_read(slave, func, 0, 8))
-                                                    live_ser.flush()
-                                                    time.sleep(0.01)
-                                                except Exception:
-                                                    pass
-                                        last_poll = now
-
-                                    if live_ser.in_waiting > 0:
-                                        data = live_ser.read(live_ser.in_waiting)
-                                        h_str = data.hex(" ")
-                                        logging.info(f"[{port_name}] 收到数据: {h_str}")
-                                        evt = parse_button_event(bytes(data))
-                                        if evt:
-                                            logging.info(evt)
-
-                                    time.sleep(0.04)
-
-                        except KeyboardInterrupt:
-                            logging.info("用户结束测试。")
-                            return 0
-                        except Exception as exc:
-                            logging.error(f"监听中断: {exc}")
-
-    if not found_working_config:
-        logging.error(
-            "\n结论：在常见波特率、N/E/O校验、RTS状态及Modbus 1~16站号轮询下均未收到任何数据字节。"
+    try:
+        return monitor_port(
+            working_port,
+            args.baud,
+            args.slave,
+            query,
+            max(0.0, args.duration),
         )
-        logging.error("排查建议：")
-        logging.error("1. 请确认 USB 转 RS485 转换线的 A、B 两根接线没有接反（A接A，B接B；尝试将 A/B 两根线对调）。")
-        logging.error("2. 请确认 RS485 采集模块是否有 12V/24V 供电线未连接。")
-
-    return 0
+    except KeyboardInterrupt:
+        logging.info("用户结束监听。结果已保存到 %s", LOG_PATH)
+        return 0
+    except (serial.SerialException, PermissionError, OSError) as exc:
+        logging.error("监听中断: %s", exc)
+        return 3
 
 
 if __name__ == "__main__":
