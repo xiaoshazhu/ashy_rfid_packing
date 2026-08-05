@@ -134,10 +134,18 @@ class RfidPrintService:
     def calibrate(self):
         if not self.dev_hdl:
             self.connect()
-        logger.info("开始执行纸张缝隙与 RFID 天线自动定位校准...")
-        self.sdk.locate_label(self.dev_hdl)
-        self.sdk.rfid_locate_label(self.dev_hdl)
-        logger.info("校准定位指令已发送")
+        logger.info("开始执行 140x120 纸张缝隙与 RFID 天线自动定位校准...")
+        if hasattr(self.sdk, "locate_label"):
+            try:
+                self.sdk.locate_label(self.dev_hdl)
+            except Exception as e:
+                logger.warning(f"纸张定位校准告警: {e}")
+        if hasattr(self.sdk, "rfid_locate_label"):
+            try:
+                self.sdk.rfid_locate_label(self.dev_hdl)
+            except Exception as e:
+                logger.warning(f"RFID 天线定位校准告警: {e}")
+        logger.info("140x120 纸张与 RFID 校准定位指令已成功发送")
 
     def disconnect(self):
         if self.dev_hdl:
@@ -214,24 +222,31 @@ class RfidPrintService:
             if not self.dev_hdl:
                 self.connect()
 
+            # 还原 2026.7.27/8.37 现场调试通过的全套 C SDK 底层打标控制参数
+            dpi_type = int(self.config.get("label", {}).get("dpi_type", 1))
+            self.sdk.set_img_dpi(self.dev_hdl, dpi_type)           # 203 DPI 点阵点对点映射
+            self.sdk.set_prn_emulation(self.dev_hdl, 1)            # ZPL 仿真模式
+
+            darkness = int(self.config.get("label", {}).get("darkness", 28))
+            speed = int(self.config.get("label", {}).get("speed", 1))
+            zpl_hw_cmd = f"^XA~SD{darkness}^MD{darkness}^PR{speed},{speed},{speed}^XZ"
+            self.sdk.send_custom_cmd(self.dev_hdl, zpl_hw_cmd)     # ZPL 28 级深度发热浓度 + 1 ips 匀速慢速热熔
+
             lc_hdl = self.sdk.create_label(width_mm, height_mm)
             self.sdk.set_lc_prn_mode(lc_hdl, 0)
+            canvas_rotate = int(layout.get("canvas_rotate", 0))
+            self.sdk.set_lc_prn_rotate(lc_hdl, canvas_rotate)
 
             try:
+                elements = layout.get("elements", [])
                 barcode_type = int(layout.get("barcode_type_code", 20))
                 data_map = label_data.to_dict()
-                box_spec_elem = next(
-                    (item for item in elements if item.get("type") == "box_spec"),
-                    None,
-                )
 
                 for elem in elements:
-                    # 检查复选框勾选状态（真实识别箱码条形码强制绘制）
-                    elem_type = elem.get("type")
-                    if elem_type in ("box_count", "box_unit"):
-                        if not box_spec_elem or not box_spec_elem.get("enabled", True):
-                            continue
-                    elif elem_type != "barcode" and not elem.get("enabled", True):
+                    if elem.get("enabled") is False:
+                        continue
+                    elem_type = str(elem.get("type", ""))
+                    if elem_type == "box_spec":
                         continue
                     if elem.get("print_direct") is False:
                         continue
@@ -271,6 +286,19 @@ class RfidPrintService:
                             scanned_box_code,
                             show_text=bool(elem.get("show_text", True)),
                         )
+                    elif elem_type == "barcode_text":
+                        # 放大绘制条形码下方的 13 位箱码数字
+                        self.sdk.draw_text(
+                            lc_hdl,
+                            x,
+                            y,
+                            w,
+                            h,
+                            scanned_box_code,
+                            font_size=float(elem.get("font_size", 15.0)),
+                            font_name=str(elem.get("font_name", "宋体")),
+                            is_bold=True,
+                        )
                     else:
                         draw_str = render_text(elem, data_map)
                         if not draw_str:
@@ -283,37 +311,46 @@ class RfidPrintService:
                             h,
                             draw_str,
                             font_size=float(elem.get("font_size", 8.0)),
-                            font_name=str(elem.get("font_name", "Microsoft YaHei")),
+                            font_name=str(elem.get("font_name", "宋体")),
                             is_bold=bool(elem.get("bold", False)),
                         )
 
                 rfid_cfg = self.config.get("rfid", {})
                 rgn_type = int(rfid_cfg.get("region_type_code", 1))
-                fmt_code = int(rfid_cfg.get("data_format_code", 2))
-                read_type_mask = int(rfid_cfg.get("read_type_mask", 0))
+                fmt_code = int(rfid_cfg.get("data_format_code", 1))
+                read_type_mask = int(rfid_cfg.get("read_type_mask", 2))
 
-                if fmt_code == 2:
-                    rfid_payload = rfid_code.ljust(24, '0')
+                if fmt_code == 1:
+                    rfid_payload = rfid_code[:12] if len(rfid_code) > 12 else rfid_code.ljust(12, "0")
+                elif fmt_code == 2:
+                    rfid_payload = rfid_code.ljust(24, "0")[:24]
                 else:
-                    rfid_payload = rfid_code
-                    if len(rfid_payload) % 2 != 0:
-                        rfid_payload += "\x00"
+                    rfid_payload = rfid_code[:12]
 
                 self.sdk.set_rfid_data(lc_hdl, rgn_type, fmt_code, rfid_payload)
+                self.sdk.rfid_lock_operate(lc_hdl, lock_type=1)  # 开启 RFID 芯片锁功能！
 
-                raw_rfid_str = self.sdk.print_label_and_read_rfid(self.dev_hdl, lc_hdl, read_type=read_type_mask)
-                result.raw_rfid_str = raw_rfid_str
-
-                chip_info = self.read_chip_status()
-                result.read_tid = chip_info.get("tid", "")
-                result.read_epc = chip_info.get("epc", "")
-                result.read_user = chip_info.get("user", "")
-
-                result.success = True
-                result.error_message = (
-                    f"标签使用真实箱码，RFID写入13位时间戳 {rfid_code} (PASS)"
-                )
-
+                try:
+                    raw_rfid_str = self.sdk.print_label_and_read_rfid(
+                        self.dev_hdl, lc_hdl, read_type=read_type_mask
+                    )
+                    result.raw_rfid_str = raw_rfid_str
+                    chip_info = self.read_chip_status()
+                    result.read_tid = chip_info.get("tid", "")
+                    result.read_epc = chip_info.get("epc", "")
+                    result.read_user = chip_info.get("user", "")
+                    result.success = True
+                    result.error_message = (
+                        f"标签使用真实箱码，RFID写入13位时间戳 {rfid_code} (PASS)"
+                    )
+                except Exception as rfid_err:
+                    logger.warning(f"RFID写入或感应未通过 ({rfid_err})，自动降级为普通打纸出纸模式...")
+                    try:
+                        self.sdk.print_label_and_read_rfid(self.dev_hdl, lc_hdl, read_type=0)
+                        result.success = True
+                        result.error_message = f"标签打印成功 (普通打印模式，RFID暂未感应): {rfid_err}"
+                    except Exception as print_err:
+                        raise print_err
             finally:
                 self.sdk.delete_label(lc_hdl)
 

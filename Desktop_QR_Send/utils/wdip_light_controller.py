@@ -142,6 +142,7 @@ class WDIPLightController:
         allow_stable_crc_mismatch_readback: bool = False,
         minimum_request_interval: float = 0.25,
         write_settle_seconds: float = 0.4,
+        shared_exchange=None,
     ):
         self.port = str(port).strip() if port else None
         self.baudrate = int(baudrate)
@@ -153,6 +154,7 @@ class WDIPLightController:
         )
         self.minimum_request_interval = max(0.05, float(minimum_request_interval))
         self.write_settle_seconds = max(0.1, float(write_settle_seconds))
+        self.shared_exchange = shared_exchange
         self._io_lock = threading.RLock()
         self._last_exchange_finished_at = 0.0
 
@@ -185,6 +187,15 @@ class WDIPLightController:
             return response
 
     def _exchange_unlocked(self, port: str, request: bytes, response_size: int) -> bytes:
+        if callable(self.shared_exchange):
+            shared_response = self.shared_exchange(
+                port, request, response_size, self.timeout
+            )
+            if shared_response is not None:
+                raw = bytes(shared_response)
+                normalized = self._extract_response(request, raw, response_size)
+                return normalized if normalized is not None else raw
+
         with serial.Serial(
             port=port,
             baudrate=self.baudrate,

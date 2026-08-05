@@ -1,0 +1,5 @@
+{
+  "mode": "remote",
+  "database_path": "example.db",
+  "remote_upload_enabled": true
+}

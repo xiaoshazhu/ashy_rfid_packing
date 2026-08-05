@@ -21,7 +21,24 @@ _PRELOADED_SUPPORT_DLLS = []
 _RUNTIME_INFO = None
 
 
+def _disable_console_quick_edit():
+    """禁用 Windows cmd.exe 控制台快速编辑模式，防止鼠标点击终端窗口挂起暂停 Python 进程。"""
+    if os.name != "nt":
+        return
+    try:
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        h_stdin = kernel32.GetStdHandle(-10)
+        if h_stdin and h_stdin != -1:
+            mode = ctypes.c_uint32()
+            if kernel32.GetConsoleMode(h_stdin, ctypes.byref(mode)):
+                new_mode = (mode.value & ~0x0040) | 0x0080
+                kernel32.SetConsoleMode(h_stdin, new_mode)
+    except Exception:
+        pass
+
+
 def _startup_log(message):
+    _disable_console_quick_edit()
     try:
         log_dir = APP_DIR / "logs"
         log_dir.mkdir(parents=True, exist_ok=True)

@@ -62,6 +62,21 @@ def load_light_config() -> dict:
         return {}
 
 
+def save_light_config_updates(updates: dict) -> None:
+    """保存真实校准结果，供下次启动直接使用；不涉及数据库。"""
+    config_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "config", "settings.json")
+    )
+    data = {}
+    if os.path.exists(config_path):
+        with open(config_path, "r", encoding="utf-8") as stream:
+            data = json.load(stream)
+    light_config = data.setdefault("light_controller", {})
+    light_config.update(dict(updates))
+    with open(config_path, "w", encoding="utf-8") as stream:
+        json.dump(data, stream, ensure_ascii=False, indent=2)
+
+
 class LightBinarySearchWorker(QThread):
     """真实控制WDIP输出电压，并用真实相机解码成功率和耗时选择亮度。"""
 
@@ -77,6 +92,8 @@ class LightBinarySearchWorker(QThread):
         samples_per_level: int = 5,
         settle_ms: int = 350,
         minimum_percent: int = 0,
+        direct_voltage_control: bool = False,
+        original_voltage_v: float = None,
     ):
         super().__init__()
         self.home = home_instance
@@ -86,13 +103,24 @@ class LightBinarySearchWorker(QThread):
         self.samples_per_level = max(2, int(samples_per_level))
         self.settle_seconds = max(0.15, int(settle_ms) / 1000.0)
         self.minimum_percent = max(0, min(90, int(minimum_percent)))
+        self.direct_voltage_control = bool(direct_voltage_control)
+        self.original_voltage_v = (
+            None if original_voltage_v is None else float(original_voltage_v)
+        )
+        try:
+            from page.config import CONFIG_DATA
+            self.expected_code_count = max(
+                1, int(CONFIG_DATA.get("edit_max_jian", 10))
+            )
+        except Exception:
+            self.expected_code_count = 10
 
     def _camera(self):
         from page.home import obj_cam_operation
 
         return obj_cam_operation
 
-    def _measure_level(self, cam_op, percent: int):
+    def _measure_level(self, cam_op, percent: int, sample_count=None):
         from utils.pyzbar_utils import decode_image_codes
 
         voltage = voltage_for_percent(
@@ -100,14 +128,25 @@ class LightBinarySearchWorker(QThread):
             self.safe_max_voltage_v,
             percent,
         )
-        state = self.controller.set_voltage(voltage)
-        if not state.output_enabled:
-            raise RuntimeError("WDIP输出处于关闭状态，不能进行真实灯光校准")
+        if self.direct_voltage_control:
+            # 现场WDIP返回数据受串口转换器影响不能稳定通过CRC，但同一条写入命令
+            # 已能真实改变灯泡亮度。校准直接复用手动调光的可靠写入路径。
+            self.controller.set_voltage_direct(voltage)
+            applied_voltage = voltage
+        else:
+            state = self.controller.set_voltage(voltage)
+            if not state.output_enabled:
+                raise RuntimeError("WDIP输出处于关闭状态，不能进行真实灯光校准")
+            applied_voltage = state.set_voltage_v
         time.sleep(self.settle_seconds)
 
         counts = []
         elapsed_values = []
-        for _ in range(self.samples_per_level):
+        sample_total = max(
+            2,
+            int(sample_count if sample_count is not None else self.samples_per_level),
+        )
+        for _ in range(sample_total):
             if self.isInterruptionRequested():
                 raise InterruptedError("用户终止灯光校准")
             time.sleep(0.10)
@@ -118,11 +157,16 @@ class LightBinarySearchWorker(QThread):
             counts.append(len(codes))
 
         success_samples = sum(1 for count in counts if count > 0)
+        full_samples = sum(
+            1 for count in counts if count >= self.expected_code_count
+        )
         return {
             "percent": percent,
-            "voltage": state.set_voltage_v,
-            "success_rate": success_samples / self.samples_per_level,
+            "voltage": applied_voltage,
+            "success_rate": success_samples / sample_total,
+            "full_rate": full_samples / sample_total,
             "average_count": sum(counts) / len(counts),
+            "count_stdev": statistics.pstdev(counts) if len(counts) > 1 else 0.0,
             "median_ms": statistics.median(elapsed_values),
             "counts": counts,
         }
@@ -134,19 +178,23 @@ class LightBinarySearchWorker(QThread):
             if not cam_op or not getattr(cam_op, "b_start_grabbing", False):
                 raise RuntimeError("海康相机尚未开始真实取流")
 
-            initial_state = self.controller.read_state()
-            original_voltage = initial_state.set_voltage_v
-            if not initial_state.output_enabled:
-                raise RuntimeError("WDIP补光灯输出未打开，请先在电源控制器上打开输出")
+            if self.direct_voltage_control:
+                original_voltage = self.original_voltage_v
+            else:
+                initial_state = self.controller.read_state()
+                original_voltage = initial_state.set_voltage_v
+                if not initial_state.output_enabled:
+                    raise RuntimeError("WDIP补光灯输出未打开，请先在电源控制器上打开输出")
             if not 0 <= self.safe_min_voltage_v < self.safe_max_voltage_v <= 24:
                 raise RuntimeError("补光灯安全电压范围必须满足 0≤最低值<最高值≤24V")
 
             logger.info(
-                "开始真实灯光二分校准: port=%s range=%.2f~%.2fV samples=%s",
+                "开始真实灯光二分校准: port=%s range=%.2f~%.2fV samples=%s direct=%s",
                 self.controller.port,
                 self.safe_min_voltage_v,
                 self.safe_max_voltage_v,
                 self.samples_per_level,
+                self.direct_voltage_control,
             )
 
             results = []
@@ -219,28 +267,81 @@ class LightBinarySearchWorker(QThread):
             valid_results = [item for item in results if item["success_rate"] > 0]
             if not valid_results:
                 if original_voltage is not None:
-                    self.controller.set_voltage(original_voltage)
+                    if self.direct_voltage_control:
+                        self.controller.set_voltage_direct(original_voltage)
+                    else:
+                        self.controller.set_voltage(original_voltage)
                 raise RuntimeError(
                     "所有实测亮度均未识别到真实码；已恢复校准前电压，请确认盒子在取景区内"
                 )
 
-            # 先比较成功率，再比较每帧平均识别数量、解码中位耗时；
-            # 完全同等时使用较低亮度，减少过曝和灯光负荷。
-            best = max(
-                valid_results,
-                key=lambda item: (
-                    item["success_rate"],
+            def rank_measurement(item):
+                return (
+                    item["full_rate"],
                     item["average_count"],
+                    item["success_rate"],
+                    -item["count_stdev"],
                     -item["median_ms"],
                     -item["percent"],
-                ),
-            )
-            final_state = self.controller.set_voltage(best["voltage"])
+                )
+
+            # 第一阶段只负责找候选区间；对前三名各增加至少10个真实帧复测，
+            # 防止某一档偶然识别好就被选为最终亮度。
+            shortlist = sorted(
+                valid_results,
+                key=rank_measurement,
+                reverse=True,
+            )[:3]
+            verification_samples = max(10, self.samples_per_level * 2)
+            verified_results = []
+            for verify_index, candidate in enumerate(shortlist, start=1):
+                self.progress_signal.emit(
+                    90 + verify_index * 2,
+                    f"稳定性复测 {candidate['percent']}%（{candidate['voltage']:.2f}V），"
+                    f"连续采样{verification_samples}个真实帧 ({verify_index}/{len(shortlist)})...",
+                )
+                verified = self._measure_level(
+                    cam_op,
+                    candidate["percent"],
+                    sample_count=verification_samples,
+                )
+                verified_results.append(verified)
+                logger.info(
+                    "LIGHT-VERIFY percent=%s voltage=%.2f full=%.0f%% success=%.0f%% "
+                    "avg_codes=%.2f stdev=%.2f median=%.1fms counts=%s",
+                    verified["percent"],
+                    verified["voltage"],
+                    verified["full_rate"] * 100,
+                    verified["success_rate"] * 100,
+                    verified["average_count"],
+                    verified["count_stdev"],
+                    verified["median_ms"],
+                    verified["counts"],
+                )
+
+            verified_valid = [
+                item for item in verified_results if item["success_rate"] > 0
+            ]
+            if not verified_valid:
+                raise RuntimeError(
+                    "候选亮度复测时均未识别到真实码；请保持产品和相机完全不动后重试"
+                )
+            best = max(verified_valid, key=rank_measurement)
+            if self.direct_voltage_control:
+                self.controller.set_voltage_direct(best["voltage"])
+                final_voltage = best["voltage"]
+                voltage_text = f"目标输出{final_voltage:.2f}V"
+            else:
+                final_state = self.controller.set_voltage(best["voltage"])
+                final_voltage = final_state.set_voltage_v
+                voltage_text = f"回读{final_voltage:.2f}V"
             message = (
                 f"真实校准完成：WDIP端口 {self.controller.port}，"
-                f"最佳亮度 {best['percent']}%（回读{final_state.set_voltage_v:.2f}V）；"
-                f"采样成功率 {best['success_rate'] * 100:.0f}%，"
+                f"最佳亮度 {best['percent']}%（{voltage_text}）；"
+                f"{self.expected_code_count}盒完整识别率 {best['full_rate'] * 100:.0f}%，"
+                f"任意码识别率 {best['success_rate'] * 100:.0f}%，"
                 f"平均识别 {best['average_count']:.1f} 个码/帧，"
+                f"数量波动 {best['count_stdev']:.2f}，"
                 f"解码中位耗时 {best['median_ms']:.1f}ms。"
             )
             self.progress_signal.emit(100, message)
@@ -248,7 +349,10 @@ class LightBinarySearchWorker(QThread):
         except InterruptedError as exc:
             if original_voltage is not None:
                 try:
-                    self.controller.set_voltage(original_voltage)
+                    if self.direct_voltage_control:
+                        self.controller.set_voltage_direct(original_voltage)
+                    else:
+                        self.controller.set_voltage(original_voltage)
                 except Exception:
                     pass
             self.finished_signal.emit(False, 0, str(exc))
@@ -257,8 +361,13 @@ class LightBinarySearchWorker(QThread):
             restore_message = ""
             if original_voltage is not None:
                 try:
-                    restored_state = self.controller.set_voltage(original_voltage)
-                    restore_message = f"；已恢复校准前电压 {restored_state.set_voltage_v:.2f}V"
+                    if self.direct_voltage_control:
+                        self.controller.set_voltage_direct(original_voltage)
+                        restored_voltage = original_voltage
+                    else:
+                        restored_state = self.controller.set_voltage(original_voltage)
+                        restored_voltage = restored_state.set_voltage_v
+                    restore_message = f"；已恢复校准前电压 {restored_voltage:.2f}V"
                 except Exception as restore_exc:
                     logger.exception("灯光校准失败后恢复原电压也失败")
                     restore_message = f"；恢复原电压失败：{restore_exc}"
@@ -320,20 +429,46 @@ class LightControlDialog(QDialog):
         self.btn_minus.setFixedWidth(40)
         self.btn_minus.setStyleSheet(NATIVE_BTN_STYLE)
         self.btn_minus.setEnabled(False)
-        self.btn_minus.clicked.connect(self.on_minus_clicked)
-        slider_layout.addWidget(self.btn_minus)
+        self.btn_minus.setFixedWidth(50)
+        self.btn_minus.setFixedHeight(45)
 
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setRange(0, 100)
         self.slider.setValue(0)
         self.slider.setSingleStep(1)
         self.slider.setPageStep(5)
+        self.slider.setMinimumHeight(48)
         self.slider.setEnabled(False)
+        self.slider.setStyleSheet("""
+            QSlider::groove:horizontal {
+                border: 1px solid #b0b0b0;
+                height: 16px;
+                background: #e0e0e0;
+                border-radius: 8px;
+            }
+            QSlider::sub-page:horizontal {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1890ff, stop:1 #52c41a);
+                border-radius: 8px;
+            }
+            QSlider::handle:horizontal {
+                background: #ffffff;
+                border: 3px solid #1890ff;
+                width: 36px;
+                height: 36px;
+                margin: -10px 0;
+                border-radius: 18px;
+            }
+            QSlider::handle:horizontal:hover {
+                background: #e6f7ff;
+                border-color: #40a9ff;
+            }
+        """)
         self.slider.valueChanged.connect(self.on_slider_changed)
         slider_layout.addWidget(self.slider)
 
         self.btn_plus = QPushButton(" + ")
-        self.btn_plus.setFixedWidth(40)
+        self.btn_plus.setFixedWidth(50)
+        self.btn_plus.setFixedHeight(45)
         self.btn_plus.setStyleSheet(NATIVE_BTN_STYLE)
         self.btn_plus.setEnabled(False)
         self.btn_plus.clicked.connect(self.on_plus_clicked)
@@ -363,7 +498,7 @@ class LightControlDialog(QDialog):
         self.label_status.setStyleSheet("color: #666; font-size: 11px;")
         self.label_status.setWordWrap(True)
         main_layout.addWidget(auto_group)
-        auto_group.setVisible(bool(self.light_config.get("enable_binary_calibration", False)))
+        auto_group.setVisible(True)
         main_layout.addWidget(self.label_status)
 
         bottom_box = QHBoxLayout()
@@ -395,18 +530,39 @@ class LightControlDialog(QDialog):
             write_settle_seconds=float(
                 self.light_config.get("write_settle_ms", 400)
             ) / 1000.0,
+            shared_exchange=getattr(
+                self.home.main_window, "exchange_shared_rs485", None
+            ),
         )
 
     def prepare_direct_voltage_control(self):
         """启用8~12V直接写入；不要求WDIP先返回有效数据。"""
         if self.controller is None:
             self.controller = self._create_controller()
+        if not getattr(self, "_direct_mode_prepared", False):
+            configured_voltage = float(
+                self.light_config.get("startup_voltage_v", self.safe_min_voltage_v)
+            )
+            configured_voltage = max(
+                self.safe_min_voltage_v,
+                min(self.safe_max_voltage_v, configured_voltage),
+            )
+            self._loading_value = True
+            self.slider.setValue(
+                percent_for_voltage(
+                    self.safe_min_voltage_v,
+                    self.safe_max_voltage_v,
+                    configured_voltage,
+                )
+            )
+            self._loading_value = False
+            self._direct_mode_prepared = True
         self.btn_refresh.setVisible(False)
         self.slider.setEnabled(True)
         self.btn_minus.setEnabled(True)
         self.btn_plus.setEnabled(True)
         self.btn_output.setEnabled(True)
-        self.btn_calibrate.setEnabled(False)
+        self.btn_calibrate.setEnabled(True)
         voltage = voltage_for_percent(
             self.safe_min_voltage_v,
             self.safe_max_voltage_v,
@@ -441,7 +597,7 @@ class LightControlDialog(QDialog):
             self.btn_minus.setEnabled(self.direct_voltage_control)
             self.btn_plus.setEnabled(self.direct_voltage_control)
             self.btn_output.setEnabled(self.direct_voltage_control)
-            self.btn_calibrate.setEnabled(False)
+            self.btn_calibrate.setEnabled(self.direct_voltage_control)
             self.label_value.setText("当前灯光亮度: 未读取到真实控制器")
             detail = str(exc)
             if "PermissionError" in detail or "拒绝访问" in detail:
@@ -642,16 +798,40 @@ class LightControlDialog(QDialog):
 
     def on_calibrate_clicked(self):
         if not self.controller or not self.safe_max_voltage_v:
-            QMessageBox.warning(self, "无法校准", "尚未读取到真实WDIP补光灯控制器。")
+            QMessageBox.warning(self, "无法校准", "尚未建立WDIP补光灯控制对象。")
             return
-        current = self.controller.read_state()
-        if not current.output_enabled:
-            QMessageBox.warning(self, "无法校准", "请先开启WDIP真实灯光输出。")
-            self._show_state(current)
+        cam_op = getattr(__import__("page.home", fromlist=["obj_cam_operation"]), "obj_cam_operation", None)
+        if not cam_op or not getattr(cam_op, "b_start_grabbing", False):
+            QMessageBox.warning(self, "无法校准", "海康相机尚未开始真实取流，请先确认实时画面正常。")
+            return
+        try:
+            if self.direct_voltage_control:
+                original_voltage = voltage_for_percent(
+                    self.safe_min_voltage_v,
+                    self.safe_max_voltage_v,
+                    self.slider.value(),
+                )
+                # 校准动作由用户明确触发，先保证真实灯光输出为ON，再逐档改变电压。
+                self.controller.set_output_enabled_direct(True)
+                self._commanded_output_enabled = True
+                self.btn_output.setText("直接关闭灯光输出")
+            else:
+                current = self.controller.read_state()
+                if not current.output_enabled:
+                    QMessageBox.warning(self, "无法校准", "请先开启WDIP真实灯光输出。")
+                    self._show_state(current)
+                    return
+                original_voltage = current.set_voltage_v
+        except Exception as exc:
+            logger.exception("开始灯光校准前准备失败")
+            QMessageBox.warning(self, "无法校准", f"灯光校准准备失败：{exc}")
+            self.label_status.setText(f"灯光校准准备失败：{exc}")
             return
         self.apply_timer.stop()
         self.btn_calibrate.setEnabled(False)
         self.slider.setEnabled(False)
+        self.btn_minus.setEnabled(False)
+        self.btn_plus.setEnabled(False)
         self.progress_bar.setValue(0)
         self.progress_bar.setVisible(True)
         self.label_status.setText("正在真实改变补光灯电压并采样相机识别成功率、数量和耗时...")
@@ -664,6 +844,8 @@ class LightControlDialog(QDialog):
             samples_per_level=int(self.light_config.get("samples_per_level", 5)),
             settle_ms=int(self.light_config.get("settle_ms", 500)),
             minimum_percent=int(self.light_config.get("minimum_percent", 0)),
+            direct_voltage_control=self.direct_voltage_control,
+            original_voltage_v=original_voltage,
         )
         self.worker.progress_signal.connect(self.on_worker_progress)
         self.worker.finished_signal.connect(self.on_worker_finished)
@@ -678,24 +860,54 @@ class LightControlDialog(QDialog):
     def on_worker_finished(self, success, percent, msg):
         self.progress_bar.setValue(100 if success else 0)
         self.label_status.setText(msg)
+        self.btn_calibrate.setEnabled(True)
+        self.slider.setEnabled(True)
+        self.btn_minus.setEnabled(True)
+        self.btn_plus.setEnabled(True)
         if success:
             self._loading_value = True
             self.slider.setValue(percent)
             self._loading_value = False
-            try:
-                state = self.controller.read_state()
-                self._show_state(state, msg)
-            except Exception as exc:
-                logger.warning(f"校准完成后读取补光灯状态失败: {exc}")
+            calibrated_voltage = voltage_for_percent(
+                self.safe_min_voltage_v,
+                self.safe_max_voltage_v,
+                percent,
+            )
+            if self.direct_voltage_control:
                 self.label_value.setText(
-                    f"校准结果: {percent}%（完成后回读失败，请检查连接）"
+                    f"校准结果: {percent}%（目标输出 {calibrated_voltage:.2f}V）"
                 )
+            else:
+                try:
+                    state = self.controller.read_state()
+                    calibrated_voltage = state.set_voltage_v
+                    self._show_state(state, msg)
+                except Exception as exc:
+                    logger.warning(f"校准完成后读取补光灯状态失败: {exc}")
+                    self.label_value.setText(
+                        f"校准结果: {percent}%（完成后回读失败，请检查连接）"
+                    )
+            try:
+                save_light_config_updates({
+                    "startup_voltage_v": round(float(calibrated_voltage), 2),
+                    "calibrated_percent": int(percent),
+                })
+                self.light_config["startup_voltage_v"] = round(float(calibrated_voltage), 2)
+                self.light_config["calibrated_percent"] = int(percent)
+                logger.info(
+                    "已保存真实校准结果作为下次启动亮度: %.2fV (%s%%)",
+                    calibrated_voltage,
+                    percent,
+                )
+            except Exception as exc:
+                logger.exception(f"保存真实灯光校准结果失败: {exc}")
             QMessageBox.information(self, "真实灯光亮度校准", msg)
         else:
-            try:
-                self._show_state(self.controller.read_state(), msg)
-            except Exception:
-                pass
+            if not self.direct_voltage_control:
+                try:
+                    self._show_state(self.controller.read_state(), msg)
+                except Exception:
+                    pass
             QMessageBox.warning(self, "灯光校准未完成", msg)
 
     def closeEvent(self, event):

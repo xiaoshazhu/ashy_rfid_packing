@@ -8,7 +8,6 @@ import sys, os
 import datetime
 import inspect
 import ctypes
-import random
 from ctypes import *
 import numpy as np
 from ctypes import *
@@ -144,7 +143,48 @@ class CameraOperation:
         self.gain = gain
         self.buf_lock = threading.Lock()  # 取图和存图的buffer锁
         self.sacn_image = None
+        self.recognition_boxes = ()
+        self.recognition_boxes_expire_at = 0.0
+        self.recognition_snapshot = None
+        self.n_win_gui_id = n_win_gui_id
+        self._stop_event = threading.Event()
+        self._last_no_data_warning_at = 0.0
+        self._last_display_warning_at = 0.0
         logging.debug("CameraOperation object initialized.")
+
+    def set_recognition_boxes(self, boxes, display_seconds=2.0):
+        """短暂在SDK实时帧上绘制识别红框，避免Qt透明层覆盖成白屏。"""
+        self.recognition_boxes = tuple(tuple(map(int, box)) for box in boxes)
+        self.recognition_boxes_expire_at = time.monotonic() + max(
+            0.2, float(display_seconds)
+        )
+
+    def set_recognition_snapshot(self, image, boxes, display_seconds=2.0):
+        """显示带红框的真实识别帧，确保框和被识别图像属于同一坐标系。"""
+        if image is None or getattr(image, "size", 0) == 0:
+            self.set_recognition_boxes(boxes, display_seconds)
+            return
+        snapshot = image.copy()
+        if len(snapshot.shape) == 2:
+            snapshot = cv2.cvtColor(snapshot, cv2.COLOR_GRAY2BGR)
+        for x, y, width, height in boxes:
+            cv2.rectangle(
+                snapshot,
+                (int(x), int(y)),
+                (int(x + width), int(y + height)),
+                (0, 0, 255),
+                4,
+            )
+        self.recognition_snapshot = snapshot
+        self.recognition_boxes = tuple(tuple(map(int, box)) for box in boxes)
+        self.recognition_boxes_expire_at = time.monotonic() + max(
+            0.2, float(display_seconds)
+        )
+
+    def clear_recognition_boxes(self):
+        self.recognition_boxes = ()
+        self.recognition_boxes_expire_at = 0.0
+        self.recognition_snapshot = None
 
     # 打开相机
     def Open_device(self):
@@ -195,14 +235,16 @@ class CameraOperation:
     def Start_grabbing(self, winHandle):
         if not self.b_start_grabbing and self.b_open_device:
             self.b_exit = False
+            self._stop_event.clear()
+            self.n_win_gui_id = int(winHandle)
             ret = self.obj_cam.MV_CC_StartGrabbing()
             if ret != 0:
                 return ret
             self.b_start_grabbing = True
             logging.info("start grabbing successfully!")
             try:
-                thread_id = random.randint(1, 10000)
                 self.h_thread_handle = threading.Thread(target=CameraOperation.Work_thread, args=(self, winHandle))
+                self.h_thread_handle.daemon = True
                 self.h_thread_handle.start()
                 self.b_thread_closed = True
             finally:
@@ -214,16 +256,20 @@ class CameraOperation:
     # 停止取图
     def Stop_grabbing(self):
         if self.b_start_grabbing and self.b_open_device:
-            # 使用设备电脑此前已验证可正常重新绑定渲染句柄的原SDK线程停止方式。
-            if self.b_thread_closed:
-                Stop_thread(self.h_thread_handle)
-                self.b_thread_closed = False
+            # 先通知取流线程正常退出，禁止用异步异常强杀线程，避免SDK锁和缓冲区残留。
+            self.b_exit = True
+            self._stop_event.set()
             ret = self.obj_cam.MV_CC_StopGrabbing()
             if ret != 0:
                 return ret
+            if self.h_thread_handle and self.h_thread_handle.is_alive():
+                self.h_thread_handle.join(timeout=1.5)
+                if self.h_thread_handle.is_alive():
+                    logging.warning("相机取流线程未在1.5秒内退出，将在后台自行结束")
+            self.b_thread_closed = False
+            self.h_thread_handle = None
             logging.info("stop grabbing successfully!")
             self.b_start_grabbing = False
-            self.b_exit = True
             return MV_OK
         else:
             return MV_E_CALLORDER
@@ -231,9 +277,17 @@ class CameraOperation:
     # 关闭相机
     def Close_device(self):
         if self.b_open_device:
-            if self.b_thread_closed:
-                Stop_thread(self.h_thread_handle)
+            if self.b_start_grabbing:
+                ret = self.Stop_grabbing()
+                if ret != MV_OK:
+                    return ret
+            else:
+                self.b_exit = True
+                self._stop_event.set()
+                if self.h_thread_handle and self.h_thread_handle.is_alive():
+                    self.h_thread_handle.join(timeout=1.5)
                 self.b_thread_closed = False
+                self.h_thread_handle = None
             ret = self.obj_cam.MV_CC_CloseDevice()
             if ret != 0:
                 return ret
@@ -329,30 +383,72 @@ class CameraOperation:
         stOutFrame = MV_FRAME_OUT()
         memset(byref(stOutFrame), 0, sizeof(stOutFrame))
 
-        while True:
+        while not self._stop_event.is_set():
             ret = self.obj_cam.MV_CC_GetImageBuffer(stOutFrame, 1000)
             if 0 == ret:
                 # 拷贝图像和图像信息
 
-                if self.buf_save_image is None:
+                if self.buf_save_image is None or len(self.buf_save_image) != stOutFrame.stFrameInfo.nFrameLen:
                     self.buf_save_image = (c_ubyte * stOutFrame.stFrameInfo.nFrameLen)()
 
                 self.st_frame_info = stOutFrame.stFrameInfo
 
                 # 获取缓存锁
-                self.buf_lock.acquire()
-                cdll.msvcrt.memcpy(byref(self.buf_save_image), stOutFrame.pBufAddr, self.st_frame_info.nFrameLen)
-                self.buf_lock.release()
+                with self.buf_lock:
+                    cdll.msvcrt.memcpy(byref(self.buf_save_image), stOutFrame.pBufAddr, self.st_frame_info.nFrameLen)
 
                 logging.debug("get one frame: Width[%d], Height[%d], nFrameNum[%d]"
                       % (self.st_frame_info.nWidth, self.st_frame_info.nHeight, self.st_frame_info.nFrameNum))
                 # 释放缓存
                 self.obj_cam.MV_CC_FreeImageBuffer(stOutFrame)
             else:
-                logging.warning("no data, ret = " + To_hex_str(ret))
+                if self._stop_event.is_set():
+                    break
+                now = time.monotonic()
+                if now - self._last_no_data_warning_at >= 5.0:
+                    logging.warning("no data, ret = " + To_hex_str(ret))
+                    self._last_no_data_warning_at = now
                 continue
-            # 使用Display接口显示图像
-            if self.sacn_image is not None:
+            # 使用Display接口显示图像。识别红框直接绘制到当前实时帧，显示约2秒后
+            # 自动恢复原始SDK画面，不再使用会造成Windows白屏的Qt透明覆盖控件。
+            active_boxes = self.recognition_boxes
+            if active_boxes and time.monotonic() >= self.recognition_boxes_expire_at:
+                self.clear_recognition_boxes()
+                active_boxes = ()
+
+            live_overlay_image = self.recognition_snapshot if active_boxes else None
+            if active_boxes and live_overlay_image is None:
+                live_overlay_image = self.get_np_array_image()
+                if live_overlay_image is not None:
+                    live_overlay_image = live_overlay_image.copy()
+                    if len(live_overlay_image.shape) == 2:
+                        live_overlay_image = cv2.cvtColor(
+                            live_overlay_image, cv2.COLOR_GRAY2BGR
+                        )
+                    for x, y, width, height in active_boxes:
+                        cv2.rectangle(
+                            live_overlay_image,
+                            (x, y),
+                            (x + width, y + height),
+                            (0, 0, 255),
+                            4,
+                        )
+
+            if live_overlay_image is not None:
+                height, width, channel = live_overlay_image.shape
+                pData = (c_ubyte * live_overlay_image.size).from_buffer_copy(
+                    live_overlay_image.tobytes()
+                )
+                stDisplayParam = MV_DISPLAY_FRAME_INFO()
+                memset(byref(stDisplayParam), 0, sizeof(stDisplayParam))
+                stDisplayParam.hWnd = int(winHandle)
+                stDisplayParam.nWidth = width
+                stDisplayParam.nHeight = height
+                stDisplayParam.enPixelType = PixelType_Gvsp_BGR8_Packed
+                stDisplayParam.pData = pData
+                stDisplayParam.nDataLen = live_overlay_image.size
+                display_ret = self.obj_cam.MV_CC_DisplayOneFrame(stDisplayParam)
+            elif self.sacn_image is not None:
                 height, width, channel = self.sacn_image.shape
 
                 # 创建一个c_ubyte数组的指针，用于MV_CC_DisplayOneFrame函数
@@ -366,7 +462,7 @@ class CameraOperation:
                 stDisplayParam.enPixelType = PixelType_Gvsp_BGR8_Packed
                 stDisplayParam.pData = pData
                 stDisplayParam.nDataLen = self.sacn_image.size
-                self.obj_cam.MV_CC_DisplayOneFrame(stDisplayParam)
+                display_ret = self.obj_cam.MV_CC_DisplayOneFrame(stDisplayParam)
 
             else:
                 stDisplayParam = MV_DISPLAY_FRAME_INFO()
@@ -377,14 +473,20 @@ class CameraOperation:
                 stDisplayParam.enPixelType = self.st_frame_info.enPixelType
                 stDisplayParam.pData = self.buf_save_image
                 stDisplayParam.nDataLen = self.st_frame_info.nFrameLen
-                self.obj_cam.MV_CC_DisplayOneFrame(stDisplayParam)
+                display_ret = self.obj_cam.MV_CC_DisplayOneFrame(stDisplayParam)
 
+            if display_ret != MV_OK:
+                now = time.monotonic()
+                if now - self._last_display_warning_at >= 5.0:
+                    logging.warning(
+                        "相机画面渲染失败: HWND=%s ret=%s",
+                        int(winHandle),
+                        To_hex_str(display_ret),
+                    )
+                    self._last_display_warning_at = now
 
-            # 是否退出
-            if self.b_exit:
-                if self.buf_save_image is not None:
-                    del self.buf_save_image
-                break
+        # 保留属性本身，后续重新启动取流时可以安全重新分配缓冲区。
+        self.buf_save_image = None
 
     # 存jpg图像
     def Save_jpg(self):

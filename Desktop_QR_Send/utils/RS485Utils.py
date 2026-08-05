@@ -2,6 +2,7 @@
 import serial
 import time
 import logging
+import threading
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -29,6 +30,9 @@ TD39_POLL_INTERVAL_SECONDS = 0.05
 TD39_MONITOR_HEARTBEAT_SECONDS = 5.0
 TD39_UNCHANGED_NOTICE_SECONDS = 10.0
 TD39_RAW_LOG_INTERVAL_SECONDS = 1.0
+TD39_PRODUCT_SENSOR_CHANNEL = 5
+TD39_PRODUCT_SENSOR_ACTIVE_CLOSED = True
+TD39_PRODUCT_SENSOR_DEBOUNCE_SECONDS = 0.25
 
 
 def _get_input_monitor_logger():
@@ -63,9 +67,13 @@ class RS485Utils:
         self.baudrate = int(baudrate or TD39_BAUDRATE)
         self.slave_addr = int(slave_addr)
         self.ser = None
+        self._serial_lock = threading.RLock()
         self._receive_buffer = bytearray()
         self.home_instance = home_instance
         self._last_trigger_time = {}
+        self._product_sensor_candidate_closed = None
+        self._product_sensor_candidate_since = None
+        self._product_sensor_stable_closed = None
         self._prev_modbus_mask = None
         self._idle_modbus_mask = None
         self._listen_started_at = None
@@ -126,6 +134,60 @@ class RS485Utils:
             logging.debug(f"尝试打开 [{self.port} @ {self.baudrate}] 失败: {e}")
             raise
 
+    def probe_td39(self, timeout_seconds=1.2):
+        """只读探测当前串口是否确实连接 TD-39，成功后保留串口供正式监听。"""
+        if not self.ser or not self.ser.is_open:
+            self.connect()
+
+        self._receive_buffer.clear()
+        self._last_valid_response_at = None
+        query_frame = build_modbus_read_di(slave_addr=self.slave_addr)
+        deadline = time.monotonic() + max(0.3, float(timeout_seconds))
+        try:
+            self.ser.reset_input_buffer()
+            while time.monotonic() < deadline:
+                self.ser.write(query_frame)
+                self.ser.flush()
+                response_deadline = min(deadline, time.monotonic() + 0.18)
+                while time.monotonic() < response_deadline:
+                    if self.ser.in_waiting > 0:
+                        self._receive_buffer.extend(self.ser.read(self.ser.in_waiting))
+                        self._process_receive_buffer()
+                        if self._last_valid_response_at is not None:
+                            logging.info(f"TD-39 只读探测成功: [{self.port}] @ {self.baudrate}")
+                            return True
+                    time.sleep(0.01)
+            logging.info(f"串口 [{self.port}] 未通过 TD-39 只读探测")
+            return False
+        except Exception:
+            logging.exception(f"TD-39 只读探测异常: [{self.port}]")
+            return False
+
+    def exchange_raw(self, request, response_size, timeout_seconds=0.8):
+        """在TD-39轮询间隙复用同一串口执行一次WDIP事务。"""
+        if not self.ser or not self.ser.is_open:
+            return None
+        request = bytes(request)
+        deadline = time.monotonic() + max(0.1, float(timeout_seconds))
+        response = bytearray()
+        with self._serial_lock:
+            self._receive_buffer.clear()
+            self.ser.reset_input_buffer()
+            self.ser.write(request)
+            self.ser.flush()
+            while time.monotonic() < deadline:
+                waiting = self.ser.in_waiting
+                if waiting > 0:
+                    response.extend(self.ser.read(min(64, waiting)))
+                    if len(response) >= max(1, int(response_size)):
+                        break
+                time.sleep(0.01)
+        logging.info(
+            f"共享RS485事务完成: port={self.port} request={request.hex(' ')} "
+            f"response={bytes(response).hex(' ') if response else '<空响应>'}"
+        )
+        return bytes(response)
+
     def listen(self):
         logging.info(
             f"开始监听 TD-39 RS485: 端口={self.port}, 波特率={self.baudrate}, "
@@ -177,7 +239,8 @@ class RS485Utils:
                     if self.ser and self.ser.is_open:
                         try:
                             poll_cmd = build_modbus_read_di(slave_addr=self.slave_addr)
-                            self.ser.write(poll_cmd)
+                            with self._serial_lock:
+                                self.ser.write(poll_cmd)
                             logging.debug(f"TD-39 发送查询: {poll_cmd.hex(' ')}")
                         except Exception as exc:
                             logging.error(f"TD-39 查询发送失败: {exc}")
@@ -185,7 +248,8 @@ class RS485Utils:
                     last_poll_time = now
 
                 if self.ser and self.ser.is_open and self.ser.in_waiting > 0:
-                    data = self.ser.read(self.ser.in_waiting)
+                    with self._serial_lock:
+                        data = self.ser.read(self.ser.in_waiting)
                     hex_data = data.hex(" ")
                     self._monitor_rx_bytes += len(data)
 
@@ -374,6 +438,7 @@ class RS485Utils:
                 states_text,
             )
             self._last_monitor_heartbeat_at = now
+            self._update_product_sensor(mask, now)
             return
 
         changed = mask ^ self._prev_modbus_mask
@@ -389,6 +454,10 @@ class RS485Utils:
             for bit in range(TD39_DI_COUNT):
                 if changed & (1 << bit):
                     channel = bit + 1
+                    # 通道5是光电/激光到位传感器，必须使用固定有效电平和
+                    # 稳定防抖，不能像按钮一样把程序启动时的状态当“空闲态”。
+                    if channel == TD39_PRODUCT_SENSOR_CHANNEL:
+                        continue
                     raw_closed = bool(mask & (1 << bit))
                     idle_closed = bool(self._idle_modbus_mask & (1 << bit))
                     is_press = raw_closed != idle_closed
@@ -423,6 +492,8 @@ class RS485Utils:
             )
             self._last_monitor_heartbeat_at = now
 
+        self._update_product_sensor(mask, now)
+
         if (
             self._last_state_change_at is not None
             and now - self._last_state_change_at >= TD39_UNCHANGED_NOTICE_SECONDS
@@ -443,6 +514,57 @@ class RS485Utils:
             )
             self._last_unchanged_notice_at = now
         self._prev_modbus_mask = mask
+
+    def _update_product_sensor(self, mask: int, now: float):
+        """只在产品稳定放入时触发，拿出产品只记录释放状态。
+
+        TD-39协议中位值1代表闭合；现场反射式激光传感器照到产品时输出闭合。
+        连续稳定250ms后才确认状态，消除产品移动和触点抖动造成的重复触发。
+        """
+        bit = TD39_PRODUCT_SENSOR_CHANNEL - 1
+        raw_closed = bool(mask & (1 << bit))
+
+        if self._product_sensor_candidate_closed is None:
+            self._product_sensor_candidate_closed = raw_closed
+            self._product_sensor_candidate_since = now
+            self._product_sensor_stable_closed = raw_closed
+            logging.info(
+                "光电传感器初始稳定状态: %s（初始状态不触发拍照）",
+                "检测到产品" if raw_closed == TD39_PRODUCT_SENSOR_ACTIVE_CLOSED else "无产品",
+            )
+            return
+
+        if raw_closed != self._product_sensor_candidate_closed:
+            self._product_sensor_candidate_closed = raw_closed
+            self._product_sensor_candidate_since = now
+            logging.debug(
+                "光电传感器候选状态变化为%s，开始250ms稳定防抖",
+                "闭合" if raw_closed else "断开",
+            )
+            return
+
+        if raw_closed == self._product_sensor_stable_closed:
+            return
+        if now - self._product_sensor_candidate_since < TD39_PRODUCT_SENSOR_DEBOUNCE_SECONDS:
+            return
+
+        self._product_sensor_stable_closed = raw_closed
+        product_present = raw_closed == TD39_PRODUCT_SENSOR_ACTIVE_CLOSED
+        self._monitor_events += 1
+        logging.info(
+            "TD-39 光电通道5防抖确认: 电气状态=%s，产品状态=%s，动作=%s",
+            "闭合" if raw_closed else "断开",
+            "已放入" if product_present else "已拿出",
+            "触发拍照识别" if product_present else "仅释放、不拍照",
+        )
+        self._monitor_logger.info(
+            "SENSOR-STABLE event_no=%s channel=5 electrical=%s product=%s action=%s",
+            self._monitor_events,
+            "CLOSED" if raw_closed else "OPEN",
+            "PRESENT" if product_present else "ABSENT",
+            "TRIGGER" if product_present else "RELEASE_ONLY",
+        )
+        self._handle_button_event(TD39_PRODUCT_SENSOR_CHANNEL, product_present)
 
     def _queue_button_click(self, button_name: str):
         """把串口线程中的按钮动作排队投递到 Qt 主线程。"""

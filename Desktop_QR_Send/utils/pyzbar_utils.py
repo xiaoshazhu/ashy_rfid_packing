@@ -6,6 +6,58 @@ import time
 from threading import Thread
 import numpy as np # 确保添加了 numpy 的导入
 import logging # 导入 logging 模块
+from collections import namedtuple
+
+
+CodeRect = namedtuple("CodeRect", "left top width height")
+
+
+class OpenCvDecodedCode:
+    """OpenCV 真实解码结果，保持与 pyzbar 结果相同的业务接口。"""
+
+    def __init__(self, data, rect):
+        self.data = data
+        self.type = "QRCODE"
+        self.rect = rect
+
+
+def decode_opencv_qr(image):
+    """使用 OpenCV 的多二维码解码器作为 pyzbar 的真实识别补充。
+
+    只返回已经真正解出非空内容的二维码；不根据轮廓猜测数量，
+    不会为未解码的图形补框或生成数据。
+    """
+    if image is None or getattr(image, "size", 0) == 0:
+        return []
+
+    detector = cv2.QRCodeDetector()
+    if not hasattr(detector, "detectAndDecodeMulti"):
+        return []
+    try:
+        ok, decoded_info, points, _ = detector.detectAndDecodeMulti(image)
+    except (cv2.error, ValueError):
+        return []
+
+    if not ok or points is None:
+        return []
+
+    results = []
+    values = decoded_info if decoded_info is not None else ()
+    for value, polygon in zip(values, points):
+        value = str(value or "").strip()
+        if not value:
+            continue
+        polygon = np.asarray(polygon, dtype=np.float32).reshape(-1, 2)
+        x, y, width, height = cv2.boundingRect(polygon)
+        if width <= 0 or height <= 0:
+            continue
+        results.append(
+            OpenCvDecodedCode(
+                value.encode("utf-8"),
+                CodeRect(int(x), int(y), int(width), int(height)),
+            )
+        )
+    return results
 
 SCAN_SYMBOLS = [
     symbol for symbol in (
@@ -16,12 +68,14 @@ SCAN_SYMBOLS = [
     if symbol is not None
 ]
 
-def draw_barcodes(image, barcodes):
+def draw_barcodes(image, barcodes, offset_x=0, offset_y=0):
     logging.debug("开始绘制条形码边框和文本...") # 添加 debug 日志：函数开始
 
     # 遍历所有识别到的二维码
     for barcode in barcodes:
         (x, y, w, h) = barcode.rect
+        x += int(offset_x)
+        y += int(offset_y)
         # 在二维码周围画一个红色的矩形框
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 4)
 
@@ -52,23 +106,37 @@ def decode_image_codes(image):
 
     unique = []
     seen = set()
-    for candidate in (enhanced, thresholded):
+    for candidate in (gray, enhanced, thresholded):
         for code in decode(candidate, symbols=SCAN_SYMBOLS):
             if code.data in seen:
                 continue
             seen.add(code.data)
             unique.append(code)
-    return unique
+    for code in decode_opencv_qr(gray):
+        if code.data in seen:
+            continue
+        seen.add(code.data)
+        unique.append(code)
+    # 与正式装箱识别保持同一业务口径：画面里存在二维码时，商品EAN条码
+    # 不计入识别数量，防止灯光校准被非盒码条码误导。
+    qr_codes = [code for code in unique if str(code.type).upper() == "QRCODE"]
+    return qr_codes if qr_codes else unique
 
 
-def process_image(self_, obj_cam_operation, image, max_x=None, max_y=None, min_x=None, min_y=None):
+def process_image(
+    self_, obj_cam_operation, image,
+    max_x=None, max_y=None, min_x=None, min_y=None,
+    show_feedback=True,
+):
     logging.info("开始处理图像以识别二维码...") # 添加 info 日志：函数开始
     # ---------------------  版本 4.x.3  ---------------------
     #  v4.x 系列: 图像矫正预处理 - v4.x.3 版本：  最终优化版本 (Canny 阈值: threshold1=0, threshold2=1000)
 
     # 记录开始时间（毫秒）
     start_time = int(round(time.time() * 1000))
-    original_image = image.copy()  # 保留原始图像，  方便后续绘制边框 (如果需要)
+    # 识别只读取本次真实相机帧，不把处理图像写回相机预览。
+    # 实时画面始终由海康SDK连续刷新，避免红框静态帧长期覆盖造成卡顿/白屏。
+    obj_cam_operation.sacn_image = None
     # 如果没有提供截取参数，则使用整个图像
     if max_x is None or max_y is None or min_x is None or min_y is None:
         min_x, min_y = 0, 0
@@ -89,18 +157,13 @@ def process_image(self_, obj_cam_operation, image, max_x=None, max_y=None, min_x
     corner_points = None  # 初始化为 None， 表示边框检测失败
     try:
         # 1. 图像预处理： CLAHE 增强对比度 (用于边框检测)
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        processed_image_clahe_corner = clahe.apply(gray_image.copy())  # CLAHE 预处理后的图像， 用于边框检测
+        processed_image_clahe_corner = gray_image
         # processed_image_clahe_corner = gray_image.copy() #  您也可以尝试直接使用灰度图进行边框检测，  如果 CLAHE 效果不佳
         logging.debug("图像矫正预处理 - CLAHE 增强对比度") # 添加 debug 日志
 
-        # 2. 边缘检测 (Canny 边缘检测器)  ---  【v4.x.3 版本 - 最终优化：  使用  threshold1=0, threshold2=1000  阈值】 ---
-        edges = cv2.Canny(processed_image_clahe_corner, 0, 1000)
-        logging.debug("图像矫正预处理 - Canny 边缘检测， 阈值: 0, 1000") # 添加 debug 日志
-
-        # 3. 轮廓检测
-        contours, _ = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        logging.debug(f"图像矫正预处理 - 轮廓检测， 发现轮廓数量: {len(contours)}") # 添加 debug 日志
+        # 多盒同屏不适合“找最大四边形并透视成单码”的旧算法。
+        # 停止Canny/轮廓透视分支，既保持原始坐标，也减少每次识别的无效耗时。
+        contours = []
 
         # 4. 筛选轮廓 (初步筛选： 面积和形状)
         qr_code_contours = []
@@ -146,7 +209,12 @@ def process_image(self_, obj_cam_operation, image, max_x=None, max_y=None, min_x
 
 
 
-    # ---  方法 1: CLAHE 预处理 (在 矫正后的图像 上进行 CLAHE 预处理) ---
+    # 多盒同屏时，旧逻辑会把面积最大的一个四边形拉伸到200x200，
+    # 但随后又把变形后的rect当成原图坐标绘制，导致现场红框严重偏移。
+    # 正式识别必须保留相机原始ROI坐标；透视尝试不再参与多码解码。
+    corrected_image_gray = original_gray_image
+
+    # ---  方法 1: CLAHE 预处理（尺寸和坐标与原始ROI一致） ---
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     processed_image_clahe = clahe.apply(corrected_image_gray.copy())  # 注意：  使用 矫正后的灰度图像 corrected_image_gray
     logging.debug("解码方法 1: CLAHE 预处理后的图像") # 添加 debug 日志
@@ -161,13 +229,16 @@ def process_image(self_, obj_cam_operation, image, max_x=None, max_y=None, min_x
     logging.debug(f"解码方法 2 - 阈值二值化 结果： 识别到二维码数量: {len(codes_thresh)}") # 添加 debug 日志
 
 
-    # ---  【去除】 方法 3:  仅灰度图像， 不做任何预处理 ---  【 去除 “仅灰度图像” 解码分支】
-    # codes_gray = decode(corrected_image_gray.copy(),
-    #                     symbols=[pyzbar.ZBarSymbol.QRCODE])  # 注意： 使用 矫正后的灰度图像 corrected_image_gray
+    # ---  方法 3: 原始灰度图 ---
+    # 部分低对比度码经CLAHE或二值化后会丢失，保留原始灰度解码以减少漏标。
+    codes_gray = decode(corrected_image_gray.copy(), symbols=SCAN_SYMBOLS)
 
     # ---  合并所有方法的识别结果，并去重 ---
-    # all_codes = codes_clahe + codes_thresh + codes_gray  # 【 合并三种方法的结果】
-    all_codes = codes_clahe + codes_thresh  #  【只合并 CLAHE 和 阈值二值化的结果】
+    # 三种图像尺寸完全一致，返回的rect均可直接映射回相机原图。
+    # OpenCV 与 pyzbar 是两个独立的真实解码器；前者常能补出一部分
+    # pyzbar 因反光、对比度低而漏掉的码。两者坐标都基于同一原始 ROI。
+    codes_opencv = decode_opencv_qr(corrected_image_gray)
+    all_codes = codes_gray + codes_clahe + codes_thresh + codes_opencv
     unique_codes = []  # 用于存储去重后的结果
     decoded_data = set()  # 用于记录已解码的数据，去重用
     logging.debug(f"合并解码结果， 合并前二维码总数量: {len(all_codes)}") # 添加 debug 日志
@@ -178,29 +249,74 @@ def process_image(self_, obj_cam_operation, image, max_x=None, max_y=None, min_x
             decoded_data.add(code.data)
     logging.debug(f"去重后二维码数量: {len(unique_codes)}") # 添加 debug 日志
 
-    barcodes = unique_codes  # 最终使用的 barcodes 是去重后的结果
+    # 同一盒包装上通常同时存在业务二维码和商品EAN条码。现场10盒测试中，
+    # 10个业务二维码加1个重复商品条码会被误显示成11/10。只要画面内存在
+    # QRCODE，就仅把QRCODE作为盒码；没有二维码时才兼容CODE128/EAN13。
+    qr_codes = [code for code in unique_codes if str(code.type).upper() == "QRCODE"]
+    barcodes = qr_codes if qr_codes else unique_codes
+    if qr_codes and len(qr_codes) != len(unique_codes):
+        ignored_types = sorted({
+            str(code.type) for code in unique_codes if str(code.type).upper() != "QRCODE"
+        })
+        logging.info(
+            f"检测到业务二维码，本帧忽略非盒码类型 {ignored_types}，"
+            f"候选总数={len(unique_codes)}，有效盒码={len(qr_codes)}"
+        )
+
+    # 按画面从上到下、从左到右排序，保证显示与截断顺序稳定。
+    barcodes = sorted(barcodes, key=lambda code: (code.rect.top, code.rect.left))
+    try:
+        from page.config import CONFIG_DATA
+        expected_count = max(1, int(CONFIG_DATA.get("edit_max_jian", 10)))
+    except Exception:
+        expected_count = 10
+    if len(barcodes) > expected_count:
+        logging.warning(
+            f"本帧识别到 {len(barcodes)} 个有效候选盒码，超过配置上限 {expected_count}；"
+            "页面和装箱逻辑只保留排序后的前N个，禁止出现11/10"
+        )
+        barcodes = barcodes[:expected_count]
 
     if barcodes:
         self_.sacn_box_data = [{'data': barcode.data.decode("utf-8"), 'type': barcode.type} for barcode in barcodes]
-        draw_barcodes(original_image, barcodes)
-        self_.scan_code(len(barcodes))
-        try:
-            self_.show_temporary_tooltip(self_.main_window.groupBox_7, "【识别成功】", f"成功识别到 {len(barcodes)} 个真实盒码！")
-            self_.main_window.play_success()
-        except Exception:
-            pass
+        boxes = [
+            (
+                int(barcode.rect.left) + int(min_x),
+                int(barcode.rect.top) + int(min_y),
+                int(barcode.rect.width),
+                int(barcode.rect.height),
+            )
+            for barcode in barcodes
+        ]
+        self_.show_recognition_boxes(
+            boxes,
+            image.shape[1],
+            image.shape[0],
+            source_image=image,
+        )
+        if show_feedback:
+            try:
+                self_.show_temporary_tooltip(
+                    self_.main_window.groupBox_7,
+                    "【识别成功】",
+                    f"本帧真实识别到 {len(barcodes)} 个盒码。",
+                )
+                self_.main_window.play_success()
+            except Exception:
+                pass
     else:
         # 生产测试只接受相机真实识别结果，不再自动填充模拟盒码或触发录入。
         self_.sacn_box_data = None
-        self_.scan_code(0)
-        try:
-            self_.show_temporary_tooltip(self_.main_window.groupBox_7, "【识别失败】", "没有识别到真实盒码，请调整盒子位置后重试。")
-            self_.main_window.play_warning()
-        except Exception:
-            pass
+        if show_feedback:
+            try:
+                self_.show_temporary_tooltip(self_.main_window.groupBox_7, "【识别失败】", "没有识别到真实盒码，请调整盒子位置后重试。")
+                self_.main_window.play_warning()
+            except Exception:
+                pass
 
-    # 让画面一直显示识别后的内容
-    obj_cam_operation.sacn_image = original_image
+    # 页面计数由Home根据“本轮累计真实结果”统一更新一次；这里不再先显示
+    # 本帧9个、随后又显示累计10个，避免肉眼看到9/10来回跳动。
+    obj_cam_operation.sacn_image = None
 
     # 记录结束时间（毫秒）并计算识别过程总时间
     end_time = int(round(time.time() * 1000))

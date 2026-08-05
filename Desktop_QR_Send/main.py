@@ -31,6 +31,7 @@ import datetime
 from logging.handlers import TimedRotatingFileHandler
 from serial.tools import list_ports
 from page.light_control_dialog import load_light_config
+from utils.local_data_pipeline import is_remote_upload_enabled
 
 class MainWindow(QMainWindow, Ui_HomeWindow):
     def __init__(self):
@@ -48,24 +49,31 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
         self.centerWindow()
         self.setupUi(self)
 
-        # 主程序main.py 初始化建立 WebSocket
-        try:
-            websocket_uri = config.CONFIG_DATA["edit_service"]
-            self.client = startWS(websocket_uri=websocket_uri)
+        # 本地测试阶段不建立WebSocket，避免打印或确认操作误传生产服务器。
+        self.client = None
+        self.loop = None
+        self.loop_thread = None
+        if is_remote_upload_enabled():
+            try:
+                websocket_uri = config.CONFIG_DATA["edit_service"]
+                self.client = startWS(websocket_uri=websocket_uri)
 
-            # 启动异步事件循环（在单独线程中）
-            self.loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self.loop)
-            self.loop_thread = Thread(target=self.run_loop, daemon=True)
-            self.loop_thread.start()
-        except Exception as e:
-            logging.error(f"WebSocket 连接失败: {e}") # 使用 logging.error 替换 print
+                # 启动异步事件循环（在单独线程中）
+                self.loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(self.loop)
+                self.loop_thread = Thread(target=self.run_loop, daemon=True)
+                self.loop_thread.start()
+            except Exception as e:
+                logging.error(f"WebSocket 连接失败: {e}") # 使用 logging.error 替换 print
+        else:
+            logging.info("数据流程为local_test：未建立WebSocket，远程上传已禁用")
 
 
         # 实例化 Home 类并初始化
         self.home = Home(main_window=self)
 
         # 初始化 RS485 监听线程
+        self.rs485 = None
         self.rs485_thread = Thread(target=self.listen_to_rs485, daemon=True)
         self.rs485_thread.start()
 
@@ -147,29 +155,57 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
             preferred_ports = usb_ports + other_ports
             logging.info(f"当前可用串口: {all_ports} (按 USB 转换器优先排序: {preferred_ports})")
 
-            # 串口用途必须明确配置。没有启用实体按钮时，不能自动占用首个 USB
-            # 串口，否则会把 WDIP 补光灯的 COM 口误当成 TD-39 按钮端口。
-            if not comSelect:
-                logging.info("RS485实体按钮未启用，不占用任何串口；3秒后检查配置...")
-                time.sleep(3)
-                continue
-            if light_port and str(comSelect).upper() == light_port.upper():
+            # 设置中可能保留了设备电脑以前的 COM 号。先尝试有效配置，再只读探测
+            # 其余串口；WDIP 所在端口始终排除，避免两个线程同时抢占同一串口。
+            candidates = []
+            if comSelect in all_ports and (
+                not light_port or str(comSelect).upper() != light_port.upper()
+            ):
+                candidates.append(comSelect)
+            for port in preferred_ports:
+                # 独立按钮串口优先；与WDIP相同的端口放到最后，作为共享总线候选。
+                if light_port and str(port).upper() == light_port.upper():
+                    continue
+                if port not in candidates:
+                    candidates.append(port)
+            if light_port in all_ports and light_port not in candidates:
+                candidates.append(light_port)
+
+            if not candidates:
                 logging.warning(
-                    f"串口分配冲突：{comSelect} 已明确分配给WDIP补光灯，"
-                    "顶部按钮监听不会占用该端口；请在设置中为TD-39选择其他串口。"
+                    "没有可用于TD-39顶部按钮的串口，请检查USB-RS485连接。"
                 )
                 time.sleep(3)
                 continue
-            if comSelect not in all_ports:
-                logging.warning(f"已配置的RS485实体按钮串口 {comSelect} 未连接，3秒后重试...")
+
+            rs485 = None
+            target_port = None
+            for candidate in candidates:
+                probe = RS485Utils(port=candidate, baudrate=9600, home_instance=self.home)
+                if probe.probe_td39():
+                    rs485 = probe
+                    self.rs485 = probe
+                    target_port = candidate
+                    if candidate != comSelect:
+                        logging.info(
+                            f"顶部按钮自动定位成功: {comSelect or '未配置'} -> {candidate}；已保存新串口"
+                        )
+                        config.setConfig({"combobox_comSelect": candidate})
+                    if light_port and candidate.upper() == light_port.upper():
+                        logging.info(
+                            f"TD-39与WDIP确认共用 [{candidate}]，已启用进程内共享RS485事务协调"
+                        )
+                    break
+                probe.close()
+
+            if rs485 is None:
+                logging.warning(
+                    f"未在候选串口 {candidates} 找到TD-39有效响应；WDIP配置端口={light_port or '未配置'}"
+                )
                 time.sleep(3)
                 continue
 
-            target_port = comSelect
-
-            rs485 = RS485Utils(port=target_port, baudrate=9600, home_instance=self.home)
             try:
-                rs485.connect()
                 rs485.listen()
             except KeyboardInterrupt:
                 logging.info("RS485 监听停止 (KeyboardInterrupt).")
@@ -178,10 +214,24 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
                 logging.error(f"RS485 [{target_port}] 连接或监听失败: {exc}")
             finally:
                 rs485.close()
+                if self.rs485 is rs485:
+                    self.rs485 = None
                 logging.info(f"RS485 端口 [{target_port}] 已关闭.")
 
             logging.warning("3秒后重新连接RS485串口...")
             time.sleep(3)
+
+    def exchange_shared_rs485(self, port, request, response_size, timeout_seconds):
+        """供WDIP控制器复用已由TD-39监听线程打开的同一个RS485串口。"""
+        active = getattr(self, "rs485", None)
+        if (
+            active is None
+            or not getattr(active, "ser", None)
+            or not active.ser.is_open
+            or str(active.port).upper() != str(port).upper()
+        ):
+            return None
+        return active.exchange_raw(request, response_size, timeout_seconds)
 
     def centerWindow(self):
         """设置窗口居中"""
@@ -197,9 +247,10 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
             logging.warning("程序将继续退出，但WDIP灯光关闭未得到有效回读确认。")
         self.home.stop_grabbing()
         self.home.close_device()
-        if self.client and self.client.get_connection_status():
+        if self.client and self.loop and self.client.get_connection_status():
             asyncio.run_coroutine_threadsafe(self.client.close(), self.loop)
-        self.loop.stop()
+        if self.loop:
+            self.loop.stop()
         logging.info("Asyncio 事件循环已停止.") # 记录事件循环停止日志
         logging.info("WebSocket 连接已关闭 (如果已建立).") # 记录 WebSocket 关闭日志
         logging.info("设备资源已释放.") # 记录设备资源释放日志

@@ -123,6 +123,10 @@ class T63RSdk:
             dll.DSTP2x_SetLcPrnMode.argtypes = [c_uint64, c_int]
             dll.DSTP2x_SetLcPrnMode.restype = c_uint
 
+        if hasattr(dll, "DSTP2x_SetLcPrnRotate"):
+            dll.DSTP2x_SetLcPrnRotate.argtypes = [c_uint64, c_int]
+            dll.DSTP2x_SetLcPrnRotate.restype = c_uint
+
         dll.DSTP2x_CreateLabelContext.argtypes = [c_double, c_double, POINTER(c_uint64)]
         dll.DSTP2x_CreateLabelContext.restype = c_uint
 
@@ -178,6 +182,14 @@ class T63RSdk:
         ]
         dll.DSTP2x_PrintLc.restype = c_uint
 
+        if hasattr(dll, "DSTP2x_SetLcPrnRotate"):
+            dll.DSTP2x_SetLcPrnRotate.argtypes = [c_uint64, c_int]
+            dll.DSTP2x_SetLcPrnRotate.restype = c_uint
+
+        if hasattr(dll, "ThermalCustomizedCmd"):
+            dll.ThermalCustomizedCmd.argtypes = [c_uint64, c_char_p, c_int]
+            dll.ThermalCustomizedCmd.restype = c_uint
+
         if hasattr(dll, "DSTP2x_RFID_ReadData"):
             dll.DSTP2x_RFID_ReadData.argtypes = [
                 c_uint64, c_char_p, POINTER(c_int), c_char_p, POINTER(c_int), c_char_p, POINTER(c_int)
@@ -188,16 +200,131 @@ class T63RSdk:
             dll.DSTP2x_RFID_LockOperate.argtypes = [c_uint64, c_int, c_char_p]
             dll.DSTP2x_RFID_LockOperate.restype = c_uint
 
-    def set_text_font(self, lc_hdl: int, font_name: str = "Arial", font_size: float = 10.0, is_bold: bool = False):
-        """设置下一段文字使用的 Windows 字体、字号与粗体。"""
+    def set_text_font(self, lc_hdl: int, font_name: str = "宋体", font_size: float = 10.0, is_bold: bool = False):
+        """设置待绘制文本的字体 (默认 '宋体' 中文字体，nTemporary=1 临时模式)，完美支持中文显色与 0 错误码"""
         if hasattr(self._dll, "DSTP2x_LcDraw_SetTextFontName"):
-            self._dll.DSTP2x_LcDraw_SetTextFontName(
-                c_uint64(lc_hdl), 0, str(font_name or "Microsoft YaHei").encode("utf-8")
-            )
+            try:
+                fname = (font_name or "宋体").strip()
+                if fname.lower() in ("simsun", "simsun", "songti"):
+                    fname = "宋体"
+                elif fname.lower() in ("simhei", "hei", "heiti"):
+                    fname = "黑体"
+                elif fname.lower() in ("msyh", "microsoft yahei"):
+                    fname = "微软雅黑"
+                self._dll.DSTP2x_LcDraw_SetTextFontName(c_uint64(lc_hdl), c_int(1), fname.encode('utf-8'))
+            except Exception as e:
+                logger.warning(f"设置字体名称 '{font_name}' 告警: {e}")
         if hasattr(self._dll, "DSTP2x_LcDraw_SetTextFontSize"):
-            self._dll.DSTP2x_LcDraw_SetTextFontSize(c_uint64(lc_hdl), 0, c_double(font_size))
+            try:
+                self._dll.DSTP2x_LcDraw_SetTextFontSize(c_uint64(lc_hdl), c_int(1), c_double(font_size))
+            except Exception:
+                pass
         if hasattr(self._dll, "DSTP2x_LcDraw_SetTextBold"):
-            self._dll.DSTP2x_LcDraw_SetTextBold(c_uint64(lc_hdl), 0, 1 if is_bold else 0)
+            try:
+                self._dll.DSTP2x_LcDraw_SetTextBold(c_uint64(lc_hdl), c_int(1), c_int(1 if is_bold else 0))
+            except Exception:
+                pass
+
+    def draw_text(self, lc_hdl: int, x: float, y: float, w: float, h: float, text: str, font_size: float = 10.0, font_name: str = "宋体", is_bold: bool = False):
+        clean_text = str(text or "").strip()
+        if clean_text and w > 0:
+            cjk_count = sum(1 for c in clean_text if ord(c) > 127)
+            ascii_count = len(clean_text) - cjk_count
+            # CJK 字符约 0.3527mm/pt, ASCII 字符约 0.20mm/pt
+            approx_w_per_pt = (cjk_count * 0.36 + ascii_count * 0.20)
+            if approx_w_per_pt > 0:
+                max_pt = w / approx_w_per_pt
+                if font_size > max_pt:
+                    font_size = max(6.0, round(max_pt, 1))
+
+        self.set_text_font(lc_hdl, font_name=font_name, font_size=font_size, is_bold=is_bold)
+        text_bytes = clean_text.encode('utf-8')
+        res = self._dll.DSTP2x_Lbl_DrawText(
+            c_uint64(lc_hdl), c_double(x), c_double(y), c_double(w), c_double(h), text_bytes
+        )
+        if res != 0:
+            logger.warning(f"绘制文本 '{text}' 返回非零码: {res}")
+
+    def draw_image(
+        self,
+        lc_hdl: int,
+        x: float,
+        y: float,
+        w: float,
+        h: float,
+        image_path: str,
+    ):
+        """【打印代码 5】：在画布上绘制品牌 Logo 图片 (对应 C API: DSTP2x_Lbl_DrawImage)"""
+        if not hasattr(self._dll, "DSTP2x_Lbl_DrawImage"):
+            logger.warning("当前 T63R SDK 不支持 DSTP2x_Lbl_DrawImage，已跳过品牌图片")
+            return
+        abs_path = os.path.abspath(image_path)
+        if not os.path.exists(abs_path):
+            logger.warning(f"品牌图片不存在，已跳过: {abs_path}")
+            return
+        path_bytes = abs_path.encode("utf-8")
+        if hasattr(self._dll, "DSTP2x_LcDraw_SetImageHalftoneAlgo"):
+            self._dll.DSTP2x_LcDraw_SetImageHalftoneAlgo(
+                c_uint64(lc_hdl), c_int(1), c_int(3), c_int(180)
+            )
+        res = self._dll.DSTP2x_Lbl_DrawImage(
+            c_uint64(lc_hdl),
+            c_double(x),
+            c_double(y),
+            c_double(w),
+            c_double(h),
+            c_double(1.0),
+            c_int(0),
+            path_bytes,
+            c_uint(len(path_bytes)),
+        )
+        if res != 0:
+            logger.warning(f"绘制品牌图片返回非零码: {res}")
+
+    def set_img_dpi(self, dev_hdl: int, dpi_type: int = 1):
+        if hasattr(self._dll, "DSTP2x_SetImgDpi") and dev_hdl:
+            res = self._dll.DSTP2x_SetImgDpi(c_uint64(dev_hdl), c_int(dpi_type))
+            if res != 0:
+                logger.warning(f"设置打印 DPI ({dpi_type}) 返回非零码: {res}")
+
+    def set_prn_emulation(self, dev_hdl: int, emulation: int = 1):
+        if hasattr(self._dll, "DSTP2x_SetPrnEmulation") and dev_hdl:
+            res = self._dll.DSTP2x_SetPrnEmulation(c_uint64(dev_hdl), c_int(emulation))
+            if res != 0:
+                logger.warning(f"设置打印仿真模式 ({emulation}) 返回非零码: {res}")
+
+    def set_lc_prn_mode(self, lc_hdl: int, mode: int = 0):
+        if hasattr(self._dll, "DSTP2x_SetLcPrnMode") and lc_hdl:
+            try:
+                self._dll.DSTP2x_SetLcPrnMode(c_uint64(lc_hdl), c_int(mode))
+            except Exception:
+                pass
+
+    def set_lc_prn_rotate(self, lc_hdl: int, rotate: int = 0):
+        """设置整张标签画布旋转角度 (0: 0度, 90: 旋转90度, 180: 180度, 270: 270度)；彻底解决 42041344。"""
+        rot_val = 0
+        if rotate in (90, 1):
+            rot_val = 90
+        elif rotate in (180, 2):
+            rot_val = 180
+        elif rotate in (270, 3):
+            rot_val = 270
+        if hasattr(self._dll, "DSTP2x_SetLcPrnRotate") and lc_hdl:
+            try:
+                res = self._dll.DSTP2x_SetLcPrnRotate(c_uint64(lc_hdl), c_int(rot_val))
+                if res != 0:
+                    logger.warning(f"设置画布旋转角度 ({rot_val}) 返回非零码: {res}")
+            except Exception as e:
+                logger.warning(f"设置画布旋转角度异常: {e}")
+
+    def send_custom_cmd(self, dev_hdl: int, cmd_str: str):
+        if hasattr(self._dll, "ThermalCustomizedCmd") and dev_hdl:
+            cmd_bytes = cmd_str.encode("utf-8")
+            try:
+                res = self._dll.ThermalCustomizedCmd(c_uint64(dev_hdl), cmd_bytes, c_int(len(cmd_bytes)))
+                logger.info(f"下发 ZPL 控制指令 '{cmd_str}' 成功，返回码: {res}")
+            except Exception as e:
+                logger.warning(f"下发 ZPL 控制指令 '{cmd_str}' 告警: {e}")
 
     def enum_usb_devices(self) -> List[str]:
         if not self._initialized:
@@ -460,6 +587,27 @@ class T63RSdk:
         )
         if res != 0:
             raise SdkInitError(f"设置 RFID 写入数据失败 (区域 {rgn_type}, 格式 {data_fmt})，错误码: {res}", code=res)
+
+    def rfid_lock_operate(self, lc_hdl: int, lock_type: int = 1, password: str = "00000000"):
+        """开启并执行 RFID 芯片锁定/解锁操作 (DSTP2x_RFID_LockOperate)。"""
+        if hasattr(self._dll, "DSTP2x_RFID_LockOperate") and lc_hdl:
+            try:
+                pwd_bytes = password.encode('utf-8')
+                res = self._dll.DSTP2x_RFID_LockOperate(c_uint64(lc_hdl), c_int(lock_type), pwd_bytes)
+                logger.info(f"开启并设置 RFID 芯片锁 (lock_type={lock_type}) 返回码: {res}")
+            except Exception as e:
+                logger.warning(f"设置 RFID 芯片锁告警: {e}")
+
+    def rfid_locate_label(self, dev_hdl: int) -> int:
+        """执行 RFID 标签位置自动定位校准 (DSTP2x_RFID_LocateLabel)。"""
+        if hasattr(self._dll, "DSTP2x_RFID_LocateLabel") and dev_hdl:
+            try:
+                res = self._dll.DSTP2x_RFID_LocateLabel(c_uint64(dev_hdl))
+                logger.info(f"执行 RFID 标签自动校准定位 (LocateLabel) 返回码: {res}")
+                return res
+            except Exception as e:
+                logger.warning(f"执行 RFID 标签自动校准定位异常: {e}")
+        return -1
 
     def print_label_and_read_rfid(self, dev_hdl: int, lc_hdl: int, read_type: int = 0) -> str:
         rfid_buf = create_string_buffer(1024)

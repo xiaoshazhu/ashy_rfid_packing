@@ -11,6 +11,9 @@
 
 # 忽略大数据库
 /example.db
+/data/*.db
+/data/*.db-shm
+/data/*.db-wal
 
 # 忽略缓存
 **/__pycache__/
