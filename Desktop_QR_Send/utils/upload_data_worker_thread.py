@@ -45,6 +45,10 @@ class UploadDataWorkerThread(QtCore.QThread):
                 except Exception:
                     pass
 
+            box_content_str = str(box_content_str).strip()
+            if ".cn/" in box_content_str:
+                box_content_str = box_content_str.split(".cn/")[-1].strip()
+
             result_dict = {
                 'id': row[0],
                 'caseContent': row[1],

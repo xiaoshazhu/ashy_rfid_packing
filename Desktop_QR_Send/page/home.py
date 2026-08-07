@@ -1556,11 +1556,15 @@ class Home:
                         for box in boxes:
                             if isinstance(box, dict):
                                 b_content = box.get("data") or box.get("boxContent") or box.get("box_content") or str(box)
-                                if isinstance(b_content, dict):
-                                    b_content = b_content.get("data") or b_content.get("boxContent") or str(b_content)
+                                b_content = str(b_content).strip()
+                                if ".cn/" in b_content:
+                                    b_content = b_content.split(".cn/")[-1].strip()
+
                                 b_type = box.get("type", "QRCODE")
                             else:
-                                b_content = str(box)
+                                b_content = str(box).strip()
+                                if ".cn/" in b_content:
+                                    b_content = b_content.split(".cn/")[-1].strip()
                                 b_type = "QRCODE"
 
                             inserted_count += 1
