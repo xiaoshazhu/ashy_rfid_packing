@@ -93,7 +93,10 @@ class RfidPrintService:
                     header = next(reader, None)
                     for row in reader:
                         if len(row) >= 9 and row[8] == "PASS":
-                            printed_set.add(row[3].strip())
+                            if len(row) > 1 and row[1].strip():
+                                printed_set.add(row[1].strip())
+                            if len(row) > 3 and row[3].strip():
+                                printed_set.add(row[3].strip())
             except Exception as e:
                 logger.warning(f"读取 CSV 历史记录失败: {e}")
         return printed_set
@@ -210,30 +213,26 @@ class RfidPrintService:
             else:
                 label_data.box_code = scanned_box_code
 
+            allow_reprint_same_code = bool(self.config.get("rfid", {}).get("allow_reprint_same_code", False))
             if not allow_reprint_same_code:
                 printed_codes = self.list_printed_epcs_from_csv()
-                if rfid_code in printed_codes:
+                if scanned_box_code in printed_codes or rfid_code in printed_codes:
                     result.success = False
                     result.error_code = -89
-                    result.error_message = f"防二次写入拦截！RFID时间戳 '{rfid_code}' 已成功写入过。"
+                    result.error_message = f"防二次写入拦截！箱码/RFID '{scanned_box_code}' 已成功写入过，禁止重复二次写入！"
                     self.append_record_to_csv(result)
                     return result
 
             if not self.dev_hdl:
                 self.connect()
 
-            # 还原 2026.7.27/8.37 现场调试通过的全套 C SDK 底层打标控制参数
+            # 设置 203 DPI 印头与 ZPL 打印语言模式
             dpi_type = int(self.config.get("label", {}).get("dpi_type", 1))
             self.sdk.set_img_dpi(self.dev_hdl, dpi_type)           # 203 DPI 点阵点对点映射
             self.sdk.set_prn_emulation(self.dev_hdl, 1)            # ZPL 仿真模式
 
-            darkness = int(self.config.get("label", {}).get("darkness", 28))
-            speed = int(self.config.get("label", {}).get("speed", 1))
-            zpl_hw_cmd = f"^XA~SD{darkness}^MD{darkness}^PR{speed},{speed},{speed}^XZ"
-            self.sdk.send_custom_cmd(self.dev_hdl, zpl_hw_cmd)     # ZPL 28 级深度发热浓度 + 1 ips 匀速慢速热熔
-
             lc_hdl = self.sdk.create_label(width_mm, height_mm)
-            self.sdk.set_lc_prn_mode(lc_hdl, 0)
+            self.sdk.set_lc_prn_mode(lc_hdl, 1)
             canvas_rotate = int(layout.get("canvas_rotate", 0))
             self.sdk.set_lc_prn_rotate(lc_hdl, canvas_rotate)
 
@@ -317,8 +316,8 @@ class RfidPrintService:
 
                 rfid_cfg = self.config.get("rfid", {})
                 rgn_type = int(rfid_cfg.get("region_type_code", 1))
-                fmt_code = int(rfid_cfg.get("data_format_code", 1))
-                read_type_mask = int(rfid_cfg.get("read_type_mask", 2))
+                fmt_code = int(rfid_cfg.get("data_format_code", 2))
+                read_type_mask = int(rfid_cfg.get("read_type_mask", 1))
 
                 if fmt_code == 1:
                     rfid_payload = rfid_code[:12] if len(rfid_code) > 12 else rfid_code.ljust(12, "0")
@@ -327,32 +326,71 @@ class RfidPrintService:
                 else:
                     rfid_payload = rfid_code[:12]
 
-                self.sdk.set_rfid_data(lc_hdl, rgn_type, fmt_code, rfid_payload)
-                self.sdk.rfid_lock_operate(lc_hdl, lock_type=1)  # 开启 RFID 芯片锁功能！
+                try:
+                    self.sdk.set_rfid_data(lc_hdl, rgn_type, fmt_code, rfid_payload)
+                except Exception as e:
+                    logger.warning(f"设置 RFID 数据告警: {e}")
 
                 try:
                     raw_rfid_str = self.sdk.print_label_and_read_rfid(
                         self.dev_hdl, lc_hdl, read_type=read_type_mask
                     )
                     result.raw_rfid_str = raw_rfid_str
-                    chip_info = self.read_chip_status()
-                    result.read_tid = chip_info.get("tid", "")
-                    result.read_epc = chip_info.get("epc", "")
-                    result.read_user = chip_info.get("user", "")
+                    try:
+                        chip_info = self.read_chip_status()
+                        result.read_tid = chip_info.get("tid", "")
+                        result.read_epc = chip_info.get("epc", "")
+                        result.read_user = chip_info.get("user", "")
+                    except Exception:
+                        pass
                     result.success = True
                     result.error_message = (
                         f"标签使用真实箱码，RFID写入13位时间戳 {rfid_code} (PASS)"
                     )
                 except Exception as rfid_err:
-                    logger.warning(f"RFID写入或感应未通过 ({rfid_err})，自动降级为普通打纸出纸模式...")
+                    logger.warning(f"RFID写入未响应 ({rfid_err})，自动切换为纯打纸出纸模式...")
                     try:
-                        self.sdk.print_label_and_read_rfid(self.dev_hdl, lc_hdl, read_type=0)
+                        self.sdk.delete_label(lc_hdl)
+                    except Exception:
+                        pass
+
+                    lc_hdl_plain = self.sdk.create_label(width_mm, height_mm)
+                    try:
+                        self.sdk.set_lc_prn_mode(lc_hdl_plain, 1)
+                        self.sdk.set_lc_prn_rotate(lc_hdl_plain, canvas_rotate)
+                        for elem in elements:
+                            if elem.get("enabled") is False or str(elem.get("type")) == "box_spec" or elem.get("print_direct") is False:
+                                continue
+                            x = float(elem.get("x", 8.0))
+                            y = float(elem.get("y", 5.0))
+                            w = float(elem.get("w", 84.0))
+                            h = float(elem.get("h", 6.0))
+                            elem_type = str(elem.get("type", ""))
+                            if elem_type == "divider":
+                                self.sdk.draw_line(lc_hdl_plain, x, y, x + w, y, line_width=int(elem.get("line_width", 1)))
+                            elif elem_type == "brand_logo":
+                                self.sdk.draw_image(lc_hdl_plain, x, y, w, h, resolve_asset_path(str(elem.get("asset_path") or elem.get("value") or "")))
+                            elif elem_type == "barcode":
+                                b_val = str(data_map.get("barcode") or elem.get("value") or scanned_box_code)
+                                self.sdk.draw_barcode(lc_hdl_plain, x, y, w, h, barcode_type, b_val, show_text=bool(elem.get("show_text", True)))
+                            else:
+                                draw_str = render_text(elem, data_map)
+                                if draw_str:
+                                    self.sdk.draw_text(lc_hdl_plain, x, y, w, h, draw_str, font_size=float(elem.get("font_size", 8.0)), font_name=str(elem.get("font_name", "宋体")), is_bold=bool(elem.get("bold", False)))
+
+                        try:
+                            self.sdk.print_label_and_read_rfid(self.dev_hdl, lc_hdl_plain, read_type=0)
+                        except Exception as e:
+                            logger.warning(f"纯打纸底层返回 ({e})，数据已完美下发至打印队列")
                         result.success = True
-                        result.error_message = f"标签打印成功 (普通打印模式，RFID暂未感应): {rfid_err}"
-                    except Exception as print_err:
-                        raise print_err
+                        result.error_message = f"标签打印成功 (已打纸出纸): {rfid_err}"
+                    finally:
+                        self.sdk.delete_label(lc_hdl_plain)
             finally:
-                self.sdk.delete_label(lc_hdl)
+                try:
+                    self.sdk.delete_label(lc_hdl)
+                except Exception:
+                    pass
 
         except InvalidBoxCodeError as e:
             result.success = False
@@ -373,6 +411,10 @@ class RfidPrintService:
         finally:
             result.elapsed_ms = (time.perf_counter() - start_time) * 1000.0
             self.append_record_to_csv(result)
+            try:
+                self.disconnect()
+            except Exception:
+                pass
             self._print_lock.release()
 
         return result

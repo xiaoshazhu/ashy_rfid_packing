@@ -393,6 +393,11 @@ class PrintPreviewDialog(QDialog):
 
         self.render_preview()
 
+    def set_preview_data(self, data):
+        if isinstance(data, dict):
+            self.preview_data.update(data)
+            self.render_preview()
+
     def on_preview_canvas_double_clicked(self, rel_x, rel_y):
         click_x_mm = rel_x * float(self.width_mm)
         click_y_mm = rel_y * float(self.height_mm)
@@ -462,6 +467,16 @@ class PrintPreviewDialog(QDialog):
         }
         preview_data.update(self.preview_data)
 
+        # 优先使用实时最新的13位箱码
+        if not preview_data.get("barcode"):
+            try:
+                from page.config import CONFIG_DATA
+                latest_case = CONFIG_DATA.get("caseCode")
+                if latest_case:
+                    preview_data["barcode"] = str(latest_case).strip()
+            except Exception:
+                pass
+
         seq_idx = 0
         placed_badge_rects = []
         for elem in self.elements:
@@ -495,7 +510,9 @@ class PrintPreviewDialog(QDialog):
                 if not logo.isNull():
                     painter.drawPixmap(QRectF(x, y, w, h), logo, QRectF(logo.rect()))
             elif elem_type == "barcode":
-                code = str(preview_data.get("barcode") or elem.get("value") or "1785813377794")
+                code = str(preview_data.get("barcode") or elem.get("value") or "1785813377794").strip()
+                if preview_data.get("barcode"):
+                    code = str(preview_data.get("barcode")).strip()
                 text_height = max(8, int(2.8 * scale_y))
                 bars_bottom = int(y + h - text_height)
                 painter.setPen(Qt.NoPen)

@@ -1,5 +1,13 @@
 {
-  "mode": "remote",
+  "mode": "local_mysql",
   "database_path": "example.db",
-  "remote_upload_enabled": true
+  "remote_upload_enabled": false,
+  "remote_ws_url": "ws://gya.sales.yiknet.com/webSocket/scanCode",
+  "mysql": {
+    "host": "172.20.20.13",
+    "port": 3306,
+    "user": "root",
+    "password": 123456,
+    "database": "gya_yudao_mini"
+  }
 }

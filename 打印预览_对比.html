@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>激光扫码项目 - 箱码打印预览</title>
+  <style>
+    body { margin:0; background:#f5f7fa; color:#182230; font-family:"Microsoft YaHei",Arial,sans-serif; }
+    main { max-width:1180px; margin:30px auto; padding:0 22px 40px; }
+    h1 { margin:0 0 8px; font-size:28px; }
+    .notice { background:#fff4ce; border:1px solid #e1bd43; border-radius:8px; padding:12px 16px; margin:18px 0 24px; }
+    .grid { display:grid; grid-template-columns:1fr; gap:24px; }
+    .card { background:white; border:1px solid #d0d5dd; border-radius:12px; padding:20px; box-shadow:0 4px 18px rgba(16,24,40,.06); }
+    .card h2 { margin:0 0 6px; font-size:20px; }
+    .meta { color:#667085; margin:0 0 16px; }
+    img { width:100%; height:auto; display:block; border:1px solid #98a2b3; background:#fff; }
+    table { width:100%; border-collapse:collapse; margin-top:24px; background:white; }
+    th,td { border:1px solid #d0d5dd; padding:10px 12px; text-align:left; }
+    th { background:#e8eef5; }
+  </style>
+</head>
+<body><main>
+  <h1>箱码标签模拟打印预览</h1>
+  <p>预览来自当前项目的固定毫米坐标和字段配置，不调用打印机。</p>
+  <div class="notice"><strong>测试数据说明：</strong>页面中的箱码 0123456789023 和日期 2026.07.31 仅用于排版展示；设备电脑真实识别后，条码和下方文字会替换为相机识别原文。RFID写入值另行生成，不显示在标签条码中。</div>
+  <div class="grid">
+    <section class="card"><h2>当前测试配置：100 × 80 mm</h2><p class="meta">这是设备电脑现在应先验证的打印预览。</p><img src="打印预览_100x80.png" alt="100乘80毫米箱码标签预览"></section>
+    <section class="card"><h2>后续目标配置：150 × 75 mm</h2><p class="meta">更换最终纸张并修改配置后使用。</p><img src="打印预览_150x75.png" alt="150乘75毫米箱码标签预览"></section>
+  </div>
+  <table><thead><tr><th>内容</th><th>来源</th></tr></thead><tbody>
+    <tr><td>产品、规格、保质期、储存条件、生产商、箱规</td><td>模板配置，可选择和修改</td></tr>
+    <tr><td>生产日期</td><td>打印/预览当天或业务输入</td></tr>
+    <tr><td>标签条码及明文</td><td>相机本次真实识别原文</td></tr>
+    <tr><td>RFID EPC</td><td>单独生成13位毫秒时间戳，不等于标签条码</td></tr>
+  </tbody></table>
+</main></body></html>

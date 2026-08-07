@@ -34,10 +34,21 @@ class UploadDataWorkerThread(QtCore.QThread):
         logging.info(f"开始循环上传数据，共 {max_rows} 条数据") # 添加日志：开始循环上传
         for i, row in enumerate(data_list):
             time.sleep(0.001)#增加的延迟 慢慢优化
+            raw_box = row[2]
+            box_content_str = str(raw_box)
+            if box_content_str.startswith("{") and "data" in box_content_str:
+                try:
+                    import json
+                    parsed = json.loads(box_content_str.replace("'", '"'))
+                    if isinstance(parsed, dict) and "data" in parsed:
+                        box_content_str = parsed["data"]
+                except Exception:
+                    pass
+
             result_dict = {
                 'id': row[0],
                 'caseContent': row[1],
-                'boxContent': row[2],
+                'boxContent': box_content_str,
                 'type': row[3],
                 'createTime': row[4],
                 'isLine': row[5]
@@ -45,12 +56,22 @@ class UploadDataWorkerThread(QtCore.QThread):
             logging.debug(f"准备上传数据，数据 ID: {result_dict['id']}") # 添加 debug 日志：准备上传数据
 
             try:
-                # 异步网络发送 (后台线程)
-                future = asyncio.run_coroutine_threadsafe(self.main_window.client.send(result_dict),self.main_window.loop)
-                logging.debug(f"数据发送到 asyncio 循环，等待 Future 完成，数据 ID: {result_dict['id']}") # 添加 debug 日志：数据发送到 asyncio
+                from utils.local_data_pipeline import load_pipeline_config
+                cfg = load_pipeline_config()
+                mode = str(cfg.get("mode", "local_mysql")).lower()
+
+                # 如果是 WS 线上模式（"remote" 或 "remote_ws"）且 client 连接可用
+                if mode in ["remote", "remote_ws"] and getattr(self.main_window, "client", None) and getattr(self.main_window, "loop", None):
+                    future = asyncio.run_coroutine_threadsafe(self.main_window.client.send(result_dict), self.main_window.loop)
+                    logging.debug(f"数据已发往 WS 线上服务，ID: {result_dict['id']}")
+                else:
+                    # 本地 MySQL 模式：直接将 result_dict 数据包持久化保存到本地 MySQL yk_store_case_box 表
+                    from utils.MySQL import MySQLDatabase
+                    MySQLDatabase().box_case_insert_data(result_dict)
+                    logging.info(f"本地 MySQL 落库成功: ID={result_dict['id']} 箱码={result_dict.get('caseContent')} 盒码={result_dict.get('boxContent')}")
 
             except Exception as e:
-                logging.error(f"后台线程调用消息出错: {e}, 数据 ID: {result_dict['id']}") # 使用 logging.error 替换 print，记录错误信息和数据 ID
+                logging.error(f"后台数据发送/落库出错: {e}, 数据 ID: {result_dict['id']}")
 
             # time.sleep(1)  # 暫停執行 1 秒
             percen = round((i + 1) / max_rows * 100, 2) if max_rows > 0 else 0

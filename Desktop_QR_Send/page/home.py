@@ -499,12 +499,10 @@ class Home:
 
         self.template_dialog.load_elements_config()
 
+        current_code = str(self.case or self.preview_case_code or CONFIG_DATA.get("caseCode") or "").strip()
         self.template_dialog.set_preview_data({
-
-            "barcode": self.case or self.preview_case_code or "",
-
+            "barcode": current_code,
             "produce_date": datetime.datetime.now().strftime("%Y.%m.%d"),
-
         })
 
         self.template_dialog.populate_table()
@@ -664,15 +662,11 @@ class Home:
         """ ()"""
 
         reply = QtWidgets.QMessageBox.question(
-
-            self.main_window,  #  self.main_window  ( self.main_window)
-
-            "",  # 
-
-            "?",  # 
-
-
-
+            self.main_window,
+            "确认重启",
+            "确定要重新启动程序吗？",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No
         )
 
         if reply == QtWidgets.QMessageBox.Yes:  #  "Yes" 
@@ -690,18 +684,27 @@ class Home:
                 main_script_path = os.path.abspath(sys.argv[0])
 
             try:
+                # 1. 停止相机抓图并彻底关闭/释放海康相机设备连接
+                logging.info("重启清理：正在停止相机抓图并释放设备资源...")
+                try:
+                    self.stop_grabbing()
+                    self.close_device()
+                except Exception as cam_err:
+                    logging.warning(f"重启时释放相机资源异常: {cam_err}")
 
+                # 2. 关闭补光灯输出
                 if not self.shutdown_light_output():
-
                     logging.warning("WDIP补光灯关闭失败，重启前请确认串口未被厂家软件占用")
 
-                logging.info(f": {python_executable} {main_script_path}")
+                logging.info(f"正在重启程序: {python_executable} {main_script_path}")
+                import subprocess
+                # 给予底层硬件 SDK 0.5秒缓冲时间彻底释放网络/USB句柄
+                QtCore.QThread.msleep(500)
+                subprocess.Popen([python_executable, main_script_path])
+                QtWidgets.QApplication.quit()
 
-
-            except OSError as e:
-
-
-                logging.error(f": {e}") #  logging.error  print
+            except Exception as e:
+                logging.error(f"重启程序失败: {e}")
 
         else:
 
@@ -785,6 +788,12 @@ class Home:
             return
 
         self.sacn_box_data = None
+
+        # 触发一次相机软抓拍与激光/曝光触发
+        try:
+            self.trigger_once()
+        except Exception as err:
+            logging.warning(f"触发相机拍照异常: {err}")
 
         self.capture_and_save_image(show_feedback=False)
 
@@ -1243,34 +1252,23 @@ class Home:
     # 
 
     def manualUpdateData(self):
+        from utils.local_data_pipeline import load_pipeline_config
+        cfg = load_pipeline_config()
+        mode = str(cfg.get("mode", "local_mysql")).lower()
 
-        if not is_remote_upload_enabled():
-
-            logging.info("")
-
+        if mode == "local_mysql" or is_remote_upload_enabled():
+            self.main_window.pushButton.setEnabled(False)
+            max_limit = 10000
+            self.upload_worker_thread = UploadDataWorkerThread(self.main_window, max_limit)
+            self.upload_worker_thread.update_progress_signal.connect(self.update_progress_bar_slot)
+            self.upload_worker_thread.start()
+            logging.info("手动数据同步任务已触发...")
+        else:
             self.show_temporary_tooltip(
                 self.main_window.groupBox_7,
-                "【本地测试模式】",
-                "数据只保存在本地测试数据库，远程上传尚未启用。",
+                "【本地模式】",
+                "当前数据保存在本地数据库中。",
             )
-
-            return
-
-        if self.main_window.client and self.main_window.client.connected:
-
-            self.main_window.pushButton.setEnabled(False)  #  ( UI )
-
-            max_limit = 10000
-
-            #  ()
-
-            self.upload_worker_thread = UploadDataWorkerThread(self.main_window, max_limit)  #  main_window  max_limit
-
-            self.upload_worker_thread.update_progress_signal.connect(self.update_progress_bar_slot)  # 
-
-            self.upload_worker_thread.start()  # 
-
-        else:
 
             self.show_temporary_tooltip(
                 self.main_window.groupBox_7,
@@ -1436,36 +1434,25 @@ class Home:
         max_bundles = int(CONFIG_DATA.get("edit_max_xiang", 10))
 
         if len(self.scan_case_data) < max_bundles:
-
-            logging.warning(
-
-
+            logging.warning(f"装箱未满箱，拒绝打印: {len(self.scan_case_data)}/{max_bundles}")
+            QtWidgets.QMessageBox.warning(
+                self.main_window,
+                "无法打印",
+                f"当前已装箱 {len(self.scan_case_data)}/{max_bundles} 捆，未达到满箱标准，不允许进行打印操作！"
             )
-
-            self.show_temporary_tooltip(
-                self.main_window.groupBox_7,
-                "【暂不能打印】",
-                f"当前装箱进度 {len(self.scan_case_data)}/{max_bundles}捆，满箱后才能打印。",
-            )
-
             self.main_window.play_warning()
-
             return
 
         case_code = self.case
 
         if not case_code:
-
-            logging.warning("13")
-
-            self.show_temporary_tooltip(
-                self.main_window.groupBox_7,
-                "【无法打印】",
-                "请先完成装箱并生成有效的13位箱码。",
+            logging.warning("尚未生成有效的13位箱码")
+            QtWidgets.QMessageBox.warning(
+                self.main_window,
+                "无法打印",
+                "请先完成装箱并生成有效的13位箱码后再进行打印！"
             )
-
             self.main_window.play_warning()
-
             return
 
         # 
@@ -1541,17 +1528,58 @@ class Home:
 
                 return
 
-            logging.info(
+            logging.info(f"record_id={local_record_id}")
 
+            # 自动同步写入本地 MySQL 数据库
+            try:
+                from utils.local_data_pipeline import load_pipeline_config
+                cfg = load_pipeline_config()
+                if str(cfg.get("mode", "local_mysql")).lower() == "local_mysql":
+                    from utils.MySQL import MySQLDatabase
+                    mysql_db = MySQLDatabase()
+                    create_time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    bundles = self.scan_case_data or []
+                    inserted_count = 0
+                    base_id = int(time.time() * 1000)
 
-                f"record_id={local_record_id}"
+                    for bundle in bundles:
+                        boxes = []
+                        if isinstance(bundle, dict):
+                            boxes = bundle.get("boxContents", [])
+                            if not boxes and "boxContent" in bundle:
+                                boxes = [bundle]
+                        elif isinstance(bundle, list):
+                            boxes = bundle
+                        else:
+                            boxes = [bundle]
 
-            )
+                        for box in boxes:
+                            if isinstance(box, dict):
+                                b_content = box.get("data") or box.get("boxContent") or box.get("box_content") or str(box)
+                                if isinstance(b_content, dict):
+                                    b_content = b_content.get("data") or b_content.get("boxContent") or str(b_content)
+                                b_type = box.get("type", "QRCODE")
+                            else:
+                                b_content = str(box)
+                                b_type = "QRCODE"
+
+                            inserted_count += 1
+                            record_dict = {
+                                "id": base_id + inserted_count,
+                                "caseContent": case_code,
+                                "boxContent": b_content,
+                                "type": b_type,
+                                "createTime": create_time_str
+                            }
+                            mysql_db.box_case_insert_data(record_dict)
+                    logging.info(f"【本地 MySQL 自动落库成功】箱码={case_code}，已成功解包并同步写入 {inserted_count} 条盒码数据到 yk_store_case_box")
+            except Exception as mysql_err:
+                logging.error(f"同步写入本地 MySQL 发生错误: {mysql_err}")
 
             self.show_temporary_tooltip(
                 self.main_window.groupBox_7,
                 "【打印箱码成功】",
-                f"已生成箱码：{case_code}（绿框显示）；本地记录号：{local_record_id}。",
+                f"已生成箱码：{case_code}（绿框显示）；已同步保存到本地数据库。",
             )
 
             self.main_window.play_success()
@@ -1585,16 +1613,11 @@ class Home:
                 "QGroupBox { background-color: #EC808D; border: 1px solid #797979; border-radius: 5px; }")
 
         else:
-
             self.case = case_code
-
+            self.preview_case_code = case_code
             self.main_window.taps_20.setText(f"{self.case}")
-
             self.main_window.groupBox_box_0.setStyleSheet(
-
                 "QGroupBox { background-color: #CAF982; border: 1px solid #797979; border-radius: 5px; }")
-
-            # 
 
             config.setConfig({"caseCode": case_code})
 
@@ -1938,8 +1961,21 @@ class Home:
             logging.info(f" HWND={win_id}")
 
     def ensure_camera_display(self):
-        """确保主窗口显示后重新绑定相机画面。"""
-        self.start_grabbing()
+        """确保主窗口完全显示后平滑校验 HWND 物理窗口句柄，保持相机画面顺畅播放。"""
+        try:
+            global obj_cam_operation
+            if obj_cam_operation is not None and getattr(obj_cam_operation, 'b_open_device', False):
+                win_id = int(self.main_window.widgetDisplay.winId())
+                obj_cam_operation.n_win_gui_id = win_id
+                if not obj_cam_operation.b_start_grabbing:
+                    ret = obj_cam_operation.Start_grabbing(win_id)
+                    logging.info(f"【摄像机平滑启动抓流】HWND={win_id}, ret={ret}")
+                else:
+                    logging.info(f"【摄像机抓流保持正常运行】HWND={win_id}")
+            else:
+                self.hiKInit()
+        except Exception as err:
+            logging.error(f"校验相机渲染句柄发生异常: {err}")
 
     def stop_line(self):
         if obj_cam_operation is not None:
