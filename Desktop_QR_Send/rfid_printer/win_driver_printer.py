@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import os
 import sys
+import logging
 from datetime import datetime
 from typing import Any, Dict, List, Mapping, Optional
 
-from PySide6.QtCore import QRectF, QSizeF, Qt
+logger = logging.getLogger("WinDriverPrinter")
+
+from PySide6.QtCore import QMarginsF, QRectF, QSizeF, Qt
 from PySide6.QtGui import QColor, QFont, QPainter, QPageLayout, QPageSize, QPen, QPixmap
 from PySide6.QtPrintSupport import QPrinter, QPrinterInfo
 
@@ -50,49 +53,128 @@ def encode_code128_b_pattern(data: str) -> str:
     return "".join(CODE128_PATTERNS[v] for v in vals)
 
 
-def get_target_windows_printer() -> Optional[QPrinterInfo]:
-    """寻找本地连接的 JiEPRT T63RZ 或热敏打印机驱动。"""
+VIRTUAL_PRINTER_KEYWORDS = ("pdf", "xps", "onenote", "fax", "document writer", "file", "prompt", "microsoft print", "virtual")
+PHYSICAL_KEYWORDS = (
+    "t63", "jieprt", "postek", "热敏", "hprt", "n31", "label", "printer",
+    "pos", "zebra", "tsc", "godex", "gprinter", "xprinter", "芯烨", "佳博",
+    "博思得", "汉印", "得力", "条码", "标签", "usb", "receipt", "serial"
+)
+
+
+def is_virtual_printer(name: str) -> bool:
+    if not name:
+        return True
+    n_low = str(name).lower()
+    return any(kw in n_low for kw in VIRTUAL_PRINTER_KEYWORDS)
+
+
+def _clean_str(s: str) -> str:
+    if not s:
+        return ""
+    return str(s).lower().replace(" ", "").replace("_", "").replace("-", "").replace("(", "").replace(")", "")
+
+
+def get_target_windows_printer(printer_name: Optional[str] = None) -> Optional[QPrinterInfo]:
+    """多级智能检索本地实体硬件打印机，100% 过滤虚拟 PDF 打印机，杜绝弹出保存文件窗口。"""
     printers = QPrinterInfo.availablePrinters()
-    for p in printers:
-        name = p.printerName()
-        if "T63" in name or "JiEPRT" in name or "Postek" in name or "热敏" in name:
+    if not printers:
+        return None
+
+    physical_printers = [p for p in printers if not is_virtual_printer(p.printerName())]
+    if not physical_printers:
+        return None
+
+    # 1. 优先完全匹配或子串匹配用户配置的硬件打印机（如 JiEPRT T63RZ、T63R 等）
+    if printer_name and str(printer_name).strip():
+        raw_target = str(printer_name).strip().lower()
+        clean_target = _clean_str(raw_target)
+
+        for p in physical_printers:
+            p_name = p.printerName().lower()
+            p_clean = _clean_str(p_name)
+            if raw_target == p_name or raw_target in p_name or p_name in raw_target or clean_target == p_clean or clean_target in p_clean:
+                return p
+
+        # 分词子串匹配 (如配置 "JiEPRT T63RZ"，自动匹配包含 "JiEPRT" 或 "T63" 的硬件打印机)
+        tokens = [t for t in raw_target.replace("打印机", "").split() if len(t) >= 2]
+        for p in physical_printers:
+            p_name = p.printerName().lower()
+            if any(tok in p_name for tok in tokens):
+                return p
+
+    # 2. 检索常用实体硬件打印机品牌关键词
+    for p in physical_printers:
+        name_low = p.printerName().lower()
+        if any(kw in name_low for kw in PHYSICAL_KEYWORDS):
             return p
-    if printers:
-        return QPrinterInfo.defaultPrinter()
-    return None
+
+    # 3. 检查系统默认打印机（若为实体打印机）
+    default_p = QPrinterInfo.defaultPrinter()
+    if default_p and not is_virtual_printer(default_p.printerName()):
+        return default_p
+
+    # 4. 返回首个实体硬件打印机
+    return physical_printers[0]
 
 
 def print_canvas_via_win_driver(
     elements: List[Dict[str, Any]],
     preview_data: Mapping[str, Any],
-    width_mm: float = 100.0,
-    height_mm: float = 80.0,
+    width_mm: float = 210.0,
+    height_mm: float = 100.0,
+    printer_name: Optional[str] = None,
 ) -> bool:
     """使用 Windows 官方驱动（JiEPRT T63RZ）绘制 100% 矢量清晰度标签并出纸。"""
-    target_printer = get_target_windows_printer()
+    target_printer = get_target_windows_printer(printer_name)
     if not target_printer:
         return False
 
-    printer = QPrinter(target_printer, QPrinter.HighResolution)
-    page_size = QPageSize(QSizeF(width_mm, height_mm), QPageSize.Millimeter)
-    printer.setPageSize(page_size)
+    printer = QPrinter(target_printer, QPrinter.PrinterResolution)
+    printer.setOutputFormat(QPrinter.NativeFormat)
+    printer.setOutputFileName("")
+
+    page_layout = QPageLayout(
+        QPageSize(QSizeF(width_mm, height_mm), QPageSize.Millimeter),
+        QPageLayout.Portrait,
+        QMarginsF(0.0, 0.0, 0.0, 0.0),
+        QPageLayout.Millimeter
+    )
+    printer.setPageLayout(page_layout)
     printer.setFullPage(True)
-
-    page_rect = printer.pageLayout().paintRectPixels(printer.resolution())
-    canvas_w_px = max(100, page_rect.width())
-    canvas_h_px = max(100, page_rect.height())
-
-    scale_x = canvas_w_px / max(1.0, width_mm)
-    scale_y = canvas_h_px / max(1.0, height_mm)
-
-    data_map = dict(preview_data or {})
-    data_map.setdefault("produce_date", datetime.now().strftime("%Y.%m.%d"))
 
     painter = QPainter()
     if not painter.begin(printer):
-        return False
+        # 降级尝试 ScreenResolution
+        printer = QPrinter(target_printer, QPrinter.ScreenResolution)
+        printer.setOutputFormat(QPrinter.NativeFormat)
+        printer.setOutputFileName("")
+        printer.setPageLayout(page_layout)
+        printer.setFullPage(True)
+        if not painter.begin(printer):
+            logger.warning(f"QPainter.begin(printer) 失败: {target_printer.printerName()}")
+            return False
 
     try:
+        dpi = printer.resolution()
+        expected_w_px = int(width_mm * dpi / 25.4)
+        expected_h_px = int(height_mm * dpi / 25.4)
+
+        full_rect = printer.pageLayout().fullRectPixels(dpi)
+        canvas_w_px = max(expected_w_px, full_rect.width())
+        canvas_h_px = max(expected_h_px, full_rect.height())
+
+        # 若系统驱动汇报的 width 比 height 小，纠正长宽映射
+        if width_mm > height_mm and canvas_w_px < canvas_h_px:
+            canvas_w_px, canvas_h_px = canvas_h_px, canvas_w_px
+
+        scale_x = canvas_w_px / max(1.0, width_mm)
+        scale_y = canvas_h_px / max(1.0, height_mm)
+
+        data_map = dict(preview_data or {})
+        data_map.setdefault("produce_date", datetime.now().strftime("%Y.%m.%d"))
+        offset_x_mm = float(data_map.get("offset_x_mm", 0.0))
+        offset_y_mm = float(data_map.get("offset_y_mm", 0.0))
+
         painter.setRenderHint(QPainter.Antialiasing, True)
         painter.setRenderHint(QPainter.TextAntialiasing, True)
 
@@ -108,8 +190,8 @@ def print_canvas_via_win_driver(
             if elem.get("print_direct") is False:
                 continue
 
-            x = float(elem.get("x", 0.0)) * scale_x
-            y = float(elem.get("y", 0.0)) * scale_y
+            x = (float(elem.get("x", 0.0)) + offset_x_mm) * scale_x
+            y = (float(elem.get("y", 0.0)) + offset_y_mm) * scale_y
             w = float(elem.get("w", 0.0)) * scale_x
             h = float(elem.get("h", 0.0)) * scale_y
 
@@ -128,10 +210,10 @@ def print_canvas_via_win_driver(
                 continue
 
             if elem_type == "barcode":
-                code = str(data_map.get("barcode") or elem.get("value") or "")
+                code = str(data_map.get("barcode") or elem.get("value") or "0123456789130").strip()
                 pattern_str = encode_code128_b_pattern(code)
 
-                text_h_px = max(12, int(3.5 * scale_y))
+                text_h_px = max(14, int(5.0 * scale_y))
                 bars_h_px = max(10, int(h - text_h_px))
 
                 total_modules = len(pattern_str)
@@ -147,13 +229,13 @@ def print_canvas_via_win_driver(
                         painter.drawRect(QRectF(curr_x, y, mod_width, bars_h_px))
                     curr_x += mod_width
 
-                # 绘制条形码下方 13 位数字
+                # 绘制条形码下方 13 位数字 (带足够的文字高度与居中，彻底消除裁切)
                 font_code = QFont("Arial")
-                font_code.setPixelSize(max(10, int(3.2 * scale_y)))
+                font_code.setPixelSize(max(10, int(3.6 * scale_y)))
                 font_code.setBold(True)
                 painter.setFont(font_code)
                 painter.setPen(QPen(QColor(0, 0, 0)))
-                painter.drawText(QRectF(x, y + bars_h_px, w, text_h_px), Qt.AlignCenter, code)
+                painter.drawText(QRectF(x, y + bars_h_px, w, text_h_px), Qt.AlignCenter | Qt.AlignVCenter, code)
                 continue
 
             text_str = render_text(elem, data_map)
@@ -183,8 +265,6 @@ def print_canvas_via_win_driver(
 
             alignment = Qt.AlignLeft | Qt.AlignVCenter
             if elem_type in ("produce_date_label", "produce_date"):
-                alignment = Qt.AlignCenter
-            elif elem_type == "box_count":
                 alignment = Qt.AlignRight | Qt.AlignVCenter
 
             painter.drawText(QRectF(x, y, w, h), alignment, text_str)
@@ -192,3 +272,50 @@ def print_canvas_via_win_driver(
         return True
     finally:
         painter.end()
+
+
+def send_raw_tspl_to_win_printer(printer_name: str, box_code: str, width_mm: float = 210.0, height_mm: float = 100.0) -> bool:
+    """通过 Windows 底层 Spooler 向物理打印机端口直接发送 RAW TSPL 指令 (第三重硬件出纸保险)。"""
+    import ctypes
+    class DOC_INFO_1W(ctypes.Structure):
+        _fields_ = [
+            ("pDocName", ctypes.c_wchar_p),
+            ("pOutputFile", ctypes.c_wchar_p),
+            ("pDatatype", ctypes.c_wchar_p),
+        ]
+
+    try:
+        winspool = ctypes.WinDLL("winspool.drv")
+        h_printer = ctypes.c_void_p()
+        if winspool.OpenPrinterW(ctypes.c_wchar_p(printer_name), ctypes.byref(h_printer), None) == 0:
+            return False
+
+        try:
+            doc_info = DOC_INFO_1W("BoxLabelRAW", None, "RAW")
+            job_id = winspool.StartDocPrinterW(h_printer, 1, ctypes.byref(doc_info))
+            if job_id == 0:
+                return False
+
+            try:
+                if winspool.StartPagePrinter(h_printer) != 0:
+                    tspl_cmd = (
+                        f"SIZE {int(width_mm)} mm, {int(height_mm)} mm\r\n"
+                        f"GAP 3 mm, 0 mm\r\n"
+                        f"DIRECTION 1\r\n"
+                        f"CLS\r\n"
+                        f"BARCODE 928,472,\"128\",224,1,0,3,6,\"{box_code}\"\r\n"
+                        f"TEXT 928,700,\"TSS24.BF2\",0,2,2,\"{box_code}\"\r\n"
+                        f"PRINT 1,1\r\n"
+                    ).encode("gbk", errors="ignore")
+
+                    bytes_written = ctypes.c_ulong(0)
+                    winspool.WritePrinter(h_printer, tspl_cmd, len(tspl_cmd), ctypes.byref(bytes_written))
+                    winspool.EndPagePrinter(h_printer)
+                    return bytes_written.value > 0
+                return False
+            finally:
+                winspool.EndDocPrinter(h_printer)
+        finally:
+            winspool.ClosePrinter(h_printer)
+    except Exception:
+        return False

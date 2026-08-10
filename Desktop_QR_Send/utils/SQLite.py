@@ -19,7 +19,38 @@ class Database(metaclass=SingletonMeta):
             self.conn = sqlite3.connect("example.db", check_same_thread=False)
             self.c = self.conn.cursor()
             self._lock = threading.Lock()  # 初始化锁对象
-            logging.info("数据库连接初始化完成，锁对象已创建。") # 添加日志：数据库连接初始化完成
+            with self._lock:
+                try:
+                    self.c.execute("""
+                    CREATE TABLE IF NOT EXISTS yk_case (
+                        case_code TEXT,
+                        create_time TEXT
+                    )
+                    """)
+                    self.c.execute("""
+                    CREATE TABLE IF NOT EXISTS yk_box_case (
+                        id INTEGER PRIMARY KEY,
+                        case_content TEXT,
+                        box_content TEXT,
+                        type TEXT,
+                        create_time TEXT,
+                        is_line INTEGER DEFAULT 0
+                    )
+                    """)
+                    self.c.execute("""
+                    CREATE TABLE IF NOT EXISTS yk_box_case_history (
+                        id INTEGER PRIMARY KEY,
+                        case_content TEXT,
+                        box_content TEXT,
+                        type TEXT,
+                        create_time TEXT,
+                        is_line INTEGER DEFAULT 0
+                    )
+                    """)
+                    self.conn.commit()
+                except Exception as exc:
+                    logging.warning(f"自动初始化 SQLite 数据表提示: {exc}")
+            logging.info("数据库连接初始化完成，锁对象与默认表已创建。") # 添加日志：数据库连接初始化完成
         else:
             logging.debug("数据库实例已存在，直接返回现有实例。") # 添加 debug 日志：返回现有实例
 

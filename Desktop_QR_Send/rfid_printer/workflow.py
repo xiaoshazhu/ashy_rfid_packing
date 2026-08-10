@@ -23,20 +23,28 @@ from .encoder import generate_rfid_timestamp, normalize_scanned_box_code
 from .label_layout import render_text, resolve_asset_path, resolve_layout_elements
 from .sdk import T63RSdk
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 logger = logging.getLogger("RfidPrintWorkflow")
 
 class RfidPrintService:
     """RFID 打印写卡及闭环核验服务"""
 
-    def __init__(self, config_path: str = "config/settings.json"):
-        self.config_path = os.path.abspath(config_path)
+    def __init__(self, config_path: Optional[str] = None):
+        if not config_path:
+            self.config_path = os.path.join(PROJECT_ROOT, "config", "settings.json")
+        else:
+            self.config_path = os.path.abspath(config_path)
+
         self.config = self._load_config()
 
-        vendor_dir = os.path.abspath(self.config.get("vendor_dir", "vendor/t63r_x64"))
+        vendor_dir = os.path.join(PROJECT_ROOT, "vendor", "t63r_x64")
+        if not os.path.exists(vendor_dir):
+            vendor_dir = os.path.abspath(self.config.get("vendor_dir", "vendor/t63r_x64"))
+
         self.sdk = T63RSdk(vendor_dir=vendor_dir)
         self.connected_dev_name: str = ""
         self.dev_hdl: int = 0
-        self.csv_path = os.path.abspath(self.config.get("csv_record_path", "records/print_records.csv"))
+        self.csv_path = os.path.join(PROJECT_ROOT, "records", "print_records.csv")
 
         self._print_lock = threading.Lock()
         self._ensure_csv_header()
@@ -109,22 +117,49 @@ class RfidPrintService:
         self.sdk.load_and_init()
 
         target_name = dev_name
-        if not target_name:
+        devices = []
+        try:
             devices = self.sdk.enum_usb_devices()
-            if not devices:
-                raise DeviceNotFoundError(
-                    "未检测到通电连接的 USB T63R 打印机！请检查电源开关与 USB 数据线是否插紧。"
-                )
-            target_name = devices[0]
+        except Exception as e:
+            logger.warning(f"枚举 USB 设备提示: {e}")
+
+        candidate_names = []
+        if target_name:
+            candidate_names.append(target_name)
+        if devices:
+            for d in devices:
+                if d not in candidate_names:
+                    candidate_names.append(d)
+
+        # 候选设备与常见 USB 标识符
+        for fallback_str in ("usb://", "usb://0", "usb://1", "usb://MC335218@JiEPRTT63RZ$V2867P1508MC$0JJ125350016."):
+            if fallback_str not in candidate_names:
+                candidate_names.append(fallback_str)
 
         if self.dev_hdl:
             self.disconnect()
 
-        try:
-            self.dev_hdl = self.sdk.connect_device(target_name)
-            self.connected_dev_name = target_name
-        except Exception as e:
-            raise DeviceNotFoundError(f"连接 USB 打印机失败: {e}")
+        last_err = None
+        for dev_str in candidate_names:
+            try:
+                self.dev_hdl = self.sdk.connect_device(dev_str)
+                self.connected_dev_name = dev_str
+                logger.info(f"成功连接设备: '{dev_str}'")
+                break
+            except Exception as e:
+                last_err = e
+                self.dev_hdl = 0
+
+        if not self.dev_hdl:
+            try:
+                self.sdk.clear_and_unload()
+                self.sdk.load_and_init()
+                self.dev_hdl = self.sdk.connect_device("usb://")
+                self.connected_dev_name = "usb://"
+            except Exception:
+                raise DeviceNotFoundError(
+                    f"连接 USB 打印机失败: {last_err or '请检查 USB 数据线与电源开关'}"
+                )
 
         # 设置 203 DPI 印头 (dpi_type=1，完美匹配发热与字迹点阵黑度) 与 ZPL 打印语言模式
         self.sdk.set_img_dpi(self.dev_hdl, 1)
@@ -187,8 +222,8 @@ class RfidPrintService:
             result.written_value = rfid_code
 
             label_cfg = self.config.get("label", {})
-            width_mm = float(label_cfg.get("width_mm", 100.0))
-            height_mm = float(label_cfg.get("height_mm", 80.0))
+            width_mm = float(label_cfg.get("width_mm", 210.0))
+            height_mm = float(label_cfg.get("height_mm", 100.0))
             layout = self.config.get("layout", {})
             elements = resolve_layout_elements(layout, width_mm, height_mm)
             element_values = {
@@ -232,16 +267,16 @@ class RfidPrintService:
             self.sdk.set_prn_emulation(self.dev_hdl, 1)            # ZPL 仿真模式
 
             lc_hdl = self.sdk.create_label(width_mm, height_mm)
-            self.sdk.set_lc_prn_mode(lc_hdl, 1)
+            self.sdk.set_lc_prn_mode(lc_hdl, 0)
             canvas_rotate = int(layout.get("canvas_rotate", 0))
             self.sdk.set_lc_prn_rotate(lc_hdl, canvas_rotate)
 
             try:
-                elements = layout.get("elements", [])
+                resolved_elements = resolve_layout_elements(layout, width_mm, height_mm)
                 barcode_type = int(layout.get("barcode_type_code", 20))
                 data_map = label_data.to_dict()
 
-                for elem in elements:
+                for elem in resolved_elements:
                     if elem.get("enabled") is False:
                         continue
                     elem_type = str(elem.get("type", ""))
@@ -302,6 +337,7 @@ class RfidPrintService:
                         draw_str = render_text(elem, data_map)
                         if not draw_str:
                             continue
+                        is_right = elem_type in ("produce_date_label", "produce_date")
                         self.sdk.draw_text(
                             lc_hdl,
                             x,
@@ -312,6 +348,7 @@ class RfidPrintService:
                             font_size=float(elem.get("font_size", 8.0)),
                             font_name=str(elem.get("font_name", "宋体")),
                             is_bold=bool(elem.get("bold", False)),
+                            align_right=is_right,
                         )
 
                 rfid_cfg = self.config.get("rfid", {})
@@ -356,7 +393,7 @@ class RfidPrintService:
 
                     lc_hdl_plain = self.sdk.create_label(width_mm, height_mm)
                     try:
-                        self.sdk.set_lc_prn_mode(lc_hdl_plain, 1)
+                        self.sdk.set_lc_prn_mode(lc_hdl_plain, 0)
                         self.sdk.set_lc_prn_rotate(lc_hdl_plain, canvas_rotate)
                         for elem in elements:
                             if elem.get("enabled") is False or str(elem.get("type")) == "box_spec" or elem.get("print_direct") is False:
@@ -376,7 +413,8 @@ class RfidPrintService:
                             else:
                                 draw_str = render_text(elem, data_map)
                                 if draw_str:
-                                    self.sdk.draw_text(lc_hdl_plain, x, y, w, h, draw_str, font_size=float(elem.get("font_size", 8.0)), font_name=str(elem.get("font_name", "宋体")), is_bold=bool(elem.get("bold", False)))
+                                    is_right = elem_type in ("produce_date_label", "produce_date")
+                                self.sdk.draw_text(lc_hdl_plain, x, y, w, h, draw_str, font_size=float(elem.get("font_size", 8.0)), font_name=str(elem.get("font_name", "宋体")), is_bold=bool(elem.get("bold", False)), align_right=is_right)
 
                         try:
                             self.sdk.print_label_and_read_rfid(self.dev_hdl, lc_hdl_plain, read_type=0)

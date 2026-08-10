@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
 )
 
 from page import config
-from page.print_template_dialog import PrintTemplateDialog
+from page.print_template_dialog import PrintTemplateDialog, TouchMessageBox
 from rfid_printer.label_layout import (
     TEMPLATE_ID,
     resolve_asset_path,
@@ -303,16 +303,25 @@ class SystemSettingsDialog(QDialog):
         btn_bar = QHBoxLayout()
         btn_bar.addStretch()
 
+        BIG_CANCEL_BTN_STYLE = (
+            "QPushButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F8F8F8, stop:1 #E0E0E0); "
+            "border: 1px solid #707070; border-radius: 6px; font-weight: bold; font-size: 16px; color: #000; padding: 8px 22px; min-height: 50px; } "
+            "QPushButton:hover { background: #FFFFFF; } "
+            "QPushButton:pressed { background: #D0D0D0; }"
+        )
+        BIG_SAVE_BTN_STYLE = (
+            "QPushButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2563EB, stop:1 #1D4ED8); "
+            "border: 1px solid #1E40AF; border-radius: 6px; font-weight: bold; font-size: 18px; color: #FFF; padding: 8px 32px; min-height: 50px; } "
+            "QPushButton:hover { background: #1D4ED8; } "
+            "QPushButton:pressed { background: #1E40AF; }"
+        )
+
         self.btn_cancel = QPushButton("取消")
-        self.btn_cancel.setStyleSheet(NATIVE_BTN_STYLE)
+        self.btn_cancel.setStyleSheet(BIG_CANCEL_BTN_STYLE)
         self.btn_cancel.clicked.connect(self.reject)
 
         self.btn_save = QPushButton("💾 保存参数配置")
-        self.btn_save.setStyleSheet(
-            "QPushButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #337AB7, stop:1 #2E6DA4); "
-            "border: 1px solid #2E6DA4; border-radius: 4px; font-weight: bold; font-size: 15px; color: #FFF; padding: 6px 18px; min-height: 38px; } "
-            "QPushButton:hover { background: #286090; }"
-        )
+        self.btn_save.setStyleSheet(BIG_SAVE_BTN_STYLE)
         self.btn_save.clicked.connect(self.save_params)
 
         btn_bar.addWidget(self.btn_cancel)
@@ -338,19 +347,31 @@ class SystemSettingsDialog(QDialog):
         layout.addWidget(group_preview)
         self.refresh_embedded_preview()
 
+    def _sanitize_elements(self, elems):
+        if not elems:
+            return elems
+        for e in elems:
+            if isinstance(e, dict) and e.get("type") == "produce_date_label":
+                val = str(e.get("value", "")).strip()
+                if val != "生产日期":
+                    e["value"] = "生产日期"
+        return elems
+
     def _get_current_template_elements(self):
         """获取当前有效的模板元素列表，带多级退避保底，确保绝不返回空列表。"""
         if self._template_elements is not None and len(self._template_elements) > 0:
-            return copy.deepcopy(self._template_elements)
+            return self._sanitize_elements(copy.deepcopy(self._template_elements))
 
         config_path = os.path.abspath("config/settings.json")
         if os.path.exists(config_path):
             try:
                 with open(config_path, "r", encoding="utf-8") as f:
                     cfg_data = json.load(f)
-                    if isinstance(cfg_data, dict) and cfg_data.get("elements"):
-                        self._template_elements = copy.deepcopy(cfg_data["elements"])
-                        return copy.deepcopy(self._template_elements)
+                    if isinstance(cfg_data, dict):
+                        elems = cfg_data.get("layout", {}).get("elements") or cfg_data.get("elements")
+                        if elems:
+                            self._template_elements = self._sanitize_elements(copy.deepcopy(elems))
+                            return copy.deepcopy(self._template_elements)
             except Exception as e:
                 logger.warning(f"读取 settings.json 模板元素失败: {e}")
 
@@ -358,12 +379,13 @@ class SystemSettingsDialog(QDialog):
         w_mm = float(self.edit_paper_width.text().strip() if hasattr(self, "edit_paper_width") and self.edit_paper_width.text().strip() else 150.0)
         h_mm = float(self.edit_paper_height.text().strip() if hasattr(self, "edit_paper_height") and self.edit_paper_height.text().strip() else 75.0)
         p_name = profile_name_for_size(w_mm, h_mm)
-        self._template_elements = copy.deepcopy(PROFILE_ELEMENTS.get(p_name, PROFILE_ELEMENTS[PROFILE_150X75]))
+        self._template_elements = self._sanitize_elements(copy.deepcopy(PROFILE_ELEMENTS.get(p_name, list(PROFILE_ELEMENTS.values())[0])))
         return copy.deepcopy(self._template_elements)
 
     def _save_template_elements_to_config(self, elements):
         """将修改后的模板元素持久化写入 config/settings.json 配置文件，并同步全局 PROFILE_ELEMENTS"""
         try:
+            elements = self._sanitize_elements(elements)
             config_path = os.path.abspath("config/settings.json")
             cfg_dict = {}
             if os.path.exists(config_path):
@@ -440,8 +462,10 @@ class SystemSettingsDialog(QDialog):
                     if dlg.exec_() == QDialog.Accepted:
                         new_data = dlg.get_data()
                         for e in elements:
-                            if e.get("type") in ("produce_date", "produce_date_label"):
+                            if e.get("type") == "produce_date":
                                 e["value"] = new_data["value"]
+                            elif e.get("type") == "produce_date_label":
+                                e["value"] = "生产日期"
                         self._template_elements = copy.deepcopy(elements)
                         self._save_template_elements_to_config(self._template_elements)
                         self.refresh_embedded_preview(self._template_elements)
@@ -485,12 +509,15 @@ class SystemSettingsDialog(QDialog):
                 except ValueError:
                     h_mm = 75.0
 
-            from rfid_printer.label_layout import PROFILE_ELEMENTS, PROFILE_150X75, PROFILE_140X120, resolve_layout_elements, profile_name_for_size
+            from rfid_printer.label_layout import PROFILE_ELEMENTS, PROFILE_150X75, resolve_layout_elements, profile_name_for_size
             p_name = profile_name_for_size(w_mm, h_mm)
-            if self._template_elements is not None:
+            if self._template_elements is None:
+                self._template_elements = self._get_current_template_elements()
+
+            if self._template_elements is not None and len(self._template_elements) > 0:
                 tmpl_elements = copy.deepcopy(self._template_elements)
             else:
-                tmpl_elements = copy.deepcopy(PROFILE_ELEMENTS.get(p_name, PROFILE_ELEMENTS[PROFILE_150X75]))
+                tmpl_elements = copy.deepcopy(PROFILE_ELEMENTS.get(p_name, list(PROFILE_ELEMENTS.values())[0]))
 
             elements = resolve_layout_elements(
                 {"template_id": p_name, "elements": tmpl_elements},
@@ -521,11 +548,14 @@ class SystemSettingsDialog(QDialog):
                 scale_x = width_px / max(1.0, w_mm)
                 scale_y = height_px / max(1.0, h_mm)
 
+                saved_preview = getattr(self, "settings_data", {}).get("preview_data", {}) if hasattr(self, "settings_data") else {}
                 preview_data = {
                     elem.get("type"): elem.get("value", "")
                     for elem in elements
                     if elem.get("type")
                 }
+                if isinstance(saved_preview, dict):
+                    preview_data.update(saved_preview)
                 
                 # 动态从主界面或配置中心获取最新的13位箱码
                 latest_case_code = None
@@ -538,10 +568,10 @@ class SystemSettingsDialog(QDialog):
                     except Exception:
                         pass
                 
-                if latest_case_code:
+                if latest_case_code and str(latest_case_code).strip():
                     preview_data["barcode"] = str(latest_case_code).strip()
-                else:
-                    preview_data.setdefault("barcode", "1785813377794")
+                elif not preview_data.get("barcode"):
+                    preview_data["barcode"] = "1786339355791"
 
                 preview_data.setdefault("produce_date", datetime.now().strftime("%Y.%m.%d"))
 
@@ -584,25 +614,30 @@ class SystemSettingsDialog(QDialog):
                         if not logo.isNull():
                             painter.drawPixmap(QRectF(x, y, w, h), logo, QRectF(logo.rect()))
                     elif elem_type == "barcode":
-                        code = str(preview_data.get("barcode") or "1785813377794")
-                        text_height = max(8, int(2.8 * scale_y))
-                        bars_bottom = int(y + h - text_height)
-                        painter.setPen(Qt.NoPen)
-                        painter.setBrush(QColor(0, 0, 0))
-                        bx = int(x)
-                        index = 0
-                        widths = (2, 1, 3, 1, 2, 2, 1, 4)
-                        while bx < int(x + w):
-                            bar_w = max(1, int(widths[index % len(widths)] * scale_x / 2.5))
-                            if index % 2 == 0:
-                                painter.drawRect(bx, int(y), min(bar_w, int(x + w) - bx), max(1, bars_bottom - int(y)))
-                            bx += bar_w
-                            index += 1
-                        if code:
-                            font_c = QFont("Arial", max(8, int(2.8 * scale_y)), QFont.Bold)
-                            painter.setFont(font_c)
+                        code = str(preview_data.get("barcode") or "1785813377794").strip()
+                        try:
+                            from rfid_printer.win_driver_printer import encode_code128_b_pattern
+                            pattern_str = encode_code128_b_pattern(code)
+                            text_h_px = max(8, int(2.8 * scale_y))
+                            bars_h_px = max(10, int(h - text_h_px))
+                            total_modules = len(pattern_str)
+                            mod_w_px = w / max(1.0, total_modules)
+
+                            painter.setPen(Qt.NoPen)
+                            painter.setBrush(QColor(0, 0, 0))
+                            curr_x = x
+                            for i, char in enumerate(pattern_str):
+                                mod_width = int(char) * mod_w_px
+                                if i % 2 == 0:
+                                    painter.drawRect(QRectF(curr_x, y, mod_width, bars_h_px))
+                                curr_x += mod_width
+
+                            font_code = QFont("Arial", max(8, int(2.8 * scale_y)), QFont.Bold)
+                            painter.setFont(font_code)
                             painter.setPen(QPen(QColor(0, 0, 0)))
-                            painter.drawText(QRectF(x, bars_bottom, w, text_height), Qt.AlignCenter, code)
+                            painter.drawText(QRectF(x, y + bars_h_px, w, text_h_px), Qt.AlignCenter, code)
+                        except Exception:
+                            pass
                     else:
                         text_str = render_text(elem, preview_data)
                         if text_str:
@@ -624,7 +659,7 @@ class SystemSettingsDialog(QDialog):
                             painter.setPen(QPen(color))
                             alignment = Qt.AlignLeft | Qt.AlignVCenter
                             if elem_type in ("produce_date_label", "produce_date"):
-                                alignment = Qt.AlignCenter
+                                alignment = Qt.AlignRight | Qt.AlignVCenter
                             painter.drawText(QRectF(x, y, w, h), alignment, text_str)
 
                             # 全平台绝对兼容的 ✏ 蓝底白字高亮区分标志 (100% 1 对 1 对应的精准位移)
@@ -638,7 +673,7 @@ class SystemSettingsDialog(QDialog):
                                     by = y + (h - bh) / 2.0
                                     badge_x = min(width_px - bw - 4.0, max(x + 10.0, x + real_str_w + 5.0))
                                     if elem_type in ("produce_date", "produce_date_label"):
-                                        badge_x = min(width_px - bw - 4.0, x + (w + real_str_w) / 2.0 + 4.0)
+                                        badge_x = min(width_px - bw - 2.0, max(x + 10.0, x + w - bw - 2.0))
                                     elif elem_type == "box_unit":
                                         badge_x = min(width_px - bw - 4.0, x + real_str_w + 6.0)
 
@@ -808,7 +843,7 @@ class SystemSettingsDialog(QDialog):
             if hasattr(self.home, "on_light_calibrate_clicked"):
                 self.home.on_light_calibrate_clicked()
             else:
-                QMessageBox.information(self, "亮度校准", "二分法自动校准指令已触发。")
+                TouchMessageBox.information(self, "亮度校准", "二分法自动校准指令已触发。")
 
     def on_stop_light_calibrate(self):
         """手动中途停止二分法亮度自动校准。"""
@@ -902,7 +937,7 @@ class SystemSettingsDialog(QDialog):
         }
         config.setConfig(updates)
         self.refresh_embedded_preview()
-        QMessageBox.information(self, "保存成功", "✅【系统参数配置保存成功】\n所有更改已成功持久化，打印模板已联动同步生效！")
+        TouchMessageBox.information(self, "保存成功", "✅【系统参数配置保存成功】\n所有更改已成功持久化，打印模板已联动同步生效！")
 
     def open_template_dialog(self):
         dlg = PrintTemplateDialog(config_path="config/settings.json", parent=self)

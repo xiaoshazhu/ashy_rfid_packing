@@ -500,11 +500,13 @@ class Home:
         self.template_dialog.load_elements_config()
 
         current_code = str(self.case or self.preview_case_code or CONFIG_DATA.get("caseCode") or "").strip()
-        self.template_dialog.set_preview_data({
-            "barcode": current_code,
+        preview_update = {
             "produce_date": datetime.datetime.now().strftime("%Y.%m.%d"),
-        })
+        }
+        if current_code:
+            preview_update["barcode"] = current_code
 
+        self.template_dialog.set_preview_data(preview_update)
         self.template_dialog.populate_table()
 
         try:
@@ -1015,6 +1017,7 @@ class Home:
             "produce_date": datetime.datetime.now().strftime("%Y.%m.%d"),
 
         })
+        self.template_dialog.save_elements_config()
 
         return self.template_dialog.show_preview_dialog(parent=self.main_window)
 
@@ -1286,37 +1289,24 @@ class Home:
         periodic_thread.start()
 
     def periodic_task(self):
-
-
         while True:
-
             try:
-
                 if is_local_test_mode():
-
                     label_data_unline = LocalTestDatabase().pending_upload_count()
-
                 else:
-
                     label_data_unline = int(Database().box_case_count_unuploaded())
 
-                pageData = config.CONFIG_DATA["pageData"]
-
-                if pageData['label_data_unline'] != label_data_unline:
-
+                pageData = config.CONFIG_DATA.get("pageData", {})
+                if pageData.get('label_data_unline') != label_data_unline:
                     pageData['label_data_unline'] = label_data_unline
-
                     config.setConfig({"pageData": pageData})
-
                     self.main_window.label_data_unline.setText(
-
                         f"{pageData['label_data_unline']}"
-
                     )
-
+                time.sleep(2.0)
             except Exception as exc:
-
-                logging.exception(f": {exc}")
+                logging.warning(f"后台统计待上传数据提示: {exc}")
+                time.sleep(3.0)
 
 
     # =================================================
@@ -1422,186 +1412,127 @@ class Home:
     # 
 
     def on_button_print(self):
-
-        # 
-
         if self.isPrint:
-
-            logging.info("") #  logging.info  print
-
-            return
-
-        max_bundles = int(CONFIG_DATA.get("edit_max_xiang", 10))
-
-        if len(self.scan_case_data) < max_bundles:
-            logging.warning(f"装箱未满箱，拒绝打印: {len(self.scan_case_data)}/{max_bundles}")
-            QtWidgets.QMessageBox.warning(
-                self.main_window,
-                "无法打印",
-                f"当前已装箱 {len(self.scan_case_data)}/{max_bundles} 捆，未达到满箱标准，不允许进行打印操作！"
-            )
-            self.main_window.play_warning()
+            logging.info("打印任务正在处理中，请稍候...")
             return
 
         case_code = self.case
-
-        if not case_code:
-            logging.warning("尚未生成有效的13位箱码")
-            QtWidgets.QMessageBox.warning(
-                self.main_window,
-                "无法打印",
-                "请先完成装箱并生成有效的13位箱码后再进行打印！"
-            )
-            self.main_window.play_warning()
-            return
-
-        # 
-
-        try:
-
-            local_database = LocalTestDatabase()
-
-        except Exception as exc:
-
-            logging.exception(f": {exc}")
-
-            self.show_temporary_tooltip(
-                self.main_window.groupBox_7,
-                "【暂不能打印】",
-                f"本地测试数据库无法使用：{exc}",
-            )
-
-            self.main_window.play_warning()
-
-            return
+        if not case_code or not self.is_valid_case_code(case_code):
+            case_code = self.generate_case_code()
+            self.updataPageCase(case_code)
 
         self.isPrint = True
-
         try:
+            try:
+                local_database = LocalTestDatabase()
+            except Exception as exc:
+                logging.exception(f"本地数据库不可用: {exc}")
+                self.show_temporary_tooltip(
+                    self.main_window.groupBox_7,
+                    "【暂不能打印】",
+                    f"本地测试数据库无法使用：{exc}",
+                )
+                self.main_window.play_warning()
+                return
 
             result = self.print_barcode(case_code)
-
             if not getattr(result, "success", False):
-
-                error_message = getattr(result, "error_message", "")
-
-                logging.warning(f": {error_message}")
-
+                error_message = getattr(result, "error_message", "打印机未返回成功状态。")
+                logging.warning(f"打印失败: {error_message}")
                 self.show_temporary_tooltip(
                     self.main_window.groupBox_7,
                     "【打印失败】",
-                    str(error_message) or "打印机未返回成功状态。",
+                    str(error_message),
                 )
-
                 self.main_window.play_warning()
-
                 return
 
             try:
-
                 local_record_id = local_database.save_successful_print(
-
                     case_code,
-
                     self.scan_case_data,
-
                     result,
-
                 )
-
+                logging.info(f"record_id={local_record_id}")
             except Exception as exc:
-
-                # /RFID
-
-                logging.exception(
-
-
-                )
-
+                logging.exception(f"本地入库失败: {exc}")
                 self.show_temporary_tooltip(
                     self.main_window.groupBox_7,
                     "【打印成功但入库失败】",
                     f"标签已经打印，请勿重复打印；本地入库错误：{exc}",
                 )
-
                 self.main_window.play_warning()
-
                 return
 
-            logging.info(f"record_id={local_record_id}")
+            # 后台异步写入本地 MySQL 数据库，保证主界面 100% 流畅
+            import threading
+            def _async_mysql_sync():
+                try:
+                    from utils.local_data_pipeline import load_pipeline_config
+                    cfg = load_pipeline_config()
+                    if str(cfg.get("mode", "local_mysql")).lower() == "local_mysql":
+                        from utils.MySQL import MySQLDatabase
+                        mysql_db = MySQLDatabase()
+                        create_time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        bundles = self.scan_case_data or []
+                        inserted_count = 0
+                        base_id = int(time.time() * 1000)
 
-            # 自动同步写入本地 MySQL 数据库
-            try:
-                from utils.local_data_pipeline import load_pipeline_config
-                cfg = load_pipeline_config()
-                if str(cfg.get("mode", "local_mysql")).lower() == "local_mysql":
-                    from utils.MySQL import MySQLDatabase
-                    mysql_db = MySQLDatabase()
-                    create_time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    bundles = self.scan_case_data or []
-                    inserted_count = 0
-                    base_id = int(time.time() * 1000)
-
-                    for bundle in bundles:
-                        boxes = []
-                        if isinstance(bundle, dict):
-                            boxes = bundle.get("boxContents", [])
-                            if not boxes and "boxContent" in bundle:
-                                boxes = [bundle]
-                        elif isinstance(bundle, list):
-                            boxes = bundle
-                        else:
-                            boxes = [bundle]
-
-                        for box in boxes:
-                            if isinstance(box, dict):
-                                b_content = box.get("data") or box.get("boxContent") or box.get("box_content") or str(box)
-                                b_content = str(b_content).strip()
-                                if ".cn/" in b_content:
-                                    b_content = b_content.split(".cn/")[-1].strip()
-
-                                b_type = box.get("type", "QRCODE")
+                        for bundle in bundles:
+                            boxes = []
+                            if isinstance(bundle, dict):
+                                boxes = bundle.get("boxContents", [])
+                                if not boxes and "boxContent" in bundle:
+                                    boxes = [bundle]
+                            elif isinstance(bundle, list):
+                                boxes = bundle
                             else:
-                                b_content = str(box).strip()
-                                if ".cn/" in b_content:
-                                    b_content = b_content.split(".cn/")[-1].strip()
-                                b_type = "QRCODE"
+                                boxes = [bundle]
 
-                            inserted_count += 1
-                            record_dict = {
-                                "id": base_id + inserted_count,
-                                "caseContent": case_code,
-                                "boxContent": b_content,
-                                "type": b_type,
-                                "createTime": create_time_str
-                            }
-                            mysql_db.box_case_insert_data(record_dict)
-                    logging.info(f"【本地 MySQL 自动落库成功】箱码={case_code}，已成功解包并同步写入 {inserted_count} 条盒码数据到 yk_store_case_box")
-            except Exception as mysql_err:
-                logging.error(f"同步写入本地 MySQL 发生错误: {mysql_err}")
+                            for box in boxes:
+                                if isinstance(box, dict):
+                                    b_content = box.get("data") or box.get("boxContent") or box.get("box_content") or str(box)
+                                    b_content = str(b_content).strip()
+                                    if ".cn/" in b_content:
+                                        b_content = b_content.split(".cn/")[-1].strip()
+                                    b_type = box.get("type", "QRCODE")
+                                else:
+                                    b_content = str(box).strip()
+                                    if ".cn/" in b_content:
+                                        b_content = b_content.split(".cn/")[-1].strip()
+                                    b_type = "QRCODE"
+
+                                inserted_count += 1
+                                record_dict = {
+                                    "id": base_id + inserted_count,
+                                    "caseContent": case_code,
+                                    "boxContent": b_content,
+                                    "type": b_type,
+                                    "createTime": create_time_str
+                                }
+                                mysql_db.box_case_insert_data(record_dict)
+                        logging.info(f"【本地 MySQL 自动落库成功】箱码={case_code}，已同步写入 {inserted_count} 条数据")
+                except Exception as mysql_err:
+                    logging.error(f"同步写入本地 MySQL 发生错误: {mysql_err}")
+
+            threading.Thread(target=_async_mysql_sync, daemon=True).start()
 
             self.show_temporary_tooltip(
                 self.main_window.groupBox_7,
                 "【打印箱码成功】",
                 f"已生成箱码：{case_code}（绿框显示）；已同步保存到本地数据库。",
             )
-
             self.main_window.play_success()
 
         except Exception as exc:
-
-            logging.exception(f": {exc}")
-
+            logging.exception(f"打印过程异常: {exc}")
             self.show_temporary_tooltip(
                 self.main_window.groupBox_7,
                 "【打印失败】",
                 f"打印机通信异常：{exc}",
             )
-
             self.main_window.play_warning()
-
         finally:
-
             self.isPrint = False
 
     # 

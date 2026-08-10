@@ -1,5 +1,5 @@
 {
-    "combobox_printSelect": "HPRT N31",
+    "combobox_printSelect": "JiEPRT T63RZ",
     "combobox_comSelect": "COM21",
     "edit_service": "ws://gya.sales.yiknet.com/webSocket/scanCode",
     "edit_max_jian": "10",
@@ -8,9 +8,11 @@
     "edit_max_x": "0",
     "edit_min_y": "0",
     "edit_max_y": "0",
-    "edit_page_width": "600",
-    "edit_page_height": "400",
-    "edit_page_num": "2",
+    "edit_page_width": "150",
+    "edit_page_height": "75",
+    "paper_width": "150",
+    "paper_height": "75",
+    "edit_page_num": "1",
     "pageData": {
         "label_data_box": 0,
         "label_data_case": 0,

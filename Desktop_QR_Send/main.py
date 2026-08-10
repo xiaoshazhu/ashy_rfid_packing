@@ -111,7 +111,7 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
 
         # -------- 2. 配置控制台日志处理器 (StreamHandler) --------
         console_handler = logging.StreamHandler()  # 创建 StreamHandler，输出到控制台
-        console_handler.setLevel(logging.DEBUG)  # 设置控制台日志级别为 DEBUG (可以根据需要调整)
+        console_handler.setLevel(logging.INFO)  # 设置控制台日志级别为 INFO，保持控制台整洁
         colored_formatter = ColoredFormatter()  # 创建 ColoredFormatter 实例 (彩色格式化器)
         console_handler.setFormatter(colored_formatter)  # 设置控制台 Handler 的 Formatter 为彩色格式化器
 

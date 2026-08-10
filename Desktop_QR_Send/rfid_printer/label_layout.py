@@ -121,35 +121,52 @@ def _image(x: float, y: float, w: float, h: float) -> Dict[str, Any]:
     }
 
 
+PROFILE_100X80 = "100x80"
 PROFILE_140X120 = "140x120"
-DEFAULT_PROFILE = PROFILE_140X120
+PROFILE_150X75 = "150x75"
+PROFILE_210X100 = "210x100"
+DEFAULT_PROFILE = PROFILE_210X100
 
 PROFILE_ELEMENTS: Dict[str, List[Dict[str, Any]]] = {
-    # 140x120 基准版式 (40 与 盒/箱 紧密贴合位于 x=6.0 和 x=28.0)
-    PROFILE_140X120: [
-        _text("product_caption", "产品名称标题", "产品名称/PRODUCT NAME", 6.0, 6.0, 95.0, 6.0, 12.0, bold=True, required=True),
-        _image(108.0, 5.0, 26.0, 12.0),
-        _text("product_name", "产品名称", "高原安藏式甜茶", 6.0, 14.0, 128.0, 16.0, 32.0, bold=True, color="#000000"),
-        _text("spec", "产品规格", "200g (20g×10条)/盒", 6.0, 33.0, 98.0, 6.5, 14.0, bold=True),
-        _text("shelf_life", "保质期", "18个月", 6.0, 41.0, 98.0, 6.5, 14.0, bold=True),
-        _text("storage", "储存条件", "干燥、阴凉、通风处", 6.0, 49.0, 98.0, 6.5, 14.0, bold=True),
-        _text("manufacturer", "生产商", "乌兰察布蒙帝乳业有限责任公司", 6.0, 57.0, 98.0, 6.5, 13.0, bold=True),
-        _text("produce_date_label", "生产日期标题", "生产日期", 114.0, 36.0, 20.0, 6.0, 13.0, bold=True, required=False),
-        _text("produce_date", "日期", "", 110.0, 44.0, 24.0, 10.0, 13.0, bold=True, color="#000000"),
-        _line(6.0, 66.0, 128.0),
-        _text("box_count", "每箱数量", "40", 6.0, 68.0, 22.0, 20.0, 48.0, bold=True, color="#000000", template_visible=False),
-        _text("box_unit", "箱规单位", "盒/箱", 28.0, 80.0, 16.0, 6.0, 13.0, bold=True, color="#000000", template_visible=False),
-        _text("unit_net_weight", "单盒内容", "单盒净含量 200 g", 6.0, 94.0, 54.0, 6.0, 12.0, bold=True),
-        _barcode(60.0, 68.0, 72.0, 30.0),
+    # 210x100 标准特大箱标版式 (100% 满幅无缝排版，整体有效绘图区域: X从 2.0mm 至 206.0mm, Y从 2.0mm 至 98.0mm)
+    # 规则: 生产日期/时间/条形码右靠齐(206.0mm)；条形码尺寸适度扩大为 100x33mm；分割线从 x=2.0mm 贯穿至 206.0mm 无覆盖
+    PROFILE_210X100: [
+        # 1. 顶部标题与 Logo 区域 (y=2.0mm)
+        _text("product_caption", "产品名称标题", "产品名称/PRODUCT NAME", 3.0, 2.0, 120.0, 6.0, 11.0, bold=False, required=True),
+        _image(156.0, 2.0, 50.0, 18.0),  # 右侧品牌 Logo (右边界: 156.0 + 50.0 = 206.0mm)
+        _text("product_name", "产品名称", "高原安藏式甜茶", 3.0, 9.0, 150.0, 18.0, 34.0, bold=True, color="#000000"),  # 超大产品名称 (34pt)
+
+        # 2. 中部产品信息参数列表 (纵向延伸，宽度 135mm)
+        _text("spec", "产品规格", "• 产品规格：200g (20g×10条)/盒", 3.0, 28.0, 135.0, 6.0, 12.0, bold=False),
+        _text("shelf_life", "保质期", "26个月", 3.0, 35.0, 135.0, 6.0, 12.0, bold=False),
+        _text("storage", "储存条件", "• 储存条件：干燥、阴凉、通风处", 3.0, 42.0, 135.0, 6.0, 12.0, bold=False),
+        _text("manufacturer", "生产商", "• 生 产 商：乌兰察布蒙帝乳业有限责任公司", 3.0, 49.0, 135.0, 6.0, 12.0, bold=False),
+
+        # 3. 中部右侧生产日期信息 (往右靠齐，与 Logo 和条形码最右边缘 206.0mm 严格对齐)
+        _text("produce_date_label", "生产日期标题", "生产日期", 156.0, 34.0, 50.0, 6.0, 12.0, bold=False, required=False),
+        _text("produce_date", "日期", "", 126.0, 41.0, 80.0, 12.0, 20.0, bold=False, color="#000000"),  # 日期大字 (20pt，右边界截至 206.0mm)
+
+        # 4. 上下区域分割实线 (y=56.0mm，从左 x=2.0mm 贯穿至右 x=206.0mm，精准与条形码右边缘靠齐)
+        _line(2.0, 56.0, 204.0),
+
+        # 5. 下半部分左侧：装箱数量与单位 (纵向 y=59.0mm ~ 98.0mm)
+        _text("box_count", "每箱数量", "40", 3.0, 59.0, 45.0, 32.0, 60.0, bold=False, color="#000000", template_visible=True),  # 数量霸气超大字 (60pt)
+        _text("box_unit", "箱规单位", "盒/箱", 50.0, 78.0, 28.0, 8.0, 13.0, bold=False, color="#000000", template_visible=True),
+        _text("unit_net_weight", "单盒净含量", "单盒净含量 200 g", 3.0, 91.0, 75.0, 7.0, 11.5, bold=False),
+
+        # 6. 下半部分右侧：箱码条形码 (高度 38mm 宽度 115mm, x从 91.0 至 206.0mm，右边缘靠齐 206.0mm)
+        _barcode(91.0, 60.0, 115.0, 38.0),
+
+        # 7. 辅助箱规属性
         _text(
             "box_spec",
             "箱规",
             "40盒/箱",
-            6.0,
-            62.0,
-            98.0,
-            6.0,
-            13.0,
+            3.0,
+            80.0,
+            120.0,
+            8.0,
+            14.0,
             bold=True,
             enabled=True,
             type_desc="可选字段（控制左下角数量与单位）",
@@ -157,6 +174,25 @@ PROFILE_ELEMENTS: Dict[str, List[Dict[str, Any]]] = {
         ),
     ],
 }
+PROFILE_ELEMENTS[PROFILE_140X120] = PROFILE_ELEMENTS[PROFILE_210X100]
+PROFILE_ELEMENTS[PROFILE_150X75] = PROFILE_ELEMENTS[PROFILE_210X100]
+PROFILE_ELEMENTS[PROFILE_210X100] = PROFILE_ELEMENTS[PROFILE_210X100]
+
+def _try_load_saved_elements():
+    try:
+        config_file = PROJECT_ROOT / "config" / "settings.json"
+        if config_file.exists():
+            import json
+            with open(config_file, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+                elems = cfg.get("layout", {}).get("elements") or cfg.get("elements")
+                if elems and isinstance(elems, list) and len(elems) > 0:
+                    PROFILE_ELEMENTS[DEFAULT_PROFILE] = copy.deepcopy(elems)
+                    PROFILE_ELEMENTS[PROFILE_210X100] = copy.deepcopy(elems)
+    except Exception:
+        pass
+
+_try_load_saved_elements()
 
 CONTENT_FIELDS = ("label", "value", "enabled", "type_desc", "asset_path")
 
@@ -165,7 +201,7 @@ def profile_name_for_size(width_mm: float, height_mm: float) -> str:
     return DEFAULT_PROFILE
 
 
-def default_elements(width_mm: float = 140.0, height_mm: float = 120.0) -> List[Dict[str, Any]]:
+def default_elements(width_mm: float = 210.0, height_mm: float = 100.0) -> List[Dict[str, Any]]:
     return copy.deepcopy(PROFILE_ELEMENTS[DEFAULT_PROFILE])
 
 
@@ -203,7 +239,11 @@ def resolve_layout_elements(
     width_mm: float,
     height_mm: float,
 ) -> List[Dict[str, Any]]:
-    """解析版式并采用左右锚定 + 比例统一算法，防止宽x高切换时元素错位与【40与盒/箱离老远】的问题！"""
+    """
+    解析版式并采用 210x100 满幅自适应比例算法。
+    自动根据目标标签尺寸 (width_mm * height_mm) 换算并拉伸坐标，
+    使文字、分隔线与条形码在 210x100 标签纸上 100% 铺满延伸，消除四周非必要留白。
+    """
     layout = layout or {}
     base = copy.deepcopy(PROFILE_ELEMENTS[DEFAULT_PROFILE])
     stored = list(layout.get("elements", []) or [])
@@ -221,15 +261,18 @@ def resolve_layout_elements(
     else:
         raw_list = base
 
-    base_w, base_h = 140.0, 120.0
-    scale_uniform = min(width_mm / base_w, height_mm / base_h)
-    scale_x = width_mm / base_w
-    scale_y = height_mm / base_h
+    # 确定基准参考宽高 (默认按 210.0mm x 100.0mm 进行自适应缩放)
+    base_w = float(layout.get("width_mm", 210.0)) if layout and layout.get("width_mm") else 210.0
+    base_h = float(layout.get("height_mm", 100.0)) if layout and layout.get("height_mm") else 100.0
 
+    scale_x = width_mm / max(1.0, base_w)
+    scale_y = height_mm / max(1.0, base_h)
+    scale_uniform = min(scale_x, scale_y)
+
+    # 靠右对齐的元素集合 ( Logo / 生产日期标题 / 生产日期 / 条形码 )，统一定格右边缘
     RIGHT_ALIGNED_TYPES = {"brand_logo", "produce_date_label", "produce_date", "barcode"}
 
     scaled_result = []
-    box_count_item = None
 
     for elem in raw_list:
         item = copy.deepcopy(elem)
@@ -239,54 +282,31 @@ def resolve_layout_elements(
         orig_w = float(item.get("w", 0.0))
         orig_h = float(item.get("h", 0.0))
 
+        # 纵向与横向坐标及宽高自适应比例计算
         item["y"] = round(orig_y * scale_y, 2)
         item["h"] = round(orig_h * scale_y, 2)
 
         if elem_type in RIGHT_ALIGNED_TYPES:
+            # 右对齐逻辑：根据右侧边距 (base_w - (orig_x + orig_w)) 进行精确定距
             right_offset = base_w - (orig_x + orig_w)
-            scaled_w = orig_w * scale_uniform
+            scaled_w = orig_w * scale_x
             item["w"] = round(scaled_w, 2)
             item["x"] = round(width_mm - (right_offset * scale_x + scaled_w), 2)
         elif elem_type == "divider":
+            # 中部分隔实线：从 orig_x 延伸至右边界对齐位置，横向贯穿，保持 y 净空无覆盖
+            right_offset = base_w - (orig_x + orig_w)
             item["x"] = round(orig_x * scale_x, 2)
-            item["w"] = round(width_mm - 2 * (orig_x * scale_x), 2)
-        elif elem_type == "box_count":
-            item["x"] = round(orig_x * scale_uniform, 2)
-            item["w"] = round(max(orig_w, 48.0) * scale_uniform, 2)
-        elif elem_type == "box_unit" and box_count_item:
-            # 根据每箱数量(box_count)字符长度，智能计算【盒/箱】的起始 X 坐标，完全避免重叠！
-            bc_str = render_text(box_count_item, layout.get("preview_data", {}) if layout else {})
-            digit_count = max(1, len(str(bc_str).strip()))
-            # 每个数字字符在 48pt 大字号下约占用 11.5mm 宽度
-            dynamic_offset = max(22.0, digit_count * 11.5)
-            item["w"] = round(orig_w * scale_uniform, 2)
-            item["x"] = round(box_count_item["x"] + dynamic_offset * scale_uniform, 2)
-            item["y"] = round(box_count_item["y"] + 14.0 * scale_y, 2)
-        elif elem_type in ("unit_net_weight", "net_weight"):
-            item["x"] = round(orig_x * scale_uniform, 2)
-            item["w"] = round(max(55.0 * scale_x, width_mm * 0.48), 2)
+            item["w"] = round(width_mm - (orig_x + right_offset) * scale_x, 2)
+            item["h"] = 0.0
         else:
-            item["x"] = round(orig_x * scale_uniform, 2)
-            item["w"] = round(orig_w * scale_uniform, 2)
+            item["x"] = round(orig_x * scale_x, 2)
+            item["w"] = round(orig_w * scale_x, 2)
 
-        if "font_size" in item:
+        # 比例变化时自动同比例缩放字号
+        if "font_size" in item and scale_uniform != 1.0:
             item["font_size"] = round(float(item["font_size"]) * scale_uniform, 1)
 
-        if elem_type == "box_count":
-            box_count_item = item
-
         scaled_result.append(item)
-
-    # 动态纵向自适应紧密排版：序号 3(spec), 4(shelf_life), 储存条件, 5(manufacturer)
-    # 无论勾选哪几个，可见字段自动按合适间距紧密均匀排列，彻底解决 3,4,5 离老远的问题！
-    MIDDLE_STACK_TYPES = ["spec", "shelf_life", "storage", "manufacturer"]
-    visible_stack = [item for item in scaled_result if str(item.get("type")) in MIDDLE_STACK_TYPES and item.get("enabled", True)]
-    if visible_stack:
-        aspect = width_mm / max(1.0, height_mm)
-        y_start = 24.0 * scale_y if aspect >= 1.4 else 30.0 * scale_y
-        y_step = 7.0 * scale_y if aspect >= 1.4 else 8.5 * scale_y
-        for idx, item in enumerate(visible_stack):
-            item["y"] = round(y_start + idx * y_step, 2)
 
     return scaled_result
 
@@ -315,7 +335,9 @@ def render_text(elem: Mapping[str, Any], preview_data: Mapping[str, Any]) -> str
     val = str(elem.get("value", "") or "").strip()
 
     if t == "produce_date":
-        d = str(preview_data.get("produce_date") or val or "").strip()
+        if val and val not in ("默认当天", "日期", "自由选择/默认当天") and not val.startswith("默认"):
+            return val.replace("-", ".").replace("/", ".")
+        d = str(preview_data.get("produce_date") or "").strip()
         if not d or d in ("默认当天", "日期"):
             d = datetime.now().strftime("%Y.%m.%d")
         return d.replace("-", ".").replace("/", ".")
@@ -323,8 +345,30 @@ def render_text(elem: Mapping[str, Any], preview_data: Mapping[str, Any]) -> str
         return str(preview_data.get("box_count") or val or "40")
     if t == "box_unit":
         return str(preview_data.get("box_unit") or val or "盒/箱")
-    if t in ("product_caption", "product_name", "produce_date_label"):
+    if t == "produce_date_label":
+        if val and (val.replace(".", "").replace("-", "").replace("/", "").isdigit() or "202" in val):
+            return "生产日期"
+        return val or label or "生产日期"
+    if t in ("product_caption", "product_name"):
         return val or label
+
+    if t == "spec":
+        clean_v = val.split("：", 1)[-1].split(":", 1)[-1].strip() if ("：" in val or ":" in val) else val
+        return f"• 产品规格：{clean_v}" if clean_v else "• 产品规格：200g (20g×10条)/盒"
+    if t == "shelf_life":
+        clean_v = val.split("：", 1)[-1].split(":", 1)[-1].strip() if ("：" in val or ":" in val) else val
+        return f"• 保 质 期：{clean_v}" if clean_v else "• 保 质 期：18个月"
+    if t == "storage":
+        clean_v = val.split("：", 1)[-1].split(":", 1)[-1].strip() if ("：" in val or ":" in val) else val
+        return f"• 储存条件：{clean_v}" if clean_v else "• 储存条件：干燥、阴凉、通风处"
+    if t == "manufacturer":
+        clean_v = val.split("：", 1)[-1].split(":", 1)[-1].strip() if ("：" in val or ":" in val) else val
+        return f"• 生 产 商：{clean_v}" if clean_v else "• 生 产 商：乌兰察布蒙帝乳业有限责任公司"
+    if t in ("unit_net_weight", "net_weight"):
+        clean_v = val
+        if clean_v.startswith("单盒内容：") or clean_v.startswith("单盒内容:"):
+            clean_v = clean_v.split(":", 1)[-1].split("：", 1)[-1].strip()
+        return clean_v if clean_v else "单盒净含量 200 g"
 
     if "：" in val or ":" in val or (label and val.startswith(label)):
         return val
