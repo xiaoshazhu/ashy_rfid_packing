@@ -980,11 +980,6 @@ class Home:
                 if boxContent:
                     cid = extract_path_after_domain(boxContent)
 
-                    # 如果已经在历史表中（说明之前已经成功上传过），绝不重复上传
-                    if db.is_uploaded(cid):
-                        logging.info(f"盒码 ID: {cid} 已在历史记录中（已上传），跳过重复上传。")
-                        continue
-
                     case_code_val = self.case or getattr(self, 'preview_case_code', '') or ""
                     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                     data = {
@@ -995,7 +990,8 @@ class Home:
                         'createTime': now_str,
                         'isLine': 0
                     }
-                    db.box_case_insert_data(data)
+
+                    # 只要线上 WS 连接就绪，立刻将扫码结果推送至远端 WebSocket 服务
                     if (
                         getattr(self.main_window, "client", None)
                         and getattr(self.main_window, "loop", None)
@@ -1003,9 +999,18 @@ class Home:
                     ):
                         try:
                             asyncio.run_coroutine_threadsafe(self.main_window.client.send(data), self.main_window.loop)
-                            logging.info(f"扫码数据实时推送到 WS 成功 (仅推送一次), ID: {cid}")
+                            logging.info(f"扫码数据实时推送到 WS 成功: ID={cid} 箱码={case_code_val} 盒码={boxContent}")
                         except Exception as ws_err:
                             logging.error(f"WS 数据实时推送异常: {ws_err}")
+
+                    # 本地历史防重记录（安全落库，不对现有数据库进行任何删除修改）
+                    if not db.is_uploaded(cid):
+                        try:
+                            db.box_case_insert_data(data)
+                        except Exception as db_insert_err:
+                            logging.warning(f"本地防重记录保存跳过: {db_insert_err}")
+                    else:
+                        logging.info(f"盒码 ID: {cid} 已在本地历史记录中，已仅通过 WS 完成推送。")
         except Exception as db_err:
             logging.error(f"扫码数据落库或推送发生错误: {db_err}")
 

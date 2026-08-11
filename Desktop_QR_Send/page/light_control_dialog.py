@@ -94,6 +94,7 @@ class LightBinarySearchWorker(QThread):
         minimum_percent: int = 0,
         direct_voltage_control: bool = False,
         original_voltage_v: float = None,
+        original_percent: int = 0,
     ):
         super().__init__()
         self.home = home_instance
@@ -107,6 +108,8 @@ class LightBinarySearchWorker(QThread):
         self.original_voltage_v = (
             None if original_voltage_v is None else float(original_voltage_v)
         )
+        self.original_percent = int(original_percent)
+        self._is_interrupted = False
         try:
             from page.config import CONFIG_DATA
             self.expected_code_count = max(
@@ -115,6 +118,30 @@ class LightBinarySearchWorker(QThread):
         except Exception:
             self.expected_code_count = 10
 
+    def requestInterruption(self):
+        self._is_interrupted = True
+        super().requestInterruption()
+
+    def is_interrupted(self) -> bool:
+        if getattr(self, "_is_interrupted", False):
+            return True
+        if self.isInterruptionRequested():
+            return True
+        try:
+            curr = QThread.currentThread()
+            if curr and curr.isInterruptionRequested():
+                return True
+        except Exception:
+            pass
+        return False
+
+    def _sleep_with_check(self, seconds: float):
+        deadline = time.monotonic() + max(0.0, float(seconds))
+        while time.monotonic() < deadline:
+            if self.is_interrupted():
+                raise InterruptedError("用户终止灯光校准")
+            time.sleep(min(0.04, max(0.001, deadline - time.monotonic())))
+
     def _camera(self):
         from page.home import obj_cam_operation
 
@@ -122,6 +149,9 @@ class LightBinarySearchWorker(QThread):
 
     def _measure_level(self, cam_op, percent: int, sample_count=None):
         from utils.pyzbar_utils import decode_image_codes
+
+        if self.is_interrupted():
+            raise InterruptedError("用户终止灯光校准")
 
         voltage = voltage_for_percent(
             self.safe_min_voltage_v,
@@ -138,7 +168,8 @@ class LightBinarySearchWorker(QThread):
             if not state.output_enabled:
                 raise RuntimeError("WDIP输出处于关闭状态，不能进行真实灯光校准")
             applied_voltage = state.set_voltage_v
-        time.sleep(self.settle_seconds)
+
+        self._sleep_with_check(self.settle_seconds)
 
         counts = []
         elapsed_values = []
@@ -147,9 +178,9 @@ class LightBinarySearchWorker(QThread):
             int(sample_count if sample_count is not None else self.samples_per_level),
         )
         for _ in range(sample_total):
-            if self.isInterruptionRequested():
+            if self.is_interrupted():
                 raise InterruptedError("用户终止灯光校准")
-            time.sleep(0.10)
+            self._sleep_with_check(0.10)
             image = cam_op.get_np_array_image()
             start = time.perf_counter()
             codes = decode_image_codes(image)
@@ -224,7 +255,7 @@ class LightBinarySearchWorker(QThread):
             step = 0
             tested_percents = {100}
             while intervals and step < max_iterations:
-                if self.isInterruptionRequested():
+                if self.is_interrupted():
                     raise InterruptedError("用户终止灯光校准")
                 interval_index, (low, high) = max(
                     enumerate(intervals),
@@ -946,3 +977,125 @@ class LightControlDialog(QDialog):
         except Exception as exc:
             logger.exception(f"程序退出时关闭WDIP灯光输出失败: {exc}")
             return False
+
+
+class LightCalibrateWorker(QThread):
+    """供 SettingsDialog Tab3 调用的二分法校准线程适配器。"""
+
+    sig_progress = Signal(int)
+    sig_log = Signal(str)
+    sig_step = Signal(str)
+    sig_finished = Signal(bool, str, dict)
+
+    def __init__(
+        self,
+        home_instance,
+        parent=None,
+        original_voltage_v: float = None,
+        original_percent: int = 0,
+    ):
+        super().__init__(parent)
+        self.home = home_instance
+        self.light_config = load_light_config()
+        self.safe_min_v = float(self.light_config.get("minimum_voltage_v", 8.0))
+        self.safe_max_v = float(self.light_config.get("maximum_voltage_v", 12.0))
+        self.direct_control = bool(
+            self.light_config.get("direct_voltage_control", True)
+        )
+        self.original_voltage_v = (
+            float(original_voltage_v)
+            if original_voltage_v is not None
+            else float(self.light_config.get("startup_voltage_v", 8.0))
+        )
+        self.original_percent = int(original_percent)
+        self._is_interrupted = False
+
+        button_port = None
+        try:
+            from page.config import CONFIG_DATA
+
+            button_port = CONFIG_DATA.get("combobox_comSelect")
+        except Exception:
+            pass
+
+        configured_port = self.light_config.get("port") or None
+        self.controller = WDIPLightController(
+            port=configured_port,
+            baudrate=int(self.light_config.get("baudrate", 9600)),
+            slave_addr=int(self.light_config.get("slave_addr", 1)),
+            timeout=float(self.light_config.get("timeout_seconds", 0.8)),
+            excluded_ports=[] if configured_port else ([button_port] if button_port else []),
+            allow_stable_crc_mismatch_readback=bool(
+                self.light_config.get("allow_stable_crc_mismatch_readback", False)
+            ),
+            minimum_request_interval=float(
+                self.light_config.get("minimum_request_interval_ms", 250)
+            ) / 1000.0,
+            write_settle_seconds=float(
+                self.light_config.get("write_settle_ms", 400)
+            ) / 1000.0,
+            shared_exchange=getattr(
+                getattr(self.home, "main_window", None),
+                "exchange_shared_rs485",
+                None,
+            ),
+        )
+
+        samples = int(self.light_config.get("samples_per_level", 5))
+        settle_ms = int(self.light_config.get("settle_ms", 350))
+        min_pct = int(self.light_config.get("minimum_percent", 0))
+
+        self.inner_worker = LightBinarySearchWorker(
+            home_instance=self.home,
+            controller=self.controller,
+            safe_min_voltage_v=self.safe_min_v,
+            safe_max_voltage_v=self.safe_max_v,
+            samples_per_level=samples,
+            settle_ms=settle_ms,
+            minimum_percent=min_pct,
+            direct_voltage_control=self.direct_control,
+            original_voltage_v=self.original_voltage_v,
+            original_percent=self.original_percent,
+        )
+        self.inner_worker.progress_signal.connect(self._on_inner_progress)
+        self.inner_worker.finished_signal.connect(self._on_inner_finished)
+
+    def requestInterruption(self):
+        self._is_interrupted = True
+        super().requestInterruption()
+        if hasattr(self, "inner_worker") and self.inner_worker:
+            self.inner_worker.requestInterruption()
+
+    def _on_inner_progress(self, percent: int, message: str):
+        self.sig_progress.emit(percent)
+        self.sig_step.emit(f"⚡ 二分法采样进度: {percent}%")
+        self.sig_log.emit(message)
+
+    def _on_inner_finished(self, success: bool, best_percent: int, message: str):
+        if success:
+            best_voltage = voltage_for_percent(
+                self.safe_min_v, self.safe_max_v, best_percent
+            )
+            save_light_config_updates(
+                {
+                    "startup_voltage_v": best_voltage,
+                    "startup_percent": best_percent,
+                }
+            )
+            final_percent = best_percent
+            final_voltage = best_voltage
+        else:
+            final_percent = self.original_percent
+            final_voltage = self.original_voltage_v
+
+        results = {
+            "best_percent": final_percent,
+            "best_voltage": final_voltage,
+            "original_percent": self.original_percent,
+            "original_voltage": self.original_voltage_v,
+        }
+        self.sig_finished.emit(success, message, results)
+
+    def run(self):
+        self.inner_worker.run()
+

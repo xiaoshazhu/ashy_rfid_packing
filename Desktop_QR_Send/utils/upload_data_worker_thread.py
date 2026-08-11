@@ -64,19 +64,30 @@ class UploadDataWorkerThread(QtCore.QThread):
             logging.debug(f"准备上传数据，数据 ID: {result_dict['id']}") # 添加 debug 日志：准备上传数据
 
             try:
-                from utils.local_data_pipeline import load_pipeline_config
+                from utils.local_data_pipeline import load_pipeline_config, LocalTestDatabase
                 cfg = load_pipeline_config()
-                mode = str(cfg.get("mode", "local_mysql")).lower()
+                mode = str(cfg.get("mode", "remote_ws")).lower()
+                remote_enabled = bool(cfg.get("remote_upload_enabled", False))
 
                 # 如果是 WS 线上模式（"remote" 或 "remote_ws"）且 client 连接可用
-                if mode in ["remote", "remote_ws"] and getattr(self.main_window, "client", None) and getattr(self.main_window, "loop", None):
+                if (mode in ["remote", "remote_ws"] or remote_enabled) and getattr(self.main_window, "client", None) and getattr(self.main_window, "loop", None):
                     future = asyncio.run_coroutine_threadsafe(self.main_window.client.send(result_dict), self.main_window.loop)
-                    logging.debug(f"数据已发往 WS 线上服务，ID: {result_dict['id']}")
+                    logging.info(f"数据已发往 WS 线上服务，ID: {result_dict['id']} 箱码={result_dict.get('caseContent')}")
                 else:
-                    # 本地 MySQL 模式：直接将 result_dict 数据包持久化保存到本地 MySQL yk_store_case_box 表
+                    # 本地 MySQL 模式：将 result_dict 数据包持久化保存到本地 MySQL yk_store_case_box 表
                     from utils.MySQL import MySQLDatabase
                     MySQLDatabase().box_case_insert_data(result_dict)
                     logging.info(f"本地 MySQL 落库成功: ID={result_dict['id']} 箱码={result_dict.get('caseContent')} 盒码={result_dict.get('boxContent')}")
+
+                # 成功发送/落库后，回写本地数据库标记已上传状态，确保未同步数量能够减少
+                try:
+                    db.box_case_history_insert_data(result_dict)
+                except Exception:
+                    pass
+                try:
+                    LocalTestDatabase().mark_as_uploaded(result_dict['id'])
+                except Exception:
+                    pass
 
             except Exception as e:
                 logging.error(f"后台数据发送/落库出错: {e}, 数据 ID: {result_dict['id']}")

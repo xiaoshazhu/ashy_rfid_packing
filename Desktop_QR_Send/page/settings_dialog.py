@@ -713,11 +713,57 @@ class SystemSettingsDialog(QDialog):
         self._template_elements = copy.deepcopy(elements or [])
         self.refresh_embedded_preview(self._template_elements)
 
+    def _get_controller(self):
+        if getattr(self, "_controller_instance", None) is not None:
+            return self._controller_instance
+        try:
+            from page.light_control_dialog import load_light_config
+            from utils.wdip_light_controller import WDIPLightController
+
+            light_config = load_light_config()
+            button_port = None
+            try:
+                button_port = self.form_data.get("combobox_comSelect")
+            except Exception:
+                pass
+
+            configured_port = light_config.get("port") or None
+            self._controller_instance = WDIPLightController(
+                port=configured_port,
+                baudrate=int(light_config.get("baudrate", 9600)),
+                slave_addr=int(light_config.get("slave_addr", 1)),
+                timeout=float(light_config.get("timeout_seconds", 0.8)),
+                excluded_ports=[] if configured_port else ([button_port] if button_port else []),
+                allow_stable_crc_mismatch_readback=bool(
+                    light_config.get("allow_stable_crc_mismatch_readback", False)
+                ),
+                minimum_request_interval=float(
+                    light_config.get("minimum_request_interval_ms", 250)
+                ) / 1000.0,
+                write_settle_seconds=float(
+                    light_config.get("write_settle_ms", 400)
+                ) / 1000.0,
+                shared_exchange=getattr(
+                    getattr(self.home, "main_window", None),
+                    "exchange_shared_rs485",
+                    None,
+                ),
+            )
+            return self._controller_instance
+        except Exception as exc:
+            logger.error(f"创建 WDIP 补光灯控制器实例失败: {exc}")
+            return None
+
     def setup_light_tab(self):
         """Tab 3 亮度控制：完全集成二分法自动校准进度条与采样日志，彻底无子弹窗！"""
         layout = QVBoxLayout(self.tab_light)
         layout.setContentsMargins(16, 16, 16, 16)
         layout.setSpacing(14)
+
+        self.apply_timer = QTimer(self)
+        self.apply_timer.setSingleShot(True)
+        self.apply_timer.setInterval(500)
+        self.apply_timer.timeout.connect(self.apply_slider_voltage)
 
         group_manual = QGroupBox("WDIP 物理补光灯手动大滑块调节")
         group_manual.setStyleSheet(GROUP_STYLE)
@@ -796,41 +842,105 @@ class SystemSettingsDialog(QDialog):
 
         self.lbl_calib_status = QLabel("状态: 补光灯已就绪。")
         self.lbl_calib_status.setStyleSheet("font-size: 14px; font-weight: bold; color: #1E395B;")
+        self.lbl_calib_status.setWordWrap(True)
         vbox_c.addWidget(self.lbl_calib_status)
 
         self.lbl_calib_detail = QLabel("区间二分实测采样日志将在此实时滚动展示...")
         self.lbl_calib_detail.setStyleSheet("font-size: 13px; color: #666666;")
+        self.lbl_calib_detail.setWordWrap(True)
         vbox_c.addWidget(self.lbl_calib_detail)
 
         layout.addWidget(group_calib)
         layout.addStretch()
 
+        # 初始化时，自动读取配置文件中保存的默认输出电压
+        try:
+            from page.light_control_dialog import load_light_config, percent_for_voltage
+            light_cfg = load_light_config()
+            self.safe_min_v = float(light_cfg.get("minimum_voltage_v", 8.0))
+            self.safe_max_v = float(light_cfg.get("maximum_voltage_v", 12.0))
+            startup_v = float(light_cfg.get("startup_voltage_v", 8.0))
+            init_pct = percent_for_voltage(self.safe_min_v, self.safe_max_v, startup_v)
+            self.slider_light.setValue(init_pct)
+            self.lbl_light_voltage.setText(f"直接控制目标: {init_pct}% ({startup_v:.2f}V)")
+            self.btn_output_toggle.setText(f"直接开启 {startup_v:.2f}V 灯光输出")
+        except Exception as exc:
+            logger.warning(f"初始化补光灯选项卡失败: {exc}")
+
     def on_slider_voltage_changed(self, percent):
         voltage = self.safe_min_v + (self.safe_max_v - self.safe_min_v) * (percent / 100.0)
         self.lbl_light_voltage.setText(f"直接控制目标: {percent}% ({voltage:.2f}V)")
+        if hasattr(self, "btn_output_toggle") and self.btn_output_toggle:
+            btn_text = self.btn_output_toggle.text()
+            if "关闭" in btn_text:
+                self.btn_output_toggle.setText(f"直接关闭 {voltage:.2f}V 灯光输出")
+            else:
+                self.btn_output_toggle.setText(f"直接开启 {voltage:.2f}V 灯光输出")
+        if hasattr(self, "apply_timer") and self.apply_timer:
+            self.apply_timer.start(500)
+
+    def apply_slider_voltage(self):
+        percent = self.slider_light.value()
+        voltage = self.safe_min_v + (self.safe_max_v - self.safe_min_v) * (percent / 100.0)
+        controller = self._get_controller()
+        if not controller:
+            self.lbl_calib_status.setText("⚠️ 未能获取WDIP补光灯控制器。")
+            return
+        try:
+            controller.set_voltage_direct(voltage)
+            self.lbl_calib_status.setText(f"⚡ 已成功向WDIP下发设定电压: {voltage:.2f}V ({percent}%)")
+        except Exception as exc:
+            logger.exception(f"下发WDIP灯光电压失败: {exc}")
+            self.lbl_calib_status.setText(f"❌ 下发灯光电压失败: {exc}")
 
     def on_toggle_light_output(self):
         percent = self.slider_light.value()
         voltage = self.safe_min_v + (self.safe_max_v - self.safe_min_v) * (percent / 100.0)
+        controller = self._get_controller()
+        if not controller:
+            self.lbl_calib_status.setText("⚠️ 未能获取WDIP补光灯控制器。")
+            return
+
         btn_text = self.btn_output_toggle.text()
-        if "开启" in btn_text:
-            self.btn_output_toggle.setText(f"直接关闭 {voltage:.2f}V 灯光输出")
-            self.lbl_calib_status.setText(f"已直接开启灯光输出: {voltage:.2f}V")
-        else:
-            self.btn_output_toggle.setText(f"直接开启 {voltage:.2f}V 灯光输出")
-            self.lbl_calib_status.setText("已关闭灯光输出。")
+        try:
+            if "开启" in btn_text:
+                controller.set_voltage_direct(voltage)
+                controller.set_output_enabled_direct(True)
+                self.btn_output_toggle.setText(f"直接关闭 {voltage:.2f}V 灯光输出")
+                self.lbl_calib_status.setText(f"💡 已直接开启灯光输出: {voltage:.2f}V")
+            else:
+                controller.set_output_enabled_direct(False)
+                self.btn_output_toggle.setText(f"直接开启 {voltage:.2f}V 灯光输出")
+                self.lbl_calib_status.setText("🌑 已关闭灯光输出。")
+        except Exception as exc:
+            logger.exception("切换WDIP灯光输出失败")
+            self.lbl_calib_status.setText(f"❌ 切换灯光输出失败: {exc}")
 
     def on_start_light_calibrate(self):
         """点击触发二分法亮度自动校准，实时在 Tab3 更新进度条与采样日志"""
         try:
-            from page.light_control_dialog import LightCalibrateWorker
+            from page.light_control_dialog import LightCalibrateWorker, voltage_for_percent
+
+            current_pct = self.slider_light.value()
+            current_v = voltage_for_percent(
+                self.safe_min_v, self.safe_max_v, current_pct
+            )
+
             self.btn_calibrate.setEnabled(False)
             self.btn_cancel_calib.setEnabled(True)
+            self.slider_light.setEnabled(False)
+            self.btn_output_toggle.setEnabled(False)
             self.progress_calib.setValue(0)
             self.lbl_calib_status.setText("⚡ 二分法自动校准进行中...")
-            self.lbl_calib_detail.setText("正在连接WDIP控制器并开始采集多帧识别图像...")
+            self.lbl_calib_detail.setText(
+                f"正在连接WDIP控制器（保底亮度 {current_pct}% / {current_v:.2f}V）..."
+            )
 
-            self.calib_worker = LightCalibrateWorker(self.home)
+            self.calib_worker = LightCalibrateWorker(
+                self.home,
+                original_voltage_v=current_v,
+                original_percent=current_pct,
+            )
             self.calib_worker.sig_progress.connect(self.progress_calib.setValue)
             self.calib_worker.sig_log.connect(self.lbl_calib_detail.setText)
             self.calib_worker.sig_step.connect(self.lbl_calib_status.setText)
@@ -840,38 +950,82 @@ class SystemSettingsDialog(QDialog):
             logger.error(f"启动二分法校准线程失败: {e}")
             self.btn_calibrate.setEnabled(True)
             self.btn_cancel_calib.setEnabled(False)
-            if hasattr(self.home, "on_light_calibrate_clicked"):
-                self.home.on_light_calibrate_clicked()
-            else:
-                TouchMessageBox.information(self, "亮度校准", "二分法自动校准指令已触发。")
+            self.slider_light.setEnabled(True)
+            self.btn_output_toggle.setEnabled(True)
+            self.lbl_calib_status.setText(f"❌ 启动二分法校准失败: {e}")
+            self.lbl_calib_detail.setText(f"错误详情: {e}")
 
     def on_stop_light_calibrate(self):
-        """手动中途停止二分法亮度自动校准。"""
-        if hasattr(self, 'calib_worker') and self.calib_worker and self.calib_worker.isRunning():
+        """手动中途停止二分法亮度自动校准，立刻读取大滑块亮度作为保底恢复。"""
+        from page.light_control_dialog import voltage_for_percent
+
+        current_pct = self.slider_light.value()
+        current_v = voltage_for_percent(
+            self.safe_min_v, self.safe_max_v, current_pct
+        )
+
+        if hasattr(self, "calib_worker") and self.calib_worker:
             try:
                 self.calib_worker.requestInterruption()
-                self.calib_worker.terminate()
+                if self.calib_worker.isRunning():
+                    self.calib_worker.wait(1000)
             except Exception as exc:
                 logger.warning(f"终止校准线程异常: {exc}")
+
+        # 立即通过控制器将电源输出切换回大滑块原保底电压
+        controller = self._get_controller()
+        if controller:
+            try:
+                controller.set_voltage_direct(current_v)
+            except Exception as exc:
+                logger.warning(f"停止校准下发保底电压失败: {exc}")
+
         self.btn_calibrate.setEnabled(True)
         self.btn_cancel_calib.setEnabled(False)
-        self.lbl_calib_status.setText("🛑 二分法自动校准已手动停止。")
-        self.lbl_calib_detail.setText("用户已手动中途取消校准。")
+        self.slider_light.setEnabled(True)
+        self.btn_output_toggle.setEnabled(True)
+        self.lbl_calib_status.setText(
+            f"🛑 已立刻停止校准！恢复大滑块保底亮度: {current_pct}% ({current_v:.2f}V)"
+        )
+        self.lbl_calib_detail.setText(
+            "用户已手动停止二分法校准，物理补光灯已稳定恢复至大滑块设置的保底亮度。"
+        )
 
     def on_calib_finished(self, success, msg, results):
+        from page.light_control_dialog import voltage_for_percent
+
         self.btn_calibrate.setEnabled(True)
         self.btn_cancel_calib.setEnabled(False)
+        self.slider_light.setEnabled(True)
+        self.btn_output_toggle.setEnabled(True)
+
         if success:
             self.progress_calib.setValue(100)
-            self.lbl_calib_status.setText(f"✅ 校准成功: {msg}")
             best_pct = results.get("best_percent", 0)
             best_v = results.get("best_voltage", 8.0)
             self.slider_light.setValue(int(best_pct))
             self.lbl_light_voltage.setText(f"直接控制目标: {best_pct}% ({best_v:.2f}V)")
-            self.lbl_calib_detail.setText(f"最优识别参数已定位: {best_pct}% ({best_v:.2f}V)")
+            self.lbl_calib_status.setText(
+                f"✅ 校准成功！最佳参数定位在 {best_pct}% ({best_v:.2f}V)"
+            )
+            self.lbl_calib_detail.setText(msg)
         else:
-            self.lbl_calib_status.setText(f"❌ 校准完成: {msg}")
-            self.lbl_calib_detail.setText(f"详细情况: {msg}")
+            orig_pct = results.get(
+                "original_percent", self.slider_light.value()
+            )
+            orig_v = results.get(
+                "original_voltage",
+                voltage_for_percent(
+                    self.safe_min_v, self.safe_max_v, orig_pct
+                ),
+            )
+            self.slider_light.setValue(int(orig_pct))
+            self.lbl_light_voltage.setText(f"直接控制目标: {orig_pct}% ({orig_v:.2f}V)")
+            self.lbl_calib_status.setText(
+                f"🛑 校准中断/已恢复大滑块保底亮度: {orig_pct}% ({orig_v:.2f}V)"
+            )
+            self.lbl_calib_detail.setText(f"已恢复大滑块原调光亮度 ({orig_v:.2f}V)；{msg}")
+
 
     def _on_paper_input_changed(self):
         """纸张宽度或高度输入改变时，实时热联动更新 Tab 2 的打印预览伸缩图"""

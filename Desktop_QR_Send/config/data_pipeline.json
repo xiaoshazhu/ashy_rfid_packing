@@ -1,7 +1,7 @@
 {
-  "mode": "local",
-  "database_path": "example.db",
-  "remote_upload_enabled": false,
+  "mode": "remote_ws",
+  "database_path": "data/local_test.db",
+  "remote_upload_enabled": true,
   "remote_ws_url": "ws://gya.sales.yiknet.com/webSocket/scanCode",
   "mysql": {
     "host": "172.20.20.13",

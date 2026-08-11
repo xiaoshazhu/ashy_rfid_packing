@@ -44,9 +44,10 @@ def is_local_test_mode() -> bool:
 
 def is_remote_upload_enabled() -> bool:
     cfg = load_pipeline_config()
+    mode = str(cfg.get("mode", "local_test")).lower()
     return (
-        str(cfg.get("mode", "local_test")).lower() != "local_test"
-        and bool(cfg.get("remote_upload_enabled", False))
+        bool(cfg.get("remote_upload_enabled", False))
+        or mode in ["remote", "remote_ws"]
     )
 
 
@@ -203,3 +204,15 @@ class LocalTestDatabase:
                     """
                 ).fetchone()[0]
             )
+
+    def mark_as_uploaded(self, record_id: int) -> bool:
+        """根据记录 ID 将 upload_status 标记更新为 'UPLOADED'。"""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE packing_case SET upload_status='UPLOADED' WHERE id=?",
+                (int(record_id),),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+
