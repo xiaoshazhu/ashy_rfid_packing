@@ -3,6 +3,7 @@
 """
 
 import os
+import time
 import ctypes
 from ctypes import c_uint, c_int, c_double, c_char_p, c_uint64, POINTER, create_string_buffer
 import logging
@@ -49,6 +50,18 @@ class T63RSdk:
         result_len = c_int(512)
 
         res = self._dll.DSTP2x_Lib_Init(None, 0, result_buf, ctypes.byref(result_len))
+        if res != 0:
+            # 遇到 41992207 (前一个程序句柄未完全释放) 自动尝试 Clear + 300ms 延迟重试
+            logger.warning(f"C SDK 首次初始化返回错误码 {res}，尝试强制 Clear 并重试初始化...")
+            try:
+                self._dll.DSTP2x_Lib_Clear()
+            except Exception:
+                pass
+            time.sleep(0.3)
+            result_buf = create_string_buffer(512)
+            result_len = c_int(512)
+            res = self._dll.DSTP2x_Lib_Init(None, 0, result_buf, ctypes.byref(result_len))
+
         if res != 0:
             err_msg = result_buf.value.decode('utf-8', errors='ignore') if result_buf.value else "未知错误"
             raise SdkInitError(f"SDK 初始化失败，错误码: {res}, 信息: {err_msg}", code=res)

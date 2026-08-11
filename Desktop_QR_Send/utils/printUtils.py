@@ -152,8 +152,14 @@ def print_barcode(case_code, printer_name=None, page_width=600, page_height=400,
                 logging.info(f"✅ [矢量打印预览排版出纸成功] 箱码={clean_code}")
                 res = PrintResult(box_code=clean_code)
                 res.success = True
+                res.written_value = clean_code
                 res.read_epc = (clean_code + "000000000000000000000000")[:24]
                 res.error_message = "标签出纸指令已下发成功"
+                try:
+                    from rfid_printer.workflow import RfidPrintService
+                    RfidPrintService().append_record_to_csv(res)
+                except Exception:
+                    pass
                 return res
             else:
                 # 尝试 RAW TSPL 指令直发
@@ -163,8 +169,14 @@ def print_barcode(case_code, printer_name=None, page_width=600, page_height=400,
                     logging.info(f"✅ [RAW TSPL 直发端口出纸成功] 箱码={clean_code}")
                     res = PrintResult(box_code=clean_code)
                     res.success = True
+                    res.written_value = clean_code
                     res.read_epc = (clean_code + "000000000000000000000000")[:24]
                     res.error_message = "标签已通过 RAW 端口成功吐纸"
+                    try:
+                        from rfid_printer.workflow import RfidPrintService
+                        RfidPrintService().append_record_to_csv(res)
+                    except Exception:
+                        pass
                     return res
     except Exception as exc:
         logging.warning(f"调用 Windows 矢量驱动打纸告警: {exc}")

@@ -49,12 +49,16 @@ class UploadDataWorkerThread(QtCore.QThread):
             if ".cn/" in box_content_str:
                 box_content_str = box_content_str.split(".cn/")[-1].strip()
 
+            create_time_str = str(row[4]).strip() if row[4] else ""
+            if create_time_str and "." not in create_time_str:
+                create_time_str = f"{create_time_str}.000000"
+
             result_dict = {
                 'id': row[0],
                 'caseContent': row[1],
                 'boxContent': box_content_str,
                 'type': row[3],
-                'createTime': row[4],
+                'createTime': create_time_str,
                 'isLine': row[5]
             }
             logging.debug(f"准备上传数据，数据 ID: {result_dict['id']}") # 添加 debug 日志：准备上传数据

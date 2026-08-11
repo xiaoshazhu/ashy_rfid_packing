@@ -205,8 +205,8 @@ async def message_received(message):
                     logging.warning(f"未找到数据，数据 ID: {id}，可能数据已被删除或不存在。") # 添加 warning 日志：未找到数据
             elif json_data.get('type') == 'error':
                 # 返回提示内容
-                message = json_data.get('data')
-                logging.error(f"数据上传异常: {message}")
+                err_msg = json_data.get('data') or json_data.get('message') or json_data
+                logging.error(f"数据上传异常: {err_msg}")
 
         except Exception as e:
             logging.error(f"数据库处理出错: {e}, 消息内容: {message}") # 使用 logging.error 替换 print，记录数据库处理错误和消息内容
@@ -269,10 +269,11 @@ def command_line_thread(command_queue):
 
 ws_client = None
 # 启动 WebSocket 客户端的函数
-def startWS(websocket_uri, heartbeat_interval=5):
+def startWS(websocket_uri, heartbeat_interval=5, loop=None):
     """启动 WebSocket 客户端并返回实例
     :param websocket_uri: WebSocket 服务端地址
     :param heartbeat_interval: 心跳间隔（秒），默认 5 秒
+    :param loop: 目标 asyncio 事件循环（若传入，将在该 loop 中调度 connect）
     :return: WebSocketClient 实例
     """
     logging.info(f"启动 WebSocket 客户端，WebSocket URI: {websocket_uri}, 心跳间隔: {heartbeat_interval} 秒") # 添加日志：启动 WebSocket 客户端
@@ -283,9 +284,24 @@ def startWS(websocket_uri, heartbeat_interval=5):
     client.add_message_listener(message_received)
     logging.debug("添加默认连接状态监听器和消息监听器。") # 添加 debug 日志：添加监听器
 
-    # 启动连接任务
-    loop = asyncio.get_event_loop()
-    asyncio.ensure_future(client.connect(), loop=loop)
+    # 启动连接任务：如果传入了指定的 loop 且已在运行，使用 run_coroutine_threadsafe 调度
+    if loop is not None:
+        if loop.is_running():
+            asyncio.run_coroutine_threadsafe(client.connect(), loop)
+        else:
+            asyncio.ensure_future(client.connect(), loop=loop)
+    else:
+        try:
+            target_loop = asyncio.get_event_loop()
+        except RuntimeError:
+            target_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(target_loop)
+
+        if target_loop.is_running():
+            asyncio.run_coroutine_threadsafe(client.connect(), target_loop)
+        else:
+            asyncio.ensure_future(client.connect(), loop=target_loop)
+
     global ws_client
     ws_client = client
     logging.debug("启动 WebSocket 连接任务到 asyncio 循环。") # 添加 debug 日志：启动连接任务

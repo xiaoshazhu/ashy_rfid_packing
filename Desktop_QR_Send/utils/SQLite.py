@@ -29,7 +29,7 @@ class Database(metaclass=SingletonMeta):
                     """)
                     self.c.execute("""
                     CREATE TABLE IF NOT EXISTS yk_box_case (
-                        id INTEGER PRIMARY KEY,
+                        id TEXT PRIMARY KEY,
                         case_content TEXT,
                         box_content TEXT,
                         type TEXT,
@@ -39,7 +39,7 @@ class Database(metaclass=SingletonMeta):
                     """)
                     self.c.execute("""
                     CREATE TABLE IF NOT EXISTS yk_box_case_history (
-                        id INTEGER PRIMARY KEY,
+                        id TEXT PRIMARY KEY,
                         case_content TEXT,
                         box_content TEXT,
                         type TEXT,
@@ -47,6 +47,25 @@ class Database(metaclass=SingletonMeta):
                         is_line INTEGER DEFAULT 0
                     )
                     """)
+                    # 自动字段类型迁移：若旧表 id 字段类型为 INTEGER，自动迁移升级为 TEXT
+                    for tbl in ["yk_box_case", "yk_box_case_history"]:
+                        info = self.c.execute(f"PRAGMA table_info({tbl})").fetchall()
+                        id_col_type = next((col[2] for col in info if col[1] == 'id'), '')
+                        if id_col_type.upper() == 'INTEGER':
+                            logging.info(f"升级 SQLite 表 {tbl} schema: id 字段从 INTEGER 迁移为 TEXT...")
+                            self.c.executescript(f"""
+                            CREATE TABLE {tbl}_migrating (
+                                id TEXT PRIMARY KEY,
+                                case_content TEXT,
+                                box_content TEXT,
+                                type TEXT,
+                                create_time TEXT,
+                                is_line INTEGER DEFAULT 0
+                            );
+                            INSERT INTO {tbl}_migrating SELECT CAST(id AS TEXT), case_content, box_content, type, create_time, is_line FROM {tbl};
+                            DROP TABLE {tbl};
+                            ALTER TABLE {tbl}_migrating RENAME TO {tbl};
+                            """)
                     self.conn.commit()
                 except Exception as exc:
                     logging.warning(f"自动初始化 SQLite 数据表提示: {exc}")
@@ -77,7 +96,7 @@ class Database(metaclass=SingletonMeta):
         logging.debug(f"开始插入 box_case 数据，data: {data}") # 添加 debug 日志：方法开始
         with self._lock: # 获取锁
             try:
-                self.c.execute("INSERT INTO yk_box_case (id,case_content, box_content, type, create_time, is_line ) VALUES (?,?, ?, ?, ?, ?)",
+                self.c.execute("INSERT OR IGNORE INTO yk_box_case (id,case_content, box_content, type, create_time, is_line ) VALUES (?,?, ?, ?, ?, ?)",
                                (data['id'],data['caseContent'], data['boxContent'],  data['type'],data['createTime'], data['isLine']))
                 self.conn.commit()
                 logging.debug(f"成功插入 box_case 数据，id: {data['id']}") # 添加 debug 日志：插入成功
@@ -89,12 +108,12 @@ class Database(metaclass=SingletonMeta):
 
 
     # 插入一条识别的历史信息 API在线的时候直接存储到历史记录
-    def box_case_insert_history_data(self, data):
+    def box_case_history_insert_data(self, data):
         logging.debug(f"开始插入 box_case_history 数据，data: {data}") # 添加 debug 日志：方法开始
         with self._lock: # 获取锁
             try:
                 self.c.execute(
-                    "INSERT INTO yk_box_case_history (id,case_content, box_content, type, create_time, is_line ) VALUES (?,?, ?, ?, ?, ?)",
+                    "INSERT OR IGNORE INTO yk_box_case_history (id,case_content, box_content, type, create_time, is_line ) VALUES (?,?, ?, ?, ?, ?)",
                     (data['id'], data['caseContent'], data['boxContent'],  data['type'],data['createTime'], data['isLine']))
                 self.conn.commit()
                 logging.debug(f"成功插入 box_case_history 数据，id: {data['id']}") # 添加 debug 日志：插入成功
@@ -103,6 +122,12 @@ class Database(metaclass=SingletonMeta):
                 logging.error(f"插入 box_case_history 数据失败，id: {data['id']}, 错误信息: {e}") # 使用 logging.error 记录错误信息
                 raise e # 重新抛出异常，防止错误被忽略
         logging.debug(f"完成插入 box_case_history 数据，id: {data['id']}") # 添加 debug 日志：方法结束
+
+    # 检查某个 ID 是否已经在历史表（即已成功上传过）
+    def is_uploaded(self, id):
+        with self._lock:
+            self.c.execute("SELECT 1 FROM yk_box_case_history WHERE id = ? LIMIT 1", (id,))
+            return self.c.fetchone() is not None
 
 
     # 查询最早的一条信息没有上传的信息,根据create_time和is_line；is_line中0表示未上传，1表示已上传
@@ -222,6 +247,7 @@ class Database(metaclass=SingletonMeta):
                            create_time AS createTime,
                            is_line AS isLine
                     FROM yk_box_case
+                    WHERE is_line = 0
                     ORDER BY create_time ASC  -- 按照 create_time 升序排列 (由旧到新)
                     LIMIT ?                     -- 限制查询数量
                 """, (limit,)) # 使用参数化查询，防止 SQL 注入，并传入 limit 参数

@@ -49,20 +49,21 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
         self.centerWindow()
         self.setupUi(self)
 
-        # 本地测试阶段不建立WebSocket，避免打印或确认操作误传生产服务器。
         self.client = None
         self.loop = None
         self.loop_thread = None
         if is_remote_upload_enabled():
             try:
-                websocket_uri = config.CONFIG_DATA["edit_service"]
-                self.client = startWS(websocket_uri=websocket_uri)
+                websocket_uri = config.CONFIG_DATA.get("edit_service") or "ws://gya.sales.yiknet.com/webSocket/scanCode"
 
-                # 启动异步事件循环（在单独线程中）
+                # 1. 优先创建并启动单独线程中的 asyncio 事件循环
                 self.loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(self.loop)
                 self.loop_thread = Thread(target=self.run_loop, daemon=True)
                 self.loop_thread.start()
+
+                # 2. 将已经运行在独立线程中的 self.loop 传入 startWS，确保 connect() 被真实调度运行
+                self.client = startWS(websocket_uri=websocket_uri, loop=self.loop)
             except Exception as e:
                 logging.error(f"WebSocket 连接失败: {e}") # 使用 logging.error 替换 print
         else:
@@ -103,8 +104,9 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
             backupCount=5,  # 最多保留 5 个备份文件
             encoding='utf-8'
         )
+        import re
         log_handler.suffix = "%Y-%m-%d.log"  # 轮转后的日志文件名后缀，包含日期
-        log_handler.extMatch = r"^\d{4}-\d{2}-\d{2}.log$"  # 匹配轮转日志文件名的正则表达式
+        log_handler.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}\.log$")  # 匹配轮转日志文件名的正则表达式对象
         log_formatter_file = logging.Formatter(
             '%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)d - %(message)s')  # 文件日志格式 (纯文本)
         log_handler.setFormatter(log_formatter_file)

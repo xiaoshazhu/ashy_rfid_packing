@@ -971,6 +971,44 @@ class Home:
 
             logging.info(f"1/{max_bundles}13: {case_code}")
 
+        # 写入本地 SQLite 数据库并推送到 WS 线上服务器（单条防重写、推送一次）
+        try:
+            db = Database()
+            for sacn_box_item in (self.sacn_box_data or []):
+                boxContent = sacn_box_item.get('data') if isinstance(sacn_box_item, dict) else str(sacn_box_item)
+                boxContent = str(boxContent or "").strip()
+                if boxContent:
+                    cid = extract_path_after_domain(boxContent)
+
+                    # 如果已经在历史表中（说明之前已经成功上传过），绝不重复上传
+                    if db.is_uploaded(cid):
+                        logging.info(f"盒码 ID: {cid} 已在历史记录中（已上传），跳过重复上传。")
+                        continue
+
+                    case_code_val = self.case or getattr(self, 'preview_case_code', '') or ""
+                    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+                    data = {
+                        'id': cid,
+                        'caseContent': case_code_val,
+                        'boxContent': boxContent,
+                        'type': '生产装箱',
+                        'createTime': now_str,
+                        'isLine': 0
+                    }
+                    db.box_case_insert_data(data)
+                    if (
+                        getattr(self.main_window, "client", None)
+                        and getattr(self.main_window, "loop", None)
+                        and self.main_window.client.get_connection_status()
+                    ):
+                        try:
+                            asyncio.run_coroutine_threadsafe(self.main_window.client.send(data), self.main_window.loop)
+                            logging.info(f"扫码数据实时推送到 WS 成功 (仅推送一次), ID: {cid}")
+                        except Exception as ws_err:
+                            logging.error(f"WS 数据实时推送异常: {ws_err}")
+        except Exception as db_err:
+            logging.error(f"扫码数据落库或推送发生错误: {db_err}")
+
         logging.info(
 
 
@@ -1422,58 +1460,61 @@ class Home:
             self.updataPageCase(case_code)
 
         self.isPrint = True
-        try:
+        btn_print = getattr(self.main_window, "button_print", None)
+        if btn_print:
+            btn_print.setEnabled(False)
+
+        def _async_print_job():
             try:
-                local_database = LocalTestDatabase()
-            except Exception as exc:
-                logging.exception(f"本地数据库不可用: {exc}")
-                self.show_temporary_tooltip(
-                    self.main_window.groupBox_7,
-                    "【暂不能打印】",
-                    f"本地测试数据库无法使用：{exc}",
-                )
-                self.main_window.play_warning()
-                return
+                try:
+                    local_database = LocalTestDatabase()
+                except Exception as exc:
+                    logging.exception(f"本地数据库不可用: {exc}")
+                    QTimer.singleShot(0, lambda: self.show_temporary_tooltip(
+                        self.main_window.groupBox_7,
+                        "【暂不能打印】",
+                        f"本地测试数据库无法使用：{exc}",
+                    ))
+                    QTimer.singleShot(0, lambda: getattr(self.main_window, 'play_warning', lambda: None)())
+                    return
 
-            result = self.print_barcode(case_code)
-            if not getattr(result, "success", False):
-                error_message = getattr(result, "error_message", "打印机未返回成功状态。")
-                logging.warning(f"打印失败: {error_message}")
-                self.show_temporary_tooltip(
-                    self.main_window.groupBox_7,
-                    "【打印失败】",
-                    str(error_message),
-                )
-                self.main_window.play_warning()
-                return
+                result = self.print_barcode(case_code)
+                if not getattr(result, "success", False):
+                    error_message = getattr(result, "error_message", "打印机未返回成功状态。")
+                    logging.warning(f"打印失败: {error_message}")
+                    QTimer.singleShot(0, lambda msg=error_message: self.show_temporary_tooltip(
+                        self.main_window.groupBox_7,
+                        "【打印失败】",
+                        str(msg),
+                    ))
+                    QTimer.singleShot(0, lambda: getattr(self.main_window, 'play_warning', lambda: None)())
+                    return
 
-            try:
-                local_record_id = local_database.save_successful_print(
-                    case_code,
-                    self.scan_case_data,
-                    result,
-                )
-                logging.info(f"record_id={local_record_id}")
-            except Exception as exc:
-                logging.exception(f"本地入库失败: {exc}")
-                self.show_temporary_tooltip(
-                    self.main_window.groupBox_7,
-                    "【打印成功但入库失败】",
-                    f"标签已经打印，请勿重复打印；本地入库错误：{exc}",
-                )
-                self.main_window.play_warning()
-                return
+                try:
+                    local_record_id = local_database.save_successful_print(
+                        case_code,
+                        self.scan_case_data,
+                        result,
+                    )
+                    logging.info(f"record_id={local_record_id}")
+                except Exception as exc:
+                    logging.exception(f"本地入库失败: {exc}")
+                    QTimer.singleShot(0, lambda e=exc: self.show_temporary_tooltip(
+                        self.main_window.groupBox_7,
+                        "【打印成功但入库失败】",
+                        f"标签已经打印，请勿重复打印；本地入库错误：{e}",
+                    ))
+                    QTimer.singleShot(0, lambda: getattr(self.main_window, 'play_warning', lambda: None)())
+                    return
 
-            # 后台异步写入本地 MySQL 数据库，保证主界面 100% 流畅
-            import threading
-            def _async_mysql_sync():
+                # 后台异步写入本地 MySQL 数据库
                 try:
                     from utils.local_data_pipeline import load_pipeline_config
                     cfg = load_pipeline_config()
                     if str(cfg.get("mode", "local_mysql")).lower() == "local_mysql":
                         from utils.MySQL import MySQLDatabase
                         mysql_db = MySQLDatabase()
-                        create_time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        create_time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                         bundles = self.scan_case_data or []
                         inserted_count = 0
                         base_id = int(time.time() * 1000)
@@ -1515,25 +1556,28 @@ class Home:
                 except Exception as mysql_err:
                     logging.error(f"同步写入本地 MySQL 发生错误: {mysql_err}")
 
-            threading.Thread(target=_async_mysql_sync, daemon=True).start()
+                QTimer.singleShot(0, lambda code=case_code: self.show_temporary_tooltip(
+                    self.main_window.groupBox_7,
+                    "【打印箱码成功】",
+                    f"已生成箱码：{code}（绿框显示）；已同步保存到本地数据库。",
+                ))
+                QTimer.singleShot(0, lambda: getattr(self.main_window, 'play_success', lambda: None)())
 
-            self.show_temporary_tooltip(
-                self.main_window.groupBox_7,
-                "【打印箱码成功】",
-                f"已生成箱码：{case_code}（绿框显示）；已同步保存到本地数据库。",
-            )
-            self.main_window.play_success()
+            except Exception as exc:
+                logging.exception(f"打印过程异常: {exc}")
+                QTimer.singleShot(0, lambda e=exc: self.show_temporary_tooltip(
+                    self.main_window.groupBox_7,
+                    "【打印失败】",
+                    f"打印机通信异常：{e}",
+                ))
+                QTimer.singleShot(0, lambda: getattr(self.main_window, 'play_warning', lambda: None)())
+            finally:
+                time.sleep(1.5)  # 物理冷却等待 1.5 秒，保证驱动与端口句柄完全归还
+                self.isPrint = False
+                if btn_print:
+                    QTimer.singleShot(0, lambda: btn_print.setEnabled(True))
 
-        except Exception as exc:
-            logging.exception(f"打印过程异常: {exc}")
-            self.show_temporary_tooltip(
-                self.main_window.groupBox_7,
-                "【打印失败】",
-                f"打印机通信异常：{exc}",
-            )
-            self.main_window.play_warning()
-        finally:
-            self.isPrint = False
+        threading.Thread(target=_async_print_job, daemon=True).start()
 
     # 
 

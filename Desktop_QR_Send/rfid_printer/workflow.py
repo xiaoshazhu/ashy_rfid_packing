@@ -100,13 +100,29 @@ class RfidPrintService:
                     reader = csv.reader(f)
                     header = next(reader, None)
                     for row in reader:
-                        if len(row) >= 9 and row[8] == "PASS":
-                            if len(row) > 1 and row[1].strip():
-                                printed_set.add(row[1].strip())
-                            if len(row) > 3 and row[3].strip():
-                                printed_set.add(row[3].strip())
+                        if len(row) > 1 and row[1].strip():
+                            printed_set.add(row[1].strip())
+                        if len(row) > 3 and row[3].strip():
+                            printed_set.add(row[3].strip())
             except Exception as e:
                 logger.warning(f"读取 CSV 历史记录失败: {e}")
+
+        try:
+            from utils.SQLite import db
+            conn = db.get_connection()
+            with db.lock:
+                cursor = conn.cursor()
+                cursor.execute("SELECT DISTINCT caseContent FROM yk_box_case_history WHERE caseContent IS NOT NULL AND caseContent != ''")
+                for r in cursor.fetchall():
+                    if r[0]:
+                        printed_set.add(str(r[0]).strip())
+                cursor.execute("SELECT DISTINCT case_code FROM packing_case WHERE case_code IS NOT NULL AND case_code != ''")
+                for r in cursor.fetchall():
+                    if r[0]:
+                        printed_set.add(str(r[0]).strip())
+        except Exception:
+            pass
+
         return printed_set
 
     def list_usb_printers(self) -> List[str]:
@@ -141,14 +157,18 @@ class RfidPrintService:
 
         last_err = None
         for dev_str in candidate_names:
-            try:
-                self.dev_hdl = self.sdk.connect_device(dev_str)
-                self.connected_dev_name = dev_str
-                logger.info(f"成功连接设备: '{dev_str}'")
+            for retry in range(2):
+                try:
+                    self.dev_hdl = self.sdk.connect_device(dev_str)
+                    self.connected_dev_name = dev_str
+                    logger.info(f"成功连接设备: '{dev_str}'")
+                    break
+                except Exception as e:
+                    last_err = e
+                    self.dev_hdl = 0
+                    time.sleep(0.2)
+            if self.dev_hdl:
                 break
-            except Exception as e:
-                last_err = e
-                self.dev_hdl = 0
 
         if not self.dev_hdl:
             try:
@@ -217,7 +237,8 @@ class RfidPrintService:
 
         try:
             scanned_box_code = normalize_scanned_box_code(box_code)
-            rfid_code = generate_rfid_timestamp()
+            # RFID 写入值与箱码完全一致，即 13 位箱码原文！
+            rfid_code = scanned_box_code
             result.box_code = scanned_box_code
             result.written_value = rfid_code
 
@@ -248,18 +269,17 @@ class RfidPrintService:
             else:
                 label_data.box_code = scanned_box_code
 
-            allow_reprint_same_code = bool(self.config.get("rfid", {}).get("allow_reprint_same_code", False))
-            if not allow_reprint_same_code:
-                printed_codes = self.list_printed_epcs_from_csv()
-                if scanned_box_code in printed_codes or rfid_code in printed_codes:
-                    result.success = False
-                    result.error_code = -89
-                    result.error_message = f"防二次写入拦截！箱码/RFID '{scanned_box_code}' 已成功写入过，禁止重复二次写入！"
-                    self.append_record_to_csv(result)
-                    return result
+            is_already_printed = False
+            printed_codes = self.list_printed_epcs_from_csv()
+            if scanned_box_code in printed_codes:
+                is_already_printed = True
+                logger.info(f"检测到 13 位箱码 '{scanned_box_code}' 已存在于历史记录中，激活防二次写入锁：跳过 RFID 写卡，仅物理打纸出纸。")
 
             if not self.dev_hdl:
-                self.connect()
+                try:
+                    self.connect()
+                except Exception as conn_err:
+                    logger.warning(f"尝试连接打印机 C SDK 提示: {conn_err}")
 
             # 设置 203 DPI 印头与 ZPL 打印语言模式
             dpi_type = int(self.config.get("label", {}).get("dpi_type", 1))
@@ -363,67 +383,49 @@ class RfidPrintService:
                 else:
                     rfid_payload = rfid_code[:12]
 
-                try:
-                    self.sdk.set_rfid_data(lc_hdl, rgn_type, fmt_code, rfid_payload)
-                except Exception as e:
-                    logger.warning(f"设置 RFID 数据告警: {e}")
+                if not is_already_printed:
+                    try:
+                        self.sdk.set_rfid_data(lc_hdl, rgn_type, fmt_code, rfid_payload)
+                    except Exception as e:
+                        logger.warning(f"设置 RFID 数据告警: {e}")
 
                 try:
+                    read_mask = 0 if is_already_printed else read_type_mask
                     raw_rfid_str = self.sdk.print_label_and_read_rfid(
-                        self.dev_hdl, lc_hdl, read_type=read_type_mask
+                        self.dev_hdl, lc_hdl, read_type=read_mask
                     )
                     result.raw_rfid_str = raw_rfid_str
-                    try:
-                        chip_info = self.read_chip_status()
-                        result.read_tid = chip_info.get("tid", "")
-                        result.read_epc = chip_info.get("epc", "")
-                        result.read_user = chip_info.get("user", "")
-                    except Exception:
-                        pass
-                    result.success = True
-                    result.error_message = (
-                        f"标签使用真实箱码，RFID写入13位时间戳 {rfid_code} (PASS)"
-                    )
-                except Exception as rfid_err:
-                    logger.warning(f"RFID写入未响应 ({rfid_err})，自动切换为纯打纸出纸模式...")
-                    try:
-                        self.sdk.delete_label(lc_hdl)
-                    except Exception:
-                        pass
-
-                    lc_hdl_plain = self.sdk.create_label(width_mm, height_mm)
-                    try:
-                        self.sdk.set_lc_prn_mode(lc_hdl_plain, 0)
-                        self.sdk.set_lc_prn_rotate(lc_hdl_plain, canvas_rotate)
-                        for elem in elements:
-                            if elem.get("enabled") is False or str(elem.get("type")) == "box_spec" or elem.get("print_direct") is False:
-                                continue
-                            x = float(elem.get("x", 8.0))
-                            y = float(elem.get("y", 5.0))
-                            w = float(elem.get("w", 84.0))
-                            h = float(elem.get("h", 6.0))
-                            elem_type = str(elem.get("type", ""))
-                            if elem_type == "divider":
-                                self.sdk.draw_line(lc_hdl_plain, x, y, x + w, y, line_width=int(elem.get("line_width", 1)))
-                            elif elem_type == "brand_logo":
-                                self.sdk.draw_image(lc_hdl_plain, x, y, w, h, resolve_asset_path(str(elem.get("asset_path") or elem.get("value") or "")))
-                            elif elem_type == "barcode":
-                                b_val = str(data_map.get("barcode") or elem.get("value") or scanned_box_code)
-                                self.sdk.draw_barcode(lc_hdl_plain, x, y, w, h, barcode_type, b_val, show_text=bool(elem.get("show_text", True)))
-                            else:
-                                draw_str = render_text(elem, data_map)
-                                if draw_str:
-                                    is_right = elem_type in ("produce_date_label", "produce_date")
-                                self.sdk.draw_text(lc_hdl_plain, x, y, w, h, draw_str, font_size=float(elem.get("font_size", 8.0)), font_name=str(elem.get("font_name", "宋体")), is_bold=bool(elem.get("bold", False)), align_right=is_right)
-
+                    if not is_already_printed:
                         try:
-                            self.sdk.print_label_and_read_rfid(self.dev_hdl, lc_hdl_plain, read_type=0)
-                        except Exception as e:
-                            logger.warning(f"纯打纸底层返回 ({e})，数据已完美下发至打印队列")
+                            chip_info = self.read_chip_status()
+                            result.read_tid = chip_info.get("tid", "")
+                            result.read_epc = chip_info.get("epc", "")
+                            result.read_user = chip_info.get("user", "")
+                        except Exception:
+                            pass
+                        self.append_record_to_csv(result)
                         result.success = True
-                        result.error_message = f"标签打印成功 (已打纸出纸): {rfid_err}"
-                    finally:
-                        self.sdk.delete_label(lc_hdl_plain)
+                        result.error_message = (
+                            f"标签打纸成功，RFID已成功写入13位箱码 {rfid_code} (PASS)"
+                        )
+                    else:
+                        result.success = True
+                        result.error_message = (
+                            f"标签重新打印成功（已开启防二次写入保护，跳过 RFID 写卡）"
+                        )
+                except Exception as rfid_err:
+                    logger.warning(f"C SDK RFID 闭环未响应 ({rfid_err})，自动原位尝试 C SDK 纯打纸出纸模式(read_type=0)...")
+                    try:
+                        self.sdk.print_label_and_read_rfid(self.dev_hdl, lc_hdl, read_type=0)
+                        self.append_record_to_csv(result)
+                        result.success = True
+                        result.error_message = f"标签打纸成功 (已下发纯打纸指令): {rfid_err}"
+                    except Exception as pure_err:
+                        logger.warning(f"C SDK 纯打纸模式提示 ({pure_err})，即将自动触发底层 RAW 端口出纸模式...")
+                        self.disconnect()
+                        result.success = False
+                        result.error_message = f"C SDK 提示: {rfid_err}"
+                        return result
             finally:
                 try:
                     self.sdk.delete_label(lc_hdl)

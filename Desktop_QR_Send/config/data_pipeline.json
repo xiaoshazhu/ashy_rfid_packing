@@ -1,5 +1,5 @@
 {
-  "mode": "local_mysql",
+  "mode": "local",
   "database_path": "example.db",
   "remote_upload_enabled": false,
   "remote_ws_url": "ws://gya.sales.yiknet.com/webSocket/scanCode",

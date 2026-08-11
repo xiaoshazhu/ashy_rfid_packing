@@ -80,40 +80,53 @@ def get_target_windows_printer(printer_name: Optional[str] = None) -> Optional[Q
     if not printers:
         return None
 
+    # 1. 严格过滤掉所有虚拟 PDF / XPS 打印机，避免弹出文件保存窗口
     physical_printers = [p for p in printers if not is_virtual_printer(p.printerName())]
-    if not physical_printers:
-        return None
 
-    # 1. 优先完全匹配或子串匹配用户配置的硬件打印机（如 JiEPRT T63RZ、T63R 等）
+    # 2. 优先在实体硬件打印机中匹配用户选定的打印机（如 JiEPRT T63RZ、T63R RFID 打印机等）
     if printer_name and str(printer_name).strip():
         raw_target = str(printer_name).strip().lower()
         clean_target = _clean_str(raw_target)
 
-        for p in physical_printers:
+        # 优先在硬件打印机列表中匹配
+        search_list = physical_printers if physical_printers else printers
+        for p in search_list:
             p_name = p.printerName().lower()
             p_clean = _clean_str(p_name)
             if raw_target == p_name or raw_target in p_name or p_name in raw_target or clean_target == p_clean or clean_target in p_clean:
-                return p
+                if not is_virtual_printer(p.printerName()):
+                    return p
 
-        # 分词子串匹配 (如配置 "JiEPRT T63RZ"，自动匹配包含 "JiEPRT" 或 "T63" 的硬件打印机)
+        # 分词与前缀子串模糊匹配 (如 "T63R RFID 打印机" 自动提取 "t63"、"jieprt" 命中 "JiEPRT T63RZ")
         tokens = [t for t in raw_target.replace("打印机", "").split() if len(t) >= 2]
-        for p in physical_printers:
-            p_name = p.printerName().lower()
-            if any(tok in p_name for tok in tokens):
-                return p
+        sub_tokens = set(tokens)
+        for tok in tokens:
+            if len(tok) > 3:
+                sub_tokens.add(tok[:3])
+                sub_tokens.add(tok.rstrip("r").rstrip("z"))
 
-    # 2. 检索常用实体硬件打印机品牌关键词
+        for p in search_list:
+            p_name = p.printerName().lower()
+            if any(stok in p_name for stok in sub_tokens if len(stok) >= 2):
+                if not is_virtual_printer(p.printerName()):
+                    return p
+
+    if not physical_printers:
+        logger.warning("未检测到任何实体硬件打印机（均为虚拟PDF打印机），跳过 GDI 驱动渲染以杜绝弹窗")
+        return None
+
+    # 3. 检索常用实体硬件打印机品牌关键词 (t63, jieprt, postek, 热敏, label, printer...)
     for p in physical_printers:
         name_low = p.printerName().lower()
         if any(kw in name_low for kw in PHYSICAL_KEYWORDS):
             return p
 
-    # 3. 检查系统默认打印机（若为实体打印机）
+    # 4. 检查系统默认打印机（若为实体打印机）
     default_p = QPrinterInfo.defaultPrinter()
     if default_p and not is_virtual_printer(default_p.printerName()):
         return default_p
 
-    # 4. 返回首个实体硬件打印机
+    # 5. 返回首个实体硬件打印机
     return physical_printers[0]
 
 
@@ -277,6 +290,7 @@ def print_canvas_via_win_driver(
 def send_raw_tspl_to_win_printer(printer_name: str, box_code: str, width_mm: float = 210.0, height_mm: float = 100.0) -> bool:
     """通过 Windows 底层 Spooler 向物理打印机端口直接发送 RAW TSPL 指令 (第三重硬件出纸保险)。"""
     import ctypes
+    import time
     class DOC_INFO_1W(ctypes.Structure):
         _fields_ = [
             ("pDocName", ctypes.c_wchar_p),
@@ -287,7 +301,13 @@ def send_raw_tspl_to_win_printer(printer_name: str, box_code: str, width_mm: flo
     try:
         winspool = ctypes.WinDLL("winspool.drv")
         h_printer = ctypes.c_void_p()
-        if winspool.OpenPrinterW(ctypes.c_wchar_p(printer_name), ctypes.byref(h_printer), None) == 0:
+        opened = False
+        for attempt in range(3):
+            if winspool.OpenPrinterW(ctypes.c_wchar_p(printer_name), ctypes.byref(h_printer), None) != 0:
+                opened = True
+                break
+            time.sleep(0.2)
+        if not opened:
             return False
 
         try:
