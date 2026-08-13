@@ -68,17 +68,17 @@ class WebSocketClient:
         """发送消息到 WebSocket 服务端
         :param message: 要发送的消息内容
         """
-        logging.debug("准备发送消息到 WebSocket 服务端...") # 添加 debug 日志：准备发送消息
+        logging.debug("准备发送消息到 WebSocket 服务端...")
         if self.connected:
             json_message = json.dumps({"type": "message", "data": message}, default=str)
             logging.debug(f"准备发送 JSON 消息: {json_message}")
             try:
                 await self.websocket.send(json_message)
-                logging.info(f"发送 JSON 消息: {json_message}") # 使用 logging.debug 替换 print，记录发送的 JSON 消息 (debug 级别)
+                logging.info(f"发送 JSON 消息: {json_message}")
             except Exception as e:
-                logging.error(f"发送 WebSocket 消息失败: {e}") # 记录发送消息失败的错误
+                logging.error(f"发送 WebSocket 消息失败: {e}")
         else:
-            logging.warning("WebSocket 连接未打开，无法发送消息。") # 使用 logging.warning 替换 print，提示未连接无法发送
+            logging.warning("WebSocket 连接未打开，无法发送消息。")
 
     async def close(self):
         """关闭 WebSocket 连接"""

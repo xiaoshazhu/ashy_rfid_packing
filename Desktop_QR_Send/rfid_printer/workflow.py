@@ -60,7 +60,7 @@ class RfidPrintService:
 
     def _ensure_csv_header(self):
         os.makedirs(os.path.dirname(self.csv_path), exist_ok=True)
-        if not os.path.exists(self.csv_path):
+        if not os.path.exists(self.csv_path) or os.path.getsize(self.csv_path) == 0:
             try:
                 with open(self.csv_path, "w", newline="", encoding="utf-8-sig") as f:
                     writer = csv.writer(f)
@@ -72,23 +72,27 @@ class RfidPrintService:
                 logger.error(f"创建 CSV 记录头失败: {e}")
 
     def append_record_to_csv(self, result: PrintResult):
+        self._ensure_csv_header()
         try:
+            ts = getattr(result, "timestamp", "") or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            box_code = getattr(result, "box_code", "")
+            written_val = getattr(result, "written_value", "") or box_code
+            tid = getattr(result, "read_tid", "")
+            epc = getattr(result, "read_epc", "")
+            user = getattr(result, "read_user", "")
+            ascii_val = getattr(result, "read_ascii", "")
+            success_str = "PASS" if getattr(result, "success", True) else "FAIL"
+            elapsed = round(float(getattr(result, "elapsed_ms", 0.0)), 2)
+            err_code = getattr(result, "error_code", 0)
+            err_msg = getattr(result, "error_message", "")
+
             with open(self.csv_path, "a", newline="", encoding="utf-8-sig") as f:
                 writer = csv.writer(f)
                 writer.writerow([
-                    result.timestamp,
-                    result.box_code,
-                    self.config.get("rfid", {}).get("target_region", "EPC"),
-                    result.written_value,
-                    result.read_tid,
-                    result.read_epc,
-                    result.read_user,
-                    result.read_ascii,
-                    "PASS" if result.success else "FAIL",
-                    round(result.elapsed_ms, 2),
-                    result.error_code,
-                    result.error_message
+                    ts, box_code, self.config.get("rfid", {}).get("target_region", "EPC"),
+                    written_val, tid, epc, user, ascii_val, success_str, elapsed, err_code, err_msg
                 ])
+            logger.info(f"✅ [成功追加历史打印记录] 箱码={box_code}, RFID={written_val}")
         except Exception as e:
             logger.error(f"写入 CSV 记录失败: {e}")
 
@@ -120,6 +124,19 @@ class RfidPrintService:
                 for r in cursor.fetchall():
                     if r[0]:
                         printed_set.add(str(r[0]).strip())
+        except Exception:
+            pass
+
+        try:
+            from utils.local_data_pipeline import get_db_connection
+            l_conn = get_db_connection()
+            if l_conn:
+                l_cursor = l_conn.cursor()
+                l_cursor.execute("SELECT DISTINCT case_code FROM local_test_print_records WHERE case_code IS NOT NULL AND case_code != ''")
+                for r in l_cursor.fetchall():
+                    if r[0]:
+                        printed_set.add(str(r[0]).strip())
+                l_conn.close()
         except Exception:
             pass
 
@@ -218,13 +235,19 @@ class RfidPrintService:
     def read_chip_status(self) -> dict:
         if not self.dev_hdl:
             self.connect()
-        return self.sdk.read_rfid_direct(self.dev_hdl)
+        for attempt in range(2):
+            res = self.sdk.read_rfid_direct(self.dev_hdl)
+            if res.get("epc") or res.get("tid"):
+                return res
+            if attempt < 1:
+                time.sleep(0.1)
+        return res
 
     def print_write_verify(
         self,
         box_code: str,
         label_data: Optional[LabelPrintData] = None,
-        allow_reprint_same_code: bool = True
+        allow_reprint_same_code: Optional[bool] = None
     ) -> PrintResult:
         if not self._print_lock.acquire(blocking=False):
             res = PrintResult(box_code=box_code)
@@ -243,8 +266,8 @@ class RfidPrintService:
             result.written_value = rfid_code
 
             label_cfg = self.config.get("label", {})
-            width_mm = float(label_cfg.get("width_mm", 210.0))
-            height_mm = float(label_cfg.get("height_mm", 100.0))
+            width_mm = float(label_cfg.get("width_mm", 150.0))
+            height_mm = float(label_cfg.get("height_mm", 75.0))
             layout = self.config.get("layout", {})
             elements = resolve_layout_elements(layout, width_mm, height_mm)
             element_values = {
@@ -270,10 +293,11 @@ class RfidPrintService:
                 label_data.box_code = scanned_box_code
 
             is_already_printed = False
+            allow_reprint = allow_reprint_same_code if allow_reprint_same_code is not None else bool(self.config.get("rfid", {}).get("allow_reprint_same_code", False))
             printed_codes = self.list_printed_epcs_from_csv()
-            if scanned_box_code in printed_codes:
+            if scanned_box_code in printed_codes and not allow_reprint:
                 is_already_printed = True
-                logger.info(f"检测到 13 位箱码 '{scanned_box_code}' 已存在于历史记录中，激活防二次写入锁：跳过 RFID 写卡，仅物理打纸出纸。")
+                logger.info(f"【防二次写入锁生效】检测到 13 位箱码 '{scanned_box_code}' 已存在于历史记录中，跳过 RFID 写入 (未下发 set_rfid_data)，仅物理纸面打纸。")
 
             if not self.dev_hdl:
                 try:
@@ -281,18 +305,33 @@ class RfidPrintService:
                 except Exception as conn_err:
                     logger.warning(f"尝试连接打印机 C SDK 提示: {conn_err}")
 
+            # 物理芯片防二次写入保护锁：若芯片内已存在有效 RFID 数据，自动拦截并跳过写卡
+            if not is_already_printed and self.dev_hdl:
+                try:
+                    chip_info = self.read_chip_status()
+                    existing_epc = str(chip_info.get("epc", "")).strip().upper()
+                    if existing_epc and existing_epc != "000000000000000000000000" and len(existing_epc) >= 12 and not allow_reprint:
+                        is_already_printed = True
+                        logger.info(f"检测到当前物理标签芯片内已存在有效 RFID 数据 (EPC: {existing_epc})，激活物理芯片防二次写入锁：跳过 RFID 写卡，仅物理纸面排版打纸出纸。")
+                except Exception as read_err:
+                    logger.warning(f"预读物理芯片状态告警 ({read_err})，按标准流程下发...")
+
             # 设置 203 DPI 印头与 ZPL 打印语言模式
             dpi_type = int(self.config.get("label", {}).get("dpi_type", 1))
             self.sdk.set_img_dpi(self.dev_hdl, dpi_type)           # 203 DPI 点阵点对点映射
             self.sdk.set_prn_emulation(self.dev_hdl, 1)            # ZPL 仿真模式
 
-            lc_hdl = self.sdk.create_label(width_mm, height_mm)
+            # 物理打纸画布拓展（不影响预览）：右边伸长 60mm，上下伸长 30mm
+            print_ext_w = width_mm + 60.0
+            print_ext_h = height_mm + 30.0
+
+            lc_hdl = self.sdk.create_label(print_ext_w, print_ext_h)
             self.sdk.set_lc_prn_mode(lc_hdl, 0)
             canvas_rotate = int(layout.get("canvas_rotate", 0))
             self.sdk.set_lc_prn_rotate(lc_hdl, canvas_rotate)
 
             try:
-                resolved_elements = resolve_layout_elements(layout, width_mm, height_mm)
+                resolved_elements = resolve_layout_elements(layout, print_ext_w, print_ext_h)
                 barcode_type = int(layout.get("barcode_type_code", 20))
                 data_map = label_data.to_dict()
 
@@ -386,8 +425,42 @@ class RfidPrintService:
                 if not is_already_printed:
                     try:
                         self.sdk.set_rfid_data(lc_hdl, rgn_type, fmt_code, rfid_payload)
+                        # 首次写入数据时同步下发物理芯片死锁指令 (Permanent Lock)
+                        # 注意：依据 T63R SDK 规范及 UHF Gen2 协议，物理锁定密码必须是非全0的 8 位十六进制字符串 (如 '12345678')
+                        lock_type = int(rfid_cfg.get("lock_type", 0))  # 0代表永久物理死锁
+                        password = str(rfid_cfg.get("lock_password", "12345678")).strip()
+                        if not password or password == "00000000":
+                            password = "12345678"
+
+                        if self.dev_hdl:
+                            # 1. 将 Access 访问密码由默认 00000000 修改为专用密钥
+                            try:
+                                self.sdk.change_access_password(self.dev_hdl, old_pw="00000000", new_pw=password)
+                            except Exception as pe:
+                                logger.warning(f"修改访问密码提示: {pe}")
+
+                            # 2. 授权带密码写入 EPC 区
+                            try:
+                                self.sdk.set_password_with_write(self.dev_hdl, rfid_area=rgn_type, password=password)
+                            except Exception as pe:
+                                logger.warning(f"授权带密码写入提示: {pe}")
+
+                            # 3. 设置为永久物理锁 (Permanent lock = 0)
+                            try:
+                                self.sdk.rfid_lock_type_setting(self.dev_hdl, rfid_area=rgn_type, lock_type=lock_type, temporary=0)
+                            except Exception as pe:
+                                logger.warning(f"设置芯片死锁类型提示: {pe}")
+
+                            # 4. 下发物理死锁操作
+                            try:
+                                self.sdk.rfid_lock_operate(self.dev_hdl, rfid_area=rgn_type, password=password)
+                            except Exception as pe:
+                                logger.warning(f"执行物理芯片锁死提示: {pe}")
+
+                            # 5. 给予 USB 通讯端口 200ms 缓冲，彻底防止死锁指令与 PrintLc 画布出纸发生 25182208 占用冲突
+                            time.sleep(0.2)
                     except Exception as e:
-                        logger.warning(f"设置 RFID 数据告警: {e}")
+                        logger.warning(f"设置 RFID 数据及芯片锁告警: {e}")
 
                 try:
                     read_mask = 0 if is_already_printed else read_type_mask
@@ -419,7 +492,7 @@ class RfidPrintService:
                         self.sdk.print_label_and_read_rfid(self.dev_hdl, lc_hdl, read_type=0)
                         self.append_record_to_csv(result)
                         result.success = True
-                        result.error_message = f"标签打纸成功 (已下发纯打纸指令): {rfid_err}"
+                        result.error_message = f"标签纸面打印成功 (RFID防二次写入锁生效，芯片写锁保护维持原数据)"
                     except Exception as pure_err:
                         logger.warning(f"C SDK 纯打纸模式提示 ({pure_err})，即将自动触发底层 RAW 端口出纸模式...")
                         self.disconnect()
@@ -462,7 +535,7 @@ class RfidPrintService:
     def batch_print_write_verify(
         self,
         item_list: List[LabelPrintData],
-        allow_reprint_same_code: bool = True
+        allow_reprint_same_code: Optional[bool] = None
     ) -> List[PrintResult]:
         results = []
         logger.info(f"开始执行连续批量打印写卡任务，总计: {len(item_list)} 张标签...")
@@ -472,3 +545,4 @@ class RfidPrintService:
             results.append(res)
             time.sleep(0.3)
         return results
+

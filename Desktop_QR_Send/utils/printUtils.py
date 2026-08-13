@@ -47,9 +47,13 @@ class PrintResult:
         self.error_code = 0
         self.error_message = ""
         self.box_code = box_code
+        self.written_value = box_code
         self.read_tid = ""
         self.read_epc = ""
         self.read_user = ""
+        self.read_ascii = ""
+        self.elapsed_ms = 0.0
+        self.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def to_dict(self):
         return {
@@ -63,14 +67,14 @@ class PrintResult:
 def print_rfid_box_label(
     case_code: str,
     label_data: Optional[object] = None,
-    allow_reprint: bool = True,
+    allow_reprint: bool = False,
     printer_name: Optional[str] = None
 ) -> PrintResult:
     """核心箱标签打印入口：直接调用出纸逻辑，保障点击【打印箱码】必定真实物理吐纸！"""
-    return print_barcode(case_code, printer_name=printer_name)
+    return print_barcode(case_code, printer_name=printer_name, allow_reprint=allow_reprint)
 
 
-def print_barcode(case_code, printer_name=None, page_width=600, page_height=400, page_num=1, scale_factor=1.0, left_margin=0, top_margin=0):
+def print_barcode(case_code, printer_name=None, page_width=600, page_height=400, page_num=1, scale_factor=1.0, left_margin=0, top_margin=0, allow_reprint=None):
     """
     全自动融合打印与 RFID 写入主入口：
     1. 优先调用 C SDK (RfidPrintService) 原生硬件直连。
@@ -80,11 +84,21 @@ def print_barcode(case_code, printer_name=None, page_width=600, page_height=400,
     clean_code = str(case_code).strip()
     logging.info(f"开始执行打印与 RFID 写入: 箱码={clean_code}, 选定打印机={printer_name}")
 
+    config_path = os.path.join(PROJECT_ROOT, "config", "settings.json")
+    if allow_reprint is None:
+        try:
+            if os.path.exists(config_path):
+                with open(config_path, "r", encoding="utf-8") as f:
+                    cfg_data = json.load(f)
+                    allow_reprint = bool(cfg_data.get("rfid", {}).get("allow_reprint_same_code", False))
+        except Exception:
+            allow_reprint = False
+
     # 1. 尝试使用全功能 RfidPrintService (C SDK 直连，同时完成预览画板绘制与 RFID 芯片写入)
     try:
         from rfid_printer.workflow import RfidPrintService
         service = RfidPrintService()
-        sdk_res = service.print_write_verify(clean_code, allow_reprint_same_code=True)
+        sdk_res = service.print_write_verify(clean_code, allow_reprint_same_code=allow_reprint)
         if getattr(sdk_res, "success", False):
             logging.info(f"✅ [C SDK 原生硬件出纸成功] 箱码={clean_code}, RFID={getattr(sdk_res, 'written_value', '')}")
             return sdk_res
@@ -96,13 +110,12 @@ def print_barcode(case_code, printer_name=None, page_width=600, page_height=400,
 
     # 2. 驱动发纸模式：通过 Windows 矢量驱动打印 100% 打印预览格式的物理标签
     win_driver_printed = False
-    config_path = os.path.join(PROJECT_ROOT, "config", "settings.json")
     try:
         from rfid_printer.win_driver_printer import print_canvas_via_win_driver, get_target_windows_printer
         from rfid_printer.label_layout import resolve_layout_elements, profile_name_for_size
 
         cfg_elements = None
-        w_mm, h_mm = 210.0, 100.0
+        w_mm, h_mm = 150.0, 75.0
         saved_preview = {}
         if os.path.exists(config_path):
             try:
@@ -110,8 +123,8 @@ def print_barcode(case_code, printer_name=None, page_width=600, page_height=400,
                     cfg = json.load(f)
                     cfg_elements = cfg.get("layout", {}).get("elements") or cfg.get("elements")
                     label_cfg = cfg.get("label", {})
-                    w_mm = float(label_cfg.get("width_mm", 210.0))
-                    h_mm = float(label_cfg.get("height_mm", 100.0))
+                    w_mm = float(label_cfg.get("width_mm", 150.0))
+                    h_mm = float(label_cfg.get("height_mm", 75.0))
                     saved_preview = cfg.get("preview_data", {})
             except Exception as exc:
                 logging.warning(f"读取 settings.json 失败: {exc}")
@@ -125,7 +138,7 @@ def print_barcode(case_code, printer_name=None, page_width=600, page_height=400,
 
         label_cfg = cfg.get("label", {}) if 'cfg' in locals() else {}
         preview_data = dict(saved_preview)
-        preview_data["barcode"] = clean_code if clean_code else preview_data.get("barcode", "1786339355791")
+        preview_data["barcode"] = clean_code if clean_code else "0123456789130"
         if not preview_data.get("produce_date"):
             preview_data["produce_date"] = datetime.now().strftime("%Y.%m.%d")
         preview_data["offset_x_mm"] = float(label_cfg.get("offset_x_mm", 0.0))
@@ -141,12 +154,14 @@ def print_barcode(case_code, printer_name=None, page_width=600, page_height=400,
 
         target_p = get_target_windows_printer(printer_name)
         if target_p:
+            copies_to_print = max(1, int(page_num if page_num and int(page_num) > 0 else label_cfg.get("copies", 1)))
             win_driver_printed = print_canvas_via_win_driver(
                 elements=elements,
                 preview_data=preview_data,
                 width_mm=w_mm,
                 height_mm=h_mm,
-                printer_name=target_p.printerName()
+                printer_name=target_p.printerName(),
+                copies=copies_to_print
             )
             if win_driver_printed:
                 logging.info(f"✅ [矢量打印预览排版出纸成功] 箱码={clean_code}")
@@ -186,6 +201,7 @@ def print_barcode(case_code, printer_name=None, page_width=600, page_height=400,
     res.success = False
     res.error_message = "打印失败：请检查 T63R 打印机电源与 USB 连接状态"
     return res
+
 
 
 if __name__ == '__main__':

@@ -28,8 +28,8 @@ def setConfig(data):
         for key, value in data.items():
             CONFIG_DATA[key] = value
         # 将CONFIG_DATA的参数存储到本地文件config.json中
-        with open('config.json', 'w') as config_file:
-            json.dump(CONFIG_DATA, config_file, indent=4)
+        with open('config.json', 'w', encoding='utf-8') as config_file:
+            json.dump(CONFIG_DATA, config_file, indent=4, ensure_ascii=False)
         logging.info("配置已保存到文件 config.json") # 使用 logging.info 记录配置保存事件
     except Exception as e:
         logging.error(f"无法保存配置到文件: {e}") # 使用 logging.error 替换 print
@@ -41,7 +41,7 @@ def loadConfig():
     if os.path.exists('config.json'):
         try:
             # 如果有config文件那么将文件内的参数存储到CONFIG_DATA
-            with open('config.json', 'r') as config_file:
+            with open('config.json', 'r', encoding='utf-8-sig') as config_file:
                 CONFIG_DATA.update(json.load(config_file))
             logging.info("成功加载配置文件 config.json") # 使用 logging.info 记录配置文件加载成功事件
         except json.JSONDecodeError as e:

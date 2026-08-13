@@ -336,6 +336,11 @@ class Home:
         finally:
             self._settings_dialog_active = False
             self._last_settings_close_time = time.time()
+            try:
+                self.scan_code(0)
+                self.scan_case()
+            except Exception:
+                pass
 
     def open_light_control_dialog(self):
         """打开【设置 -> 💡 亮度控制与校准】选项卡"""
@@ -396,14 +401,14 @@ class Home:
 
             )
 
-            # 
-
-            # 
-
+            # 双重关灯保全：同时向硬件发送设置电压 0.00V 与关闭输出 (OFF) 寄存器指令
             controller.set_output_enabled_direct(False)
-
-            time.sleep(0.25)
-
+            time.sleep(0.12)
+            try:
+                controller.set_voltage_direct(0.0)
+            except Exception:
+                pass
+            time.sleep(0.12)
             controller.set_output_enabled_direct(False)
 
             logging.info(f"WDIP补光灯输出已关闭: {port}")
@@ -417,76 +422,47 @@ class Home:
             return False
 
     def initialize_default_light_output(self) -> bool:
-
         """启动时将 WDIP 补光灯设置为 8~12V 范围内的默认电压并开启输出。"""
-
         light_config = load_light_config()
-
         port = str(light_config.get("port") or "").strip()
-
         if not port:
-
             logging.warning("WDIP补光灯端口未配置，跳过默认亮度设置")
-
             return False
 
+        # 给予后台 RS485 监听线程最多 3 秒建立串口句柄
+        for _ in range(30):
+            active_rs485 = getattr(self.main_window, "rs485", None)
+            if active_rs485 and getattr(active_rs485, "ser", None) and active_rs485.ser.is_open:
+                break
+            time.sleep(0.1)
+
         try:
-
             controller = WDIPLightController(
-
                 port=port,
-
                 baudrate=int(light_config.get("baudrate", 9600)),
-
                 slave_addr=int(light_config.get("slave_addr", 1)),
-
                 timeout=float(light_config.get("timeout_seconds", 0.8)),
-
                 minimum_request_interval=float(
-
                     light_config.get("minimum_request_interval_ms", 250)
-
                 ) / 1000.0,
-
                 write_settle_seconds=float(
-
                     light_config.get("write_settle_ms", 400)
-
                 ) / 1000.0,
-
                 shared_exchange=getattr(
-
                     self.main_window, "exchange_shared_rs485", None
-
                 ),
-
             )
-
             minimum_voltage = float(light_config.get("minimum_voltage_v", 8.0))
-
             maximum_voltage = float(light_config.get("maximum_voltage_v", 12.0))
-
             startup_voltage = float(light_config.get("startup_voltage_v", 8.0))
-
             startup_voltage = max(minimum_voltage, min(maximum_voltage, startup_voltage))
 
             controller.set_voltage_direct(startup_voltage)
-
             controller.set_output_enabled_direct(True)
-
-            logging.info(
-
-
-                f"WDIP补光灯已开启，启动电压={startup_voltage:.2f}V"
-
-            )
-
+            logging.info(f"WDIP补光灯已开启，启动电压={startup_voltage:.2f}V")
             return True
-
         except Exception as exc:
-
             logging.exception(f"设置WDIP默认8V补光灯输出失败: {exc}")
-
             return False
 
     def open_print_template_dialog(self):
@@ -594,55 +570,32 @@ class Home:
         return value[-13:].zfill(13)
 
     def clear_page_data(self):
-
-        #
-
         self.pageData['label_data_box'] = 0
-
         self.pageData['label_data_case'] = 0
-
-        # 
-
         self.updatePage()
 
     def reset_data(self):
-
-        # 
-
         self._recognition_sequence_active = False
-
         self._recognition_best_result = []
-
         self._recognition_best_boxes = None
-
         self.clear_recognition_boxes()
-
-        self.sacn_box_data = None # 
-
+        self.sacn_box_data = None
         self.pending_box_scans = []
-
         self._last_bundle_staged = False
-
-        self.preview_case_code = None # 
-
-        self.case = None # 
-
-        self.scan_case_data = [] #   
-
+        self.preview_case_code = None
+        self.case = None
+        self.scan_case_data = []
+        self.isPrint = False
+        btn_print = getattr(self.main_window, "button_print", None)
+        if btn_print:
+            btn_print.setEnabled(True)
         config.setConfig({"caseData": self.scan_case_data})
-
         config.setConfig({"caseCode": self.case})
 
-        # 
-
         self.scan_code(0)
-
         self.scan_code_end()
-
         self.scan_case()
-
         self.scan_case_end()
-
         self.updataPageCase(None)
 
         try:
@@ -686,7 +639,24 @@ class Home:
                 main_script_path = os.path.abspath(sys.argv[0])
 
             try:
-                # 1. 停止相机抓图并彻底关闭/释放海康相机设备连接
+                # 1. 首先下发指令关闭 WDIP 补光灯物理输出
+                try:
+                    self.shutdown_light_output()
+                except Exception as light_err:
+                    logging.warning(f"重启前关闭补光灯异常: {light_err}")
+
+                # 2. 主动解绑关闭后台 RS485 串口连接，释放 Windows 系统 COM3 端口句柄
+                if hasattr(self.main_window, "_stop_rs485_thread"):
+                    self.main_window._stop_rs485_thread = True
+                if hasattr(self.main_window, "rs485") and self.main_window.rs485:
+                    try:
+                        self.main_window.rs485.close()
+                        self.main_window.rs485 = None
+                        logging.info("重启清理：后台 RS485 串口句柄已释放")
+                    except Exception as rs_err:
+                        logging.warning(f"重启清理 RS485 串口异常: {rs_err}")
+
+                # 3. 停止相机抓图并彻底释放海康相机 SDK 句柄
                 logging.info("重启清理：正在停止相机抓图并释放设备资源...")
                 try:
                     self.stop_grabbing()
@@ -694,14 +664,10 @@ class Home:
                 except Exception as cam_err:
                     logging.warning(f"重启时释放相机资源异常: {cam_err}")
 
-                # 2. 关闭补光灯输出
-                if not self.shutdown_light_output():
-                    logging.warning("WDIP补光灯关闭失败，重启前请确认串口未被厂家软件占用")
-
                 logging.info(f"正在重启程序: {python_executable} {main_script_path}")
                 import subprocess
-                # 给予底层硬件 SDK 0.5秒缓冲时间彻底释放网络/USB句柄
-                QtCore.QThread.msleep(500)
+                # 给予底层硬件 SDK 与 Windows 串口驱动 1.0 秒缓冲时间彻底解绑释放端口
+                QtCore.QThread.msleep(1000)
                 subprocess.Popen([python_executable, main_script_path])
                 QtWidgets.QApplication.quit()
 
@@ -824,108 +790,114 @@ class Home:
         )
 
     def _finish_recognition_sequence(self):
-
         self._recognition_sequence_active = False
-
         recognized = [dict(item) for item in self._recognition_best_result]
-
         self._recognition_best_result = []
 
         if self._recognition_best_boxes:
-
             boxes, source_width, source_height, source_image = self._recognition_best_boxes
-
             self.show_recognition_boxes(
-
                 boxes,
-
                 source_width,
-
                 source_height,
-
                 source_image=source_image,
-
             )
-
         self._recognition_best_boxes = None
 
         if recognized:
+            expected_boxes = int(CONFIG_DATA.get("edit_max_jian") or 10)
 
-            self.sacn_box_data = recognized
+            # 1. 汇总当前未封捆 (pending_box_scans) 与已封捆 (scan_case_data) 的所有历史盒码
+            existing_codes = set()
+            for p_item in self.pending_box_scans:
+                code_val = str(p_item.get("code") or p_item.get("data") or "").strip()
+                if code_val:
+                    existing_codes.add(code_val)
 
-            expected_boxes = int(CONFIG_DATA.get("edit_max_jian", 10))
+            for b_bundle in (self.scan_case_data or []):
+                for b_box in b_bundle.get("boxContents", []):
+                    code_val = str(b_box.get("code") or b_box.get("data") or "").strip()
+                    if code_val:
+                        existing_codes.add(code_val)
 
-            remaining = max(0, expected_boxes - len(self.pending_box_scans))
+            # 2. 过滤本次识别结果，精确剔除重复盒码
+            new_unique_items = []
+            duplicate_count = 0
+            scanned_in_attempt = set()
 
-            newly_recognized = [dict(item) for item in recognized[:remaining]]
+            for item in recognized:
+                code_val = str(item.get("code") or item.get("data") or "").strip()
+                if not code_val:
+                    continue
+                if code_val in existing_codes or code_val in scanned_in_attempt:
+                    duplicate_count += 1
+                else:
+                    scanned_in_attempt.add(code_val)
+                    new_unique_items.append(dict(item))
 
-            self.pending_box_scans.extend(newly_recognized)
+            # 3. 计算本捆剩余空间并追加新盒码
+            remaining_capacity = max(0, expected_boxes - len(self.pending_box_scans))
+            items_to_add = new_unique_items[:remaining_capacity]
+            added_count = len(items_to_add)
+
+            if added_count > 0:
+                self.pending_box_scans.extend(items_to_add)
 
             self.sacn_box_data = [dict(item) for item in self.pending_box_scans]
+            current_count = len(self.sacn_box_data)
+            self.scan_code(current_count)
 
-            self.scan_code(len(self.sacn_box_data))
-
-            logging.info(
-
-
-
-                ""
-
-            )
-
-            if len(self.sacn_box_data) == expected_boxes:
-
+            # 4. 判定与反馈识别结果
+            if current_count == expected_boxes:
+                # 凑满整捆（如 10/10 盒），自动封捆进组
                 self.stage_recognized_bundle()
-
                 current_bundles = len(self.scan_case_data)
-
-                max_bundles = int(CONFIG_DATA.get("edit_max_xiang", 10))
-
+                max_bundles = int(CONFIG_DATA.get("edit_max_xiang") or 10)
                 self.show_temporary_tooltip(
                     self.main_window.groupBox_7,
-                    "【10/10盒识别成功】",
-                    f"本组真实识别到 {expected_boxes} 盒，已计入第 {current_bundles}/{max_bundles} 捆装箱进度。",
+                    "【整捆录入成功】",
+                    f"本组去重识别到 {expected_boxes} 盒，已自动计入第 {current_bundles}/{max_bundles} 捆装箱进度。",
                 )
-
                 self.main_window.play_success()
 
-            else:
-
+            elif added_count > 0:
+                # 成功录入新盒码但尚未凑满一捆
+                still_needed = expected_boxes - current_count
                 self.show_temporary_tooltip(
                     self.main_window.groupBox_7,
-                    "【识别成功】",
-                    f"本次识别到 {len(self.sacn_box_data)}/{expected_boxes} 个真实盒码，请继续扫描。",
+                    "【扫描识别成功】",
+                    f"新增 {added_count} 个有效新盒码，当前进度：{current_count}/{expected_boxes} 盒，还差 {still_needed} 盒，请继续补扫。",
                 )
-
                 self.main_window.play_success()
+
+            elif duplicate_count > 0:
+                # 识别到的全部为重复盒码
+                self.show_temporary_tooltip(
+                    self.main_window.groupBox_7,
+                    "【重复扫描提醒】",
+                    f"检测到 {duplicate_count} 个重复盒码已自动剔除！当前进度：{current_count}/{expected_boxes} 盒。",
+                )
+                self.main_window.play_warning()
 
             return
 
         self.sacn_box_data = (
-
             [dict(item) for item in self.pending_box_scans]
-
             if self.pending_box_scans else None
-
         )
-
         self.scan_code(len(self.pending_box_scans))
-
-        logging.info("2")
-
         self.show_temporary_tooltip(
             self.main_window.groupBox_7,
             "【识别失败】",
             "当前画面未识别到完整盒码，请调整摆放方向、反光和焦距。",
         )
-
         self.main_window.play_warning()
 
     def stage_recognized_bundle(self):
 
-        expected_boxes = int(CONFIG_DATA.get("edit_max_jian", 10))
+        expected_boxes = int(CONFIG_DATA.get("edit_max_jian") or 10)
 
-        max_bundles = int(CONFIG_DATA.get("edit_max_xiang", 10))
+        max_bundles = int(CONFIG_DATA.get("edit_max_xiang") or 10)
 
         if not self.sacn_box_data or len(self.sacn_box_data) != expected_boxes:
 
@@ -979,6 +951,8 @@ class Home:
                 boxContent = str(boxContent or "").strip()
                 if boxContent:
                     cid = extract_path_after_domain(boxContent)
+                    # 匹配阿里云 yk_store_case_box 表结构的 BigInt 主键 id
+                    bigint_id = int(time.time() * 1000000)
 
                     case_code_val = self.case or getattr(self, 'preview_case_code', '') or ""
                     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
@@ -1030,6 +1004,20 @@ class Home:
         self.main_window.play_success()
 
         self._last_bundle_staged = True
+
+        # 封捆成功后清空当前捆缓存，重置底部识别结果显示，为下一捆扫描做好准备
+        self.pending_box_scans = []
+        self.sacn_box_data = []
+        self.scan_code(0)
+
+        # 检查当前箱装箱进度：如果已满 10 捆（1箱），提示装箱完成（必须由人工手动点击【打印箱码】按钮触发打印）
+        if len(self.scan_case_data) >= max_bundles:
+            logging.info(f"装箱进度已满 {len(self.scan_case_data)}/{max_bundles} 捆（1箱），请手动点击【打印箱码】按钮下发打印任务。")
+            self.show_temporary_tooltip(
+                self.main_window.groupBox_7,
+                "【装箱完成】",
+                f"已满 {max_bundles} 捆（1箱），请手动点击【打印箱码】按钮触发打印！",
+            )
 
         return True
 
@@ -1210,31 +1198,8 @@ class Home:
             self.main_window.play_warning()
 
     def on_button_cancel_clicked(self):
-
-        logging.info("")
-
-        self._recognition_sequence_active = False
-
-        self._recognition_best_result = []
-
-        self._recognition_best_boxes = None
-
-        self.clear_recognition_boxes()
-
-        self.pending_box_scans = []
-
-        self.sacn_box_data = None
-
-        self._last_bundle_staged = False
-
-        if self.case is None:
-
-            self.preview_case_code = None
-
-        self.isPrint = False
-
-        self.scan_code_end()
-
+        logging.info("执行界面与重置清空...")
+        self.reset_data()
         self.stop_line()
 
         # 
@@ -1284,16 +1249,11 @@ class Home:
         config.setConfig({"caseCode": self.case})
 
     @QtCore.Slot(float)
-
-    def update_progress_bar_slot(self, percen):  # 
-
+    def update_progress_bar_slot(self, percen):
         self.main_window.pushButton.setText(f"上传进度 {percen}%")
-
         if percen >= 100:
-
-            self.main_window.pushButton.setText(f"")
-
-            self.main_window.pushButton.setEnabled(True)  # 
+            self.main_window.pushButton.setText("手动数据上传")
+            self.main_window.pushButton.setEnabled(True)
 
     # 
 
@@ -1459,6 +1419,19 @@ class Home:
             logging.info("打印任务正在处理中，请稍候...")
             return
 
+        max_bundles = int(CONFIG_DATA.get("edit_max_xiang") or 10)
+        scanned_bundles = len(self.scan_case_data) if hasattr(self, 'scan_case_data') and self.scan_case_data else 0
+
+        if scanned_bundles < max_bundles:
+            logging.warning(f"无法打印：当前仅扫描 {scanned_bundles}/{max_bundles} 捆，未满 {max_bundles} 捆（1箱），不允许打印。")
+            self.show_temporary_tooltip(
+                self.main_window.groupBox_7,
+                "【未满箱无法打印】",
+                f"当前仅扫描 {scanned_bundles}/{max_bundles} 捆，需满 {max_bundles} 捆（1箱）才能打印！",
+            )
+            QTimer.singleShot(0, lambda: getattr(self.main_window, 'play_warning', lambda: None)())
+            return
+
         case_code = self.case
         if not case_code or not self.is_valid_case_code(case_code):
             case_code = self.generate_case_code()
@@ -1581,6 +1554,7 @@ class Home:
                 self.isPrint = False
                 if btn_print:
                     QTimer.singleShot(0, lambda: btn_print.setEnabled(True))
+                QTimer.singleShot(0, self.reset_data)
 
         threading.Thread(target=_async_print_job, daemon=True).start()
 
@@ -1648,134 +1622,214 @@ class Home:
     # 
 
     def scan_code(self, num):
-
-        # n/s
-
-        # label_result_box
-
-        expected_boxes = int(CONFIG_DATA.get("edit_max_jian", 10))
+        expected_boxes = max(1, int(CONFIG_DATA.get("edit_max_jian") or 10))
         current_boxes = max(0, min(int(num), expected_boxes))
-        self.main_window.label_result_box.setText(f"【{current_boxes}/{expected_boxes}盒】")
+        if hasattr(self.main_window, "label_result_box"):
+            self.main_window.label_result_box.setText(f"【{current_boxes}/{expected_boxes}盒】")
 
-        # groupBox
+        # 模式 1：当盒数 <= 10 时，直接使用原版 QtDesigner 原生控件，100% 保持原界面样式与比例，零变形！
+        if expected_boxes <= 10:
+            if hasattr(self, "_box_scroll_area") and self._box_scroll_area:
+                self._box_scroll_area.hide()
 
-        group_boxes = [
+            group_boxes = [
+                getattr(self.main_window, f"groupBox_result_{i}", None)
+                for i in range(1, 11)
+            ]
+            for i, group_box in enumerate(group_boxes, start=1):
+                if not group_box:
+                    continue
+                if i <= expected_boxes:
+                    group_box.show()
+                    if i <= num:
+                        group_box.setStyleSheet("QGroupBox { background-color: #CAF982; border: 1px solid #797979; border-radius: 5px; }")
+                    else:
+                        group_box.setStyleSheet("QGroupBox { background-color: #EC808D; border: 1px solid #797979; border-radius: 5px; }")
+                else:
+                    group_box.hide()
+            return
 
-            self.main_window.groupBox_result_1, self.main_window.groupBox_result_2,
+        # 模式 2：当盒数 > 10 时，隐藏原生 10 个控件，唤醒完全透明的动态 ScrollArea 滑块
+        for i in range(1, 11):
+            gb = getattr(self.main_window, f"groupBox_result_{i}", None)
+            if gb:
+                gb.hide()
 
-            self.main_window.groupBox_result_3, self.main_window.groupBox_result_4,
+        if not hasattr(self, "_box_scroll_area") or self._box_scroll_area is None:
+            parent_gb = getattr(self.main_window, "groupBox_2", None)
+            if parent_gb:
+                from PySide6.QtWidgets import QScrollArea, QWidget, QHBoxLayout
+                from PySide6.QtCore import Qt, QRect
 
-            self.main_window.groupBox_result_5, self.main_window.groupBox_result_6,
+                scroll = QScrollArea(parent_gb)
+                scroll.setGeometry(QRect(10, 38, 536, 102))
+                scroll.setWidgetResizable(True)
+                scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+                scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+                scroll.setStyleSheet(
+                    "QScrollArea { border: none; background: transparent; } "
+                    "QWidget { background: transparent; } "
+                    "QScrollBar:horizontal { height: 6px; background: transparent; border-radius: 3px; } "
+                    "QScrollBar::handle:horizontal { background: #A0A0A0; border-radius: 3px; min-width: 20px; } "
+                    "QScrollBar::handle:horizontal:hover { background: #707070; }"
+                )
 
-            self.main_window.groupBox_result_7, self.main_window.groupBox_result_8,
+                container = QWidget()
+                container.setStyleSheet("background: transparent;")
+                layout = QHBoxLayout(container)
+                layout.setContentsMargins(2, 2, 2, 8)
+                layout.setSpacing(18)
+                scroll.setWidget(container)
 
-            self.main_window.groupBox_result_9, self.main_window.groupBox_result_10
+                self._box_scroll_area = scroll
+                self._box_container = container
+                self._box_layout = layout
 
-        ]
+        if hasattr(self, "_box_scroll_area") and self._box_scroll_area:
+            self._box_scroll_area.show()
 
-        # groupBox
+        if hasattr(self, "_box_layout") and self._box_layout:
+            while self._box_layout.count():
+                child = self._box_layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
 
-        for i, group_box in enumerate(group_boxes, start=1):
+            from PySide6.QtWidgets import QGroupBox, QLabel, QVBoxLayout
+            from PySide6.QtCore import Qt
+            from PySide6.QtGui import QFont
 
-            if i <= num:
+            for i in range(1, expected_boxes + 1):
+                box_gb = QGroupBox()
+                box_gb.setFixedSize(34, 86)
 
-                group_box.setStyleSheet(
+                vbox = QVBoxLayout(box_gb)
+                vbox.setContentsMargins(0, 0, 0, 0)
+                vbox.setAlignment(Qt.AlignCenter)
 
-                    "QGroupBox { background-color: #CAF982; border: 1px solid #797979; border-radius: 5px; }")
+                lbl = QLabel(str(i))
+                lbl.setFixedSize(27, 30)
+                lbl.setAlignment(Qt.AlignCenter)
+                font = QFont("宋体", 18, QFont.Bold)
+                lbl.setFont(font)
+                lbl.setStyleSheet(
+                    "QLabel { background-color: #FFFFFF; border: 3px solid #797979; border-radius: 5px; color: #797979; }"
+                )
+                vbox.addWidget(lbl)
 
-            else:
-
-                group_box.setStyleSheet(
-
-                    "QGroupBox { background-color: #EC808D; border: 1px solid #797979; border-radius: 5px; }")
+                if i <= num:
+                    box_gb.setStyleSheet("QGroupBox { background-color: #CAF982; border: 1px solid #797979; border-radius: 5px; }")
+                else:
+                    box_gb.setStyleSheet("QGroupBox { background-color: #EC808D; border: 1px solid #797979; border-radius: 5px; }")
+                self._box_layout.addWidget(box_gb)
 
     def scan_code_end(self):
-
-        # n/s
-
-        # label_result_box
-
         self.scan_code(0)
 
-        # groupBox
-
-        group_boxes = [
-
-            self.main_window.groupBox_result_1, self.main_window.groupBox_result_2,
-
-            self.main_window.groupBox_result_3, self.main_window.groupBox_result_4,
-
-            self.main_window.groupBox_result_5, self.main_window.groupBox_result_6,
-
-            self.main_window.groupBox_result_7, self.main_window.groupBox_result_8,
-
-            self.main_window.groupBox_result_9, self.main_window.groupBox_result_10
-
-        ]
-
-        # groupBox
-
-        for group_box in group_boxes:
-
-            group_box.setStyleSheet("""
-
-                QGroupBox {
-
-                    background-color: #F2F2F2;
-
-                    border: 1px solid #797979;
-
-                    border-radius: 5px;
-
-                }
-
-            """)
-
-    # 
-
     def scan_case(self):
-
-        num = len(self.scan_case_data) | 0
-
-        # n/s
-
-        # label_result_box
-
-        expected_bundles = int(CONFIG_DATA.get("edit_max_xiang", 10))
+        num = len(self.scan_case_data) if hasattr(self, "scan_case_data") and self.scan_case_data else 0
+        expected_bundles = max(1, int(CONFIG_DATA.get("edit_max_xiang") or 10))
         current_bundles = max(0, min(num, expected_bundles))
-        self.main_window.label_result_case.setText(f"【{current_bundles}/{expected_bundles}捆】")
+        if hasattr(self.main_window, "label_result_case"):
+            self.main_window.label_result_case.setText(f"【{current_bundles}/{expected_bundles}捆】")
 
-        # groupBox
+        # 模式 1：当捆数 <= 10 时，直接使用原版 QtDesigner 原生控件，100% 对应第一张图，零变形！
+        if expected_bundles <= 10:
+            if hasattr(self, "_case_scroll_area") and self._case_scroll_area:
+                self._case_scroll_area.hide()
 
-        group_boxes = [
+            group_boxes = [
+                getattr(self.main_window, f"groupBox_box_{i}", None)
+                for i in range(1, 11)
+            ]
+            for i, group_box in enumerate(group_boxes, start=1):
+                if not group_box:
+                    continue
+                if i <= expected_bundles:
+                    group_box.show()
+                    if i <= num:
+                        group_box.setStyleSheet("QGroupBox { background-color: #CAF982; border: 1px solid #797979; border-radius: 5px; }")
+                    else:
+                        group_box.setStyleSheet("QGroupBox { background-color: #EC808D; border: 1px solid #797979; border-radius: 5px; }")
+                else:
+                    group_box.hide()
+            return
 
-            self.main_window.groupBox_box_1, self.main_window.groupBox_box_2,
+        # 模式 2：当捆数 > 10 时，隐藏原生 10 个控件，唤醒完全透明的动态 ScrollArea 滑块（保持原 10 个的大小与完美间隔）
+        for i in range(1, 11):
+            gb = getattr(self.main_window, f"groupBox_box_{i}", None)
+            if gb:
+                gb.hide()
 
-            self.main_window.groupBox_box_3, self.main_window.groupBox_box_4,
+        if not hasattr(self, "_case_scroll_area") or self._case_scroll_area is None:
+            parent_gb = getattr(self.main_window, "groupBox_3", None)
+            if parent_gb:
+                from PySide6.QtWidgets import QScrollArea, QWidget, QGridLayout
+                from PySide6.QtCore import Qt, QRect
 
-            self.main_window.groupBox_box_5, self.main_window.groupBox_box_6,
+                scroll = QScrollArea(parent_gb)
+                scroll.setGeometry(QRect(10, 335, 445, 410))
+                scroll.setWidgetResizable(True)
+                scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+                scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+                scroll.setStyleSheet(
+                    "QScrollArea { border: none; background: transparent; } "
+                    "QWidget { background: transparent; } "
+                    "QScrollBar:vertical { width: 6px; background: transparent; border-radius: 3px; } "
+                    "QScrollBar::handle:vertical { background: #A0A0A0; border-radius: 3px; min-height: 20px; } "
+                    "QScrollBar::handle:vertical:hover { background: #707070; }"
+                )
 
-            self.main_window.groupBox_box_7, self.main_window.groupBox_box_8,
+                container = QWidget()
+                container.setStyleSheet("background: transparent;")
+                grid = QGridLayout(container)
+                grid.setContentsMargins(10, 7, 10, 7)
+                grid.setHorizontalSpacing(43)
+                grid.setVerticalSpacing(50)
+                scroll.setWidget(container)
 
-            self.main_window.groupBox_box_9, self.main_window.groupBox_box_10
+                self._case_scroll_area = scroll
+                self._case_container = container
+                self._case_grid = grid
 
-        ]
+        if hasattr(self, "_case_scroll_area") and self._case_scroll_area:
+            self._case_scroll_area.show()
 
-        # groupBox
+        if hasattr(self, "_case_grid") and self._case_grid:
+            while self._case_grid.count():
+                child = self._case_grid.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
 
-        for i, group_box in enumerate(group_boxes, start=1):
+            from PySide6.QtWidgets import QGroupBox, QLabel, QHBoxLayout
+            from PySide6.QtCore import Qt
+            from PySide6.QtGui import QFont
 
-            if i <= num:
+            for i in range(1, expected_bundles + 1):
+                bundle_gb = QGroupBox()
+                bundle_gb.setFixedSize(190, 40)
 
-                group_box.setStyleSheet(
+                hbox = QHBoxLayout(bundle_gb)
+                hbox.setContentsMargins(0, 0, 0, 0)
+                hbox.setAlignment(Qt.AlignCenter)
 
-                    "QGroupBox { background-color: #CAF982; border: 1px solid #797979; border-radius: 5px; }")
+                lbl = QLabel(str(i))
+                lbl.setFixedSize(30, 30)
+                lbl.setAlignment(Qt.AlignCenter)
+                font = QFont("宋体", 18, QFont.Bold)
+                lbl.setFont(font)
+                lbl.setStyleSheet(
+                    "QLabel { background-color: #FFFFFF; border: 3px solid #797979; border-radius: 5px; color: #797979; }"
+                )
+                hbox.addWidget(lbl)
 
-            else:
+                if i <= num:
+                    bundle_gb.setStyleSheet("QGroupBox { background-color: #CAF982; border: 1px solid #797979; border-radius: 5px; }")
+                else:
+                    bundle_gb.setStyleSheet("QGroupBox { background-color: #EC808D; border: 1px solid #797979; border-radius: 5px; }")
 
-                group_box.setStyleSheet(
-
-                    "QGroupBox { background-color: #EC808D; border: 1px solid #797979; border-radius: 5px; }")
+                row = (i - 1) // 2
+                col = (i - 1) % 2
+                self._case_grid.addWidget(bundle_gb, row, col)
 
     def on_rfid_calibrate_clicked(self):
 
@@ -1955,6 +2009,11 @@ class Home:
                     ret = obj_cam_operation.Start_grabbing(win_id)
                     logging.info(f"【摄像机平滑启动抓流】HWND={win_id}, ret={ret}")
                 else:
+                    if hasattr(obj_cam_operation, "obj_cam") and obj_cam_operation.obj_cam:
+                        try:
+                            obj_cam_operation.obj_cam.MV_CC_Display(win_id)
+                        except Exception:
+                            pass
                     logging.info(f"【摄像机抓流保持正常运行】HWND={win_id}")
             else:
                 self.hiKInit()

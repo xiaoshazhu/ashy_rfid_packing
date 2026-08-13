@@ -75,6 +75,7 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
 
         # 初始化 RS485 监听线程
         self.rs485 = None
+        self._stop_rs485_thread = False
         self.rs485_thread = Thread(target=self.listen_to_rs485, daemon=True)
         self.rs485_thread.start()
 
@@ -135,7 +136,7 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
     def listen_to_rs485(self):
         """监听 RS485 数据"""
         global rs485
-        while True:
+        while not getattr(self, "_stop_rs485_thread", False):
             config.loadConfig()
             comSelect = config.CONFIG_DATA.get("combobox_comSelect")
             light_port = str(load_light_config().get("port") or "").strip()
@@ -183,6 +184,8 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
             rs485 = None
             target_port = None
             for candidate in candidates:
+                if getattr(self, "_stop_rs485_thread", False):
+                    break
                 probe = RS485Utils(port=candidate, baudrate=9600, home_instance=self.home)
                 if probe.probe_td39():
                     rs485 = probe
@@ -197,8 +200,17 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
                         logging.info(
                             f"TD-39与WDIP确认共用 [{candidate}]，已启用进程内共享RS485事务协调"
                         )
+                        # 串口共享建立完成，自动触发一次主界面的补光灯初始化，保障启动/重启后 100% 开启灯光！
+                        try:
+                            from PySide6.QtCore import QMetaObject, Qt
+                            QMetaObject.invokeMethod(self.home, "initialize_default_light_output", Qt.QueuedConnection)
+                        except Exception as trig_err:
+                            logging.warning(f"触发补光灯初始化异常: {trig_err}")
                     break
                 probe.close()
+
+            if getattr(self, "_stop_rs485_thread", False):
+                break
 
             if rs485 is None:
                 logging.warning(
@@ -219,6 +231,10 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
                 if self.rs485 is rs485:
                     self.rs485 = None
                 logging.info(f"RS485 端口 [{target_port}] 已关闭.")
+
+            if getattr(self, "_stop_rs485_thread", False):
+                logging.info("收到退出信号，终止 RS485 重连循环")
+                break
 
             logging.warning("3秒后重新连接RS485串口...")
             time.sleep(3)
@@ -245,8 +261,23 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
     def closeEvent(self, event):
         """窗口关闭事件"""
         logging.info("程序开始关闭...") # 记录程序关闭日志
-        if not self.home.shutdown_light_output():
-            logging.warning("程序将继续退出，但WDIP灯光关闭未得到有效回读确认。")
+        try:
+            # 优先在 RS485 串口和工作线程保持激活状态下，向 WDIP 补光灯下发关灯指令
+            if not self.home.shutdown_light_output():
+                logging.warning("程序将继续退出，但WDIP灯光关闭未得到有效回读确认。")
+        except Exception as err:
+            logging.warning(f"关闭程序下发关灯指令异常: {err}")
+
+        self._stop_rs485_thread = True
+
+        if hasattr(self, "rs485") and self.rs485:
+            try:
+                self.rs485.close()
+                self.rs485 = None
+                logging.info("后台 RS485 串口已成功解绑与关闭。")
+            except Exception as rs_err:
+                logging.warning(f"关闭程序时释放 RS485 串口异常: {rs_err}")
+
         self.home.stop_grabbing()
         self.home.close_device()
         if self.client and self.loop and self.client.get_connection_status():
@@ -255,7 +286,7 @@ class MainWindow(QMainWindow, Ui_HomeWindow):
             self.loop.stop()
         logging.info("Asyncio 事件循环已停止.") # 记录事件循环停止日志
         logging.info("WebSocket 连接已关闭 (如果已建立).") # 记录 WebSocket 关闭日志
-        logging.info("设备资源已释放.") # 记录设备资源释放日志
+        logging.info("设备资源与串口句柄已全部释放.") # 记录设备资源释放日志
         logging.info("程序关闭完成.") # 记录程序完全关闭日志
         event.accept()
 

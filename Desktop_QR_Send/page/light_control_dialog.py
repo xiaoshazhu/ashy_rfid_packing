@@ -787,6 +787,10 @@ class LightControlDialog(QDialog):
                     f"已向WDIP {self.controller.port} 直接发送 {voltage:.2f}V；"
                     "未采用返回数据，请观察灯泡亮度。"
                 )
+                save_light_config_updates({
+                    "startup_voltage_v": round(float(voltage), 2),
+                    "startup_percent": int(percent),
+                })
             except Exception as exc:
                 logger.warning(f"直接发送WDIP电压失败: {exc}")
                 self.label_status.setText(f"直接发送电压失败：{exc}")

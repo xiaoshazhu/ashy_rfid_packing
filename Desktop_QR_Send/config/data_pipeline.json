@@ -1,5 +1,5 @@
 {
-  "mode": "remote_ws",
+  "mode": "remote",
   "database_path": "data/local_test.db",
   "remote_upload_enabled": true,
   "remote_ws_url": "ws://gya.sales.yiknet.com/webSocket/scanCode",

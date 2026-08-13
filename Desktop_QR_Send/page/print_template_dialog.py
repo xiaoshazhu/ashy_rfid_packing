@@ -840,24 +840,30 @@ def render_label_preview_pixmap(elements, width_mm, height_mm, preview_data=None
             try:
                 from rfid_printer.win_driver_printer import encode_code128_b_pattern
                 pattern_str = encode_code128_b_pattern(code)
-                text_h_px = max(14, int(5.0 * scale_y))
-                bars_h_px = max(10, int(h - text_h_px))
+                # 缩小预览渲染尺寸与文字字号，确保条码线条与下方数字100%完整不溢出右边界和底边
+                display_w = w * 0.94
+                display_h = h * 0.92
+                text_h_px = max(10, int(display_h * 0.22))
+                bars_h_px = max(8, int(display_h - text_h_px))
+                margin_x = max(6.0, display_w * 0.04)
+                bar_draw_w = display_w - 2.0 * margin_x
                 total_modules = len(pattern_str)
-                mod_w_px = w / max(1.0, total_modules)
+                mod_w_px = bar_draw_w / max(1.0, total_modules)
 
                 painter.setPen(Qt.NoPen)
                 painter.setBrush(QColor(0, 0, 0))
-                curr_x = x
+                curr_x = x + margin_x
                 for i, char in enumerate(pattern_str):
                     mod_width = int(char) * mod_w_px
                     if i % 2 == 0:
                         painter.drawRect(QRectF(curr_x, y, mod_width, bars_h_px))
                     curr_x += mod_width
 
-                font_code = QFont("Arial", max(9, int(3.2 * scale_y)), QFont.Bold)
+                # 数字字号调小一点点，保证紧凑完整不越界
+                font_code = QFont("Arial", max(8, int(2.4 * scale_y)), QFont.Bold)
                 painter.setFont(font_code)
                 painter.setPen(QPen(QColor(0, 0, 0)))
-                painter.drawText(QRectF(x, y + bars_h_px, w, text_h_px), Qt.AlignCenter | Qt.AlignVCenter, code)
+                painter.drawText(QRectF(x, y + bars_h_px + 1.0, display_w, text_h_px), Qt.AlignCenter | Qt.AlignVCenter, code)
             except Exception:
                 pass
         else:
@@ -898,8 +904,13 @@ def render_label_preview_pixmap(elements, width_mm, height_mm, preview_data=None
         cur_by = max(2.0, min(height_px - bh_size - 2.0, y - 2.0))
 
         if elem_type in ("produce_date", "produce_date_label"):
-            cur_bx = max(2.0, min(width_px - bw_size - 2.0, x + w - bw_size))
-            cur_by = min(height_px - bh_size - 2.0, y + h + 2.0)
+            # 移动到 "2026" (日期文本左侧起始端) 距离 3px 处，避免遮挡时间
+            date_val = str(merged_data.get("produce_date") or "").strip()
+            date_fm = QFontMetrics(badge_font)
+            date_str_w = date_fm.horizontalAdvance(date_val) if hasattr(date_fm, "horizontalAdvance") else date_fm.width(date_val)
+            date_left = (x + w) - date_str_w if date_str_w > 0 else (x + w - 80.0)
+            cur_bx = max(2.0, date_left - bw_size - 3.0)
+            cur_by = min(height_px - bh_size - 2.0, y + (h - bh_size) / 2.0)
         elif elem_type == "box_unit":
             cur_bx = max(2.0, min(width_px - bw_size - 2.0, x - 2.0))
             cur_by = max(2.0, min(height_px - bh_size - 2.0, y - 2.0))

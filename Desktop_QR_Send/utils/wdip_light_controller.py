@@ -188,49 +188,66 @@ class WDIPLightController:
 
     def _exchange_unlocked(self, port: str, request: bytes, response_size: int) -> bytes:
         if callable(self.shared_exchange):
-            shared_response = self.shared_exchange(
-                port, request, response_size, self.timeout
-            )
-            if shared_response is not None:
-                raw = bytes(shared_response)
-                normalized = self._extract_response(request, raw, response_size)
-                return normalized if normalized is not None else raw
-
-        with serial.Serial(
-            port=port,
-            baudrate=self.baudrate,
-            bytesize=serial.EIGHTBITS,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            timeout=0.05,
-            write_timeout=self.timeout,
-        ) as connection:
-            # 不擅自覆盖USB-RS485驱动的DTR/RTS默认状态。设备电脑现场的
-            # 转换器在强制拉低控制线时会出现丢字节和乱码。
-            time.sleep(0.12)
-            longest_response = b""
-            for _ in range(2):
-                connection.reset_input_buffer()
-                connection.write(request)
-                connection.flush()
-                deadline = time.monotonic() + self.timeout
-                response = bytearray()
-                while time.monotonic() < deadline:
-                    remaining = max(1, response_size * 3 - len(response))
-                    chunk = connection.read(min(64, remaining))
-                    if chunk:
-                        response.extend(chunk)
-                    normalized = self._extract_response(
-                        request, bytes(response), response_size
+            # 当配置了共享 RS485 时，最多重试 4 次通过共享总线与硬件通信
+            for attempt in range(4):
+                try:
+                    shared_response = self.shared_exchange(
+                        port, request, response_size, self.timeout
                     )
-                    if normalized is not None:
-                        return normalized
-                    if len(response) >= response_size * 3:
-                        break
-                if len(response) > len(longest_response):
-                    longest_response = bytes(response)
-                time.sleep(self.minimum_request_interval)
-            return longest_response
+                    if shared_response is not None and len(shared_response) > 0:
+                        raw = bytes(shared_response)
+                        normalized = self._extract_response(request, raw, response_size)
+                        return normalized if normalized is not None else raw
+                except Exception as err:
+                    logger.debug(f"共享RS485第 {attempt + 1} 次尝试异常: {err}")
+                time.sleep(0.12)
+            # 共享总线已启用时，绝不擅自打开独立串口避免引发 PermissionError 拒绝访问
+            return b""
+
+        # 仅在未配置共享总线时，独立尝试独占打开串口，带 3 次重试与异常捕获
+        last_error = None
+        for attempt in range(3):
+            try:
+                with serial.Serial(
+                    port=port,
+                    baudrate=self.baudrate,
+                    bytesize=serial.EIGHTBITS,
+                    parity=serial.PARITY_NONE,
+                    stopbits=serial.STOPBITS_ONE,
+                    timeout=0.05,
+                    write_timeout=self.timeout,
+                ) as connection:
+                    time.sleep(0.12)
+                    longest_response = b""
+                    for _ in range(2):
+                        connection.reset_input_buffer()
+                        connection.write(request)
+                        connection.flush()
+                        deadline = time.monotonic() + self.timeout
+                        response = bytearray()
+                        while time.monotonic() < deadline:
+                            remaining = max(1, response_size * 3 - len(response))
+                            chunk = connection.read(min(64, remaining))
+                            if chunk:
+                                response.extend(chunk)
+                            normalized = self._extract_response(
+                                request, bytes(response), response_size
+                            )
+                            if normalized is not None:
+                                return normalized
+                            if len(response) >= response_size * 3:
+                                break
+                        if len(response) > len(longest_response):
+                            longest_response = bytes(response)
+                        time.sleep(self.minimum_request_interval)
+                    return longest_response
+            except Exception as exc:
+                last_error = exc
+                time.sleep(0.2)
+
+        if last_error:
+            logger.warning(f"直接打开串口 [{port}] 尝试失败: {last_error}")
+        return b""
 
     def _extract_response(self, request: bytes, raw: bytes, response_size: int) -> Optional[bytes]:
         """从可能含本地发送回显的数据中提取一个完整有效的Modbus帧。"""

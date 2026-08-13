@@ -215,37 +215,40 @@ class SystemSettingsDialog(QDialog):
         group_spec = QGroupBox("装箱规格与打印机纸张参数")
         group_spec.setStyleSheet(GROUP_STYLE)
         grid_spec = QGridLayout(group_spec)
-        grid_spec.setHorizontalSpacing(12)
-        grid_spec.setVerticalSpacing(10)
+        grid_spec.setHorizontalSpacing(16)
+        grid_spec.setVerticalSpacing(14)
 
         lbl_jian = QLabel("一捆数量 (盒):")
-        lbl_jian.setStyleSheet("font-size: 14px; font-weight: bold;")
+        lbl_jian.setStyleSheet("font-size: 15px; font-weight: bold; color: #1E395B;")
         self.edit_max_jian = QLineEdit()
         self.edit_max_jian.setStyleSheet(INPUT_STYLE)
 
         lbl_xiang = QLabel("一箱数量 (捆):")
-        lbl_xiang.setStyleSheet("font-size: 14px; font-weight: bold;")
+        lbl_xiang.setStyleSheet("font-size: 15px; font-weight: bold; color: #1E395B;")
         self.edit_max_xiang = QLineEdit()
         self.edit_max_xiang.setStyleSheet(INPUT_STYLE)
 
         lbl_pw = QLabel("纸张宽度 (mm):")
-        lbl_pw.setStyleSheet("font-size: 14px; font-weight: bold;")
+        lbl_pw.setStyleSheet("font-size: 15px; font-weight: bold; color: #1E395B;")
         self.edit_paper_width = QLineEdit("150")
         self.edit_paper_width.setStyleSheet(INPUT_STYLE)
         self.edit_paper_width.textChanged.connect(self._on_paper_input_changed)
 
         lbl_ph = QLabel("纸张高度 (mm):")
-        lbl_ph.setStyleSheet("font-size: 14px; font-weight: bold;")
+        lbl_ph.setStyleSheet("font-size: 15px; font-weight: bold; color: #1E395B;")
         self.edit_paper_height = QLineEdit("75")
         self.edit_paper_height.setStyleSheet(INPUT_STYLE)
         self.edit_paper_height.textChanged.connect(self._on_paper_input_changed)
 
         lbl_copies = QLabel("打印数量 (份):")
-        lbl_copies.setStyleSheet("font-size: 14px; font-weight: bold;")
+        lbl_copies.setStyleSheet("font-size: 15px; font-weight: bold; color: #1E395B;")
         self.sp_print_copies = QSpinBox()
         self.sp_print_copies.setRange(1, 99)
         self.sp_print_copies.setValue(1)
-        self.sp_print_copies.setStyleSheet("QSpinBox { font-size: 14px; font-weight: bold; padding: 4px; }")
+        self.sp_print_copies.setStyleSheet(
+            "QSpinBox { font-size: 15px; font-weight: bold; padding: 6px 10px; border: 1px solid #CBD5E1; border-radius: 6px; background-color: #FFFFFF; min-height: 40px; } "
+            "QSpinBox::up-button, QSpinBox::down-button { width: 24px; }"
+        )
 
         grid_spec.addWidget(lbl_jian, 0, 0)
         grid_spec.addWidget(self.edit_max_jian, 0, 1)
@@ -261,44 +264,7 @@ class SystemSettingsDialog(QDialog):
         grid_spec.addWidget(self.sp_print_copies, 2, 1)
 
         layout.addWidget(group_spec)
-
-        group_crop = QGroupBox("海康相机识别区域 (ROI 裁剪像素)")
-        group_crop.setStyleSheet(GROUP_STYLE)
-        grid_crop = QGridLayout(group_crop)
-        grid_crop.setHorizontalSpacing(12)
-        grid_crop.setVerticalSpacing(10)
-
-        lbl_min_x = QLabel("X轴起始:")
-        lbl_min_x.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.edit_min_x = QLineEdit()
-        self.edit_min_x.setStyleSheet(INPUT_STYLE)
-
-        lbl_max_x = QLabel("X轴截至:")
-        lbl_max_x.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.edit_max_x = QLineEdit()
-        self.edit_max_x.setStyleSheet(INPUT_STYLE)
-
-        lbl_min_y = QLabel("Y轴起始:")
-        lbl_min_y.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.edit_min_y = QLineEdit()
-        self.edit_min_y.setStyleSheet(INPUT_STYLE)
-
-        lbl_max_y = QLabel("Y轴截至:")
-        lbl_max_y.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.edit_max_y = QLineEdit()
-        self.edit_max_y.setStyleSheet(INPUT_STYLE)
-
-        grid_crop.addWidget(lbl_min_x, 0, 0)
-        grid_crop.addWidget(self.edit_min_x, 0, 1)
-        grid_crop.addWidget(lbl_max_x, 0, 2)
-        grid_crop.addWidget(self.edit_max_x, 0, 3)
-
-        grid_crop.addWidget(lbl_min_y, 1, 0)
-        grid_crop.addWidget(self.edit_min_y, 1, 1)
-        grid_crop.addWidget(lbl_max_y, 1, 2)
-        grid_crop.addWidget(self.edit_max_y, 1, 3)
-
-        layout.addWidget(group_crop)
+        layout.addStretch()
 
         btn_bar = QHBoxLayout()
         btn_bar.addStretch()
@@ -570,8 +536,8 @@ class SystemSettingsDialog(QDialog):
                 
                 if latest_case_code and str(latest_case_code).strip():
                     preview_data["barcode"] = str(latest_case_code).strip()
-                elif not preview_data.get("barcode"):
-                    preview_data["barcode"] = "1786339355791"
+                else:
+                    preview_data["barcode"] = "0123456789130"
 
                 preview_data.setdefault("produce_date", datetime.now().strftime("%Y.%m.%d"))
 
@@ -614,28 +580,34 @@ class SystemSettingsDialog(QDialog):
                         if not logo.isNull():
                             painter.drawPixmap(QRectF(x, y, w, h), logo, QRectF(logo.rect()))
                     elif elem_type == "barcode":
-                        code = str(preview_data.get("barcode") or "1785813377794").strip()
+                        code = str(preview_data.get("barcode") or "0123456789130").strip()
                         try:
                             from rfid_printer.win_driver_printer import encode_code128_b_pattern
                             pattern_str = encode_code128_b_pattern(code)
-                            text_h_px = max(8, int(2.8 * scale_y))
-                            bars_h_px = max(10, int(h - text_h_px))
+                            # 缩小预览渲染尺寸与文字字号，确保条码线条与下方数字100%完整不溢出右边界和底边
+                            display_w = w * 0.94
+                            display_h = h * 0.92
+                            text_h_px = max(10, int(display_h * 0.22))
+                            bars_h_px = max(8, int(display_h - text_h_px))
+                            margin_x = max(6.0, display_w * 0.04)
+                            bar_draw_w = display_w - 2.0 * margin_x
                             total_modules = len(pattern_str)
-                            mod_w_px = w / max(1.0, total_modules)
+                            mod_w_px = bar_draw_w / max(1.0, total_modules)
 
                             painter.setPen(Qt.NoPen)
                             painter.setBrush(QColor(0, 0, 0))
-                            curr_x = x
+                            curr_x = x + margin_x
                             for i, char in enumerate(pattern_str):
                                 mod_width = int(char) * mod_w_px
                                 if i % 2 == 0:
                                     painter.drawRect(QRectF(curr_x, y, mod_width, bars_h_px))
                                 curr_x += mod_width
 
-                            font_code = QFont("Arial", max(8, int(2.8 * scale_y)), QFont.Bold)
+                            # 数字字号调小一点点，保证紧凑完整不越界
+                            font_code = QFont("Arial", max(8, int(2.4 * scale_y)), QFont.Bold)
                             painter.setFont(font_code)
                             painter.setPen(QPen(QColor(0, 0, 0)))
-                            painter.drawText(QRectF(x, y + bars_h_px, w, text_h_px), Qt.AlignCenter, code)
+                            painter.drawText(QRectF(x, y + bars_h_px + 1.0, display_w, text_h_px), Qt.AlignCenter | Qt.AlignVCenter, code)
                         except Exception:
                             pass
                     else:
@@ -673,7 +645,9 @@ class SystemSettingsDialog(QDialog):
                                     by = y + (h - bh) / 2.0
                                     badge_x = min(width_px - bw - 4.0, max(x + 10.0, x + real_str_w + 5.0))
                                     if elem_type in ("produce_date", "produce_date_label"):
-                                        badge_x = min(width_px - bw - 2.0, max(x + 10.0, x + w - bw - 2.0))
+                                        # 移动到 "2026" (日期文本左侧起始端) 距离 3px 处，避免遮挡时间
+                                        date_text_left = (x + w) - real_str_w
+                                        badge_x = max(2.0, date_text_left - bw - 3.0)
                                     elif elem_type == "box_unit":
                                         badge_x = min(width_px - bw - 4.0, x + real_str_w + 6.0)
 
@@ -860,8 +834,12 @@ class SystemSettingsDialog(QDialog):
             self.safe_min_v = float(light_cfg.get("minimum_voltage_v", 8.0))
             self.safe_max_v = float(light_cfg.get("maximum_voltage_v", 12.0))
             startup_v = float(light_cfg.get("startup_voltage_v", 8.0))
-            init_pct = percent_for_voltage(self.safe_min_v, self.safe_max_v, startup_v)
+            init_pct = int(light_cfg.get("startup_percent", percent_for_voltage(self.safe_min_v, self.safe_max_v, startup_v)))
+            
+            self.slider_light.blockSignals(True)
             self.slider_light.setValue(init_pct)
+            self.slider_light.blockSignals(False)
+            
             self.lbl_light_voltage.setText(f"直接控制目标: {init_pct}% ({startup_v:.2f}V)")
             self.btn_output_toggle.setText(f"直接开启 {startup_v:.2f}V 灯光输出")
         except Exception as exc:
@@ -889,6 +867,13 @@ class SystemSettingsDialog(QDialog):
         try:
             controller.set_voltage_direct(voltage)
             self.lbl_calib_status.setText(f"⚡ 已成功向WDIP下发设定电压: {voltage:.2f}V ({percent}%)")
+            
+            # 手动调节电压后实时持久化写入配置，避免退出或重新进页后丢失电压设置
+            from page.light_control_dialog import save_light_config_updates
+            save_light_config_updates({
+                "startup_voltage_v": round(float(voltage), 2),
+                "startup_percent": int(percent),
+            })
         except Exception as exc:
             logger.exception(f"下发WDIP灯光电压失败: {exc}")
             self.lbl_calib_status.setText(f"❌ 下发灯光电压失败: {exc}")
@@ -903,11 +888,16 @@ class SystemSettingsDialog(QDialog):
 
         btn_text = self.btn_output_toggle.text()
         try:
+            from page.light_control_dialog import save_light_config_updates
             if "开启" in btn_text:
                 controller.set_voltage_direct(voltage)
                 controller.set_output_enabled_direct(True)
                 self.btn_output_toggle.setText(f"直接关闭 {voltage:.2f}V 灯光输出")
                 self.lbl_calib_status.setText(f"💡 已直接开启灯光输出: {voltage:.2f}V")
+                save_light_config_updates({
+                    "startup_voltage_v": round(float(voltage), 2),
+                    "startup_percent": int(percent),
+                })
             else:
                 controller.set_output_enabled_direct(False)
                 self.btn_output_toggle.setText(f"直接开启 {voltage:.2f}V 灯光输出")
@@ -1070,31 +1060,61 @@ class SystemSettingsDialog(QDialog):
         self.edit_max_xiang.setText(str(self.form_data.get('edit_max_xiang', '10') or '10'))
         self.edit_paper_width.setText(str(self.form_data.get('paper_width', '150') or '150'))
         self.edit_paper_height.setText(str(self.form_data.get('paper_height', '75') or '75'))
-        self.edit_min_x.setText(str(self.form_data.get('edit_min_x', '0') or '0'))
-        self.edit_max_x.setText(str(self.form_data.get('edit_max_x', '0') or '0'))
-        self.edit_min_y.setText(str(self.form_data.get('edit_min_y', '0') or '0'))
-        self.edit_max_y.setText(str(self.form_data.get('edit_max_y', '0') or '0'))
+        
+        try:
+            copies_val = int(self.form_data.get('edit_page_num', '1') or '1')
+        except Exception:
+            copies_val = 1
+        self.sp_print_copies.setValue(max(1, min(99, copies_val)))
 
     def save_params(self):
+        max_jian_str = self.edit_max_jian.text().strip() or "10"
+        max_xiang_str = self.edit_max_xiang.text().strip() or "10"
+        pw_str = self.edit_paper_width.text().strip() or "150"
+        ph_str = self.edit_paper_height.text().strip() or "75"
+        copies_num = self.sp_print_copies.value()
+
         updates = {
             'combobox_printSelect': self.combobox_printSelect.currentData(),
             'combobox_comSelect': self.combobox_comSelect.currentData(),
             'edit_service': self.edit_service.text().strip(),
-            'edit_max_jian': self.edit_max_jian.text().strip(),
-            'edit_max_xiang': self.edit_max_xiang.text().strip(),
-            'paper_width': self.edit_paper_width.text().strip(),
-            'paper_height': self.edit_paper_height.text().strip(),
-            'edit_min_x': self.edit_min_x.text().strip(),
-            'edit_max_x': self.edit_max_x.text().strip(),
-            'edit_min_y': self.edit_min_y.text().strip(),
-            'edit_max_y': self.edit_max_y.text().strip(),
+            'edit_max_jian': max_jian_str,
+            'edit_max_xiang': max_xiang_str,
+            'paper_width': pw_str,
+            'paper_height': ph_str,
+            'edit_page_num': str(copies_num),
         }
         config.setConfig(updates)
-        self.refresh_embedded_preview()
-        TouchMessageBox.information(self, "保存成功", "✅【系统参数配置保存成功】\n所有更改已成功持久化，打印模板已联动同步生效！")
+
+        # 重新计算绑定的整箱盒数
+        try:
+            total_boxes = int(max_jian_str) * int(max_xiang_str)
+        except Exception:
+            total_boxes = 100
+
+        # 持久化写入 config/settings.json 联动纸张尺寸与打印份数
+        try:
+            settings_json_path = os.path.abspath("config/settings.json")
+            if os.path.exists(settings_json_path):
+                with open(settings_json_path, "r", encoding="utf-8") as f:
+                    s_data = json.load(f)
+
+                label_section = s_data.setdefault("label", {})
+                label_section["width_mm"] = float(pw_str)
+                label_section["height_mm"] = float(ph_str)
+                label_section["copies"] = int(copies_num)
+
+                with open(settings_json_path, "w", encoding="utf-8") as f:
+                    json.dump(s_data, f, ensure_ascii=False, indent=2)
+        except Exception as exc:
+            logger.warning(f"更新 settings.json 纸张尺寸/份数失败: {exc}")
+
+        self.refresh_embedded_preview(self._template_elements)
+        TouchMessageBox.information(self, "保存成功", "✅【系统参数配置保存成功】\n所有更改已成功持久化，打印模板与主界面装箱规格已联动同步生效！")
 
     def open_template_dialog(self):
         dlg = PrintTemplateDialog(config_path="config/settings.json", parent=self)
         dlg.elements_changed.connect(self._on_template_elements_changed)
         if dlg.exec_() == QDialog.Accepted:
             self.refresh_embedded_preview(self._template_elements)
+

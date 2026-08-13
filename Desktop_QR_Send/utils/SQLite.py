@@ -227,6 +227,12 @@ class Database(metaclass=SingletonMeta):
             return count
         logging.debug("完成统计未上传 box_case 数据数量") # 添加 debug 日志：方法结束
 
+    def clear_unuploaded(self):
+        """归零重置：将所有未上传 is_line=0 数据标记更新为 1。"""
+        with self._lock:
+            self.c.execute("UPDATE yk_box_case SET is_line = 1 WHERE is_line = 0")
+            self.conn.commit()
+
         #查询最老的数据
     def box_case_search_by_time_range(self, limit: int = 1000):
         """
@@ -283,7 +289,7 @@ class Database(metaclass=SingletonMeta):
         logging.debug(f"开始插入 box_case_history 数据，data: {data}") # 添加 debug 日志：方法开始
         with self._lock: # 获取锁
             try:
-                self.c.execute("INSERT INTO yk_box_case_history (id, case_content, box_content, type, create_time, is_line ) VALUES (?, ?, ?, ?, ?, ?)",
+                self.c.execute("INSERT OR REPLACE INTO yk_box_case_history (id, case_content, box_content, type, create_time, is_line ) VALUES (?, ?, ?, ?, ?, ?)",
                                (data['id'], data['caseContent'], data['boxContent'], data['type'], data['createTime'], data['isLine']))
                 self.conn.commit()
                 logging.debug(f"成功插入 box_case_history 数据，id: {data['id']}") # 添加 debug 日志：插入成功

@@ -199,6 +199,10 @@ class T63RSdk:
             dll.DSTP2x_SetLcPrnRotate.argtypes = [c_uint64, c_int]
             dll.DSTP2x_SetLcPrnRotate.restype = c_uint
 
+        if hasattr(dll, "DSTP2x_TransRecvData"):
+            dll.DSTP2x_TransRecvData.argtypes = [c_uint64, c_char_p, c_int, c_char_p, POINTER(c_int)]
+            dll.DSTP2x_TransRecvData.restype = c_uint
+
         if hasattr(dll, "ThermalCustomizedCmd"):
             dll.ThermalCustomizedCmd.argtypes = [c_uint64, c_char_p, c_int]
             dll.ThermalCustomizedCmd.restype = c_uint
@@ -209,9 +213,21 @@ class T63RSdk:
             ]
             dll.DSTP2x_RFID_ReadData.restype = c_uint
 
+        if hasattr(dll, "DSTP2x_RFID_LockTypeSetting"):
+            dll.DSTP2x_RFID_LockTypeSetting.argtypes = [c_uint64, c_int, c_int, c_int]
+            dll.DSTP2x_RFID_LockTypeSetting.restype = c_uint
+
         if hasattr(dll, "DSTP2x_RFID_LockOperate"):
             dll.DSTP2x_RFID_LockOperate.argtypes = [c_uint64, c_int, c_char_p]
             dll.DSTP2x_RFID_LockOperate.restype = c_uint
+
+        if hasattr(dll, "DSTP2x_RFID_ChangeAccessPassword"):
+            dll.DSTP2x_RFID_ChangeAccessPassword.argtypes = [c_uint64, c_char_p, c_char_p]
+            dll.DSTP2x_RFID_ChangeAccessPassword.restype = c_uint
+
+        if hasattr(dll, "DSTP2x_RFID_SetPasswordWithWrite"):
+            dll.DSTP2x_RFID_SetPasswordWithWrite.argtypes = [c_uint64, c_int, c_char_p]
+            dll.DSTP2x_RFID_SetPasswordWithWrite.restype = c_uint
 
     def set_text_font(self, lc_hdl: int, font_name: str = "宋体", font_size: float = 10.0, is_bold: bool = False):
         """设置待绘制文本的字体 (默认 '宋体' 中文字体，nTemporary=1 临时模式)，完美支持中文显色与 0 错误码"""
@@ -410,15 +426,31 @@ class T63RSdk:
             except Exception as e:
                 logger.warning(f"设置画布旋转角度异常: {e}")
 
-    def send_custom_cmd(self, dev_hdl: int, cmd_str: str):
-        """下发自定义打印机控制指令"""
+    def send_custom_cmd(self, dev_hdl: int, cmd_str: str) -> int:
+        """下发自定义打印机控制指令 (优先使用 DSTP2x_TransRecvData 直传 TSPL 指令)"""
+        cmd_bytes = cmd_str.encode("gbk", errors="ignore")
+        if hasattr(self._dll, "DSTP2x_TransRecvData") and dev_hdl:
+            try:
+                res = self._dll.DSTP2x_TransRecvData(
+                    c_uint64(dev_hdl),
+                    cmd_bytes,
+                    c_int(len(cmd_bytes)),
+                    None,
+                    None
+                )
+                logger.info(f"DSTP2x_TransRecvData 直发控制指令 '{cmd_str.strip()}' 返回码: {res}")
+                return res
+            except Exception as e:
+                logger.warning(f"DSTP2x_TransRecvData 下发控制指令告警: {e}")
+
         if hasattr(self._dll, "ThermalCustomizedCmd") and dev_hdl:
-            cmd_bytes = cmd_str.encode("utf-8")
             try:
                 res = self._dll.ThermalCustomizedCmd(c_uint64(dev_hdl), cmd_bytes, c_int(len(cmd_bytes)))
-                logger.info(f"下发控制指令 '{cmd_str}' 成功，返回码: {res}")
+                logger.info(f"ThermalCustomizedCmd 下发指令 '{cmd_str.strip()}' 返回码: {res}")
+                return res
             except Exception as e:
-                logger.warning(f"下发控制指令 '{cmd_str}' 告警: {e}")
+                logger.warning(f"ThermalCustomizedCmd 下发指令告警: {e}")
+        return -1
 
     def enum_usb_devices(self) -> List[str]:
         """枚举当前系统连接的所有 USB 打印机设备路径"""
@@ -536,15 +568,63 @@ class T63RSdk:
         if res != 0:
             raise SdkInitError(f"设置 RFID 写入数据失败 (区域 {rgn_type}, 格式 {data_fmt})，错误码: {res}", code=res)
 
-    def rfid_lock_operate(self, lc_hdl: int, lock_type: int = 1, password: str = "00000000"):
-        """开启并执行 RFID 芯片锁定/解锁操作 (DSTP2x_RFID_LockOperate)"""
-        if hasattr(self._dll, "DSTP2x_RFID_LockOperate") and lc_hdl:
+    def change_access_password(self, dev_hdl: int, old_pw: str = "00000000", new_pw: str = "12345678"):
+        """修改 RFID 标签的访问密码 (DSTP2x_RFID_ChangeAccessPassword)
+        注意：新密码必须为 8 位十六进制字符串，且不能全0 (按照协议规定)
+        """
+        if hasattr(self._dll, "DSTP2x_RFID_ChangeAccessPassword") and dev_hdl:
+            try:
+                res = self._dll.DSTP2x_RFID_ChangeAccessPassword(c_uint64(dev_hdl), old_pw.encode('utf-8'), new_pw.encode('utf-8'))
+                logger.info(f"设定 RFID 访问密码 (dev_hdl={dev_hdl}, old={old_pw}, new={new_pw}) 返回码: {res}")
+                return res
+            except Exception as e:
+                logger.warning(f"设定 RFID 访问密码告警: {e}")
+        return -1
+
+    def set_password_with_write(self, dev_hdl: int, rfid_area: int = 1, password: str = "12345678"):
+        """带密码写入特定 RFID 区域 (DSTP2x_RFID_SetPasswordWithWrite)
+        rfid_area: 1-EPC区, 2-USER区
+        """
+        if hasattr(self._dll, "DSTP2x_RFID_SetPasswordWithWrite") and dev_hdl:
+            try:
+                res = self._dll.DSTP2x_RFID_SetPasswordWithWrite(c_uint64(dev_hdl), c_int(rfid_area), password.encode('utf-8'))
+                logger.info(f"授权带密码写 RFID 区域 (dev_hdl={dev_hdl}, area={rfid_area}) 返回码: {res}")
+                return res
+            except Exception as e:
+                logger.warning(f"授权带密码写 RFID 区域告警: {e}")
+        return -1
+
+    def rfid_lock_type_setting(self, dev_hdl: int, rfid_area: int = 1, lock_type: int = 0, temporary: int = 0):
+        """设置 RFID 芯片锁定类型 (DSTP2x_RFID_LockTypeSetting)
+        rfid_area: 1-EPC区, 2-USER区, 8-访问密码区, 16-销毁密码区
+        lock_type: 0-永久死锁(Permanent lock), 1-临时锁
+        temporary: 0-持久有效直到设备断开, 1-单次打印后还原
+        """
+        if hasattr(self._dll, "DSTP2x_RFID_LockTypeSetting") and dev_hdl:
+            try:
+                res = self._dll.DSTP2x_RFID_LockTypeSetting(c_uint64(dev_hdl), c_int(rfid_area), c_int(lock_type), c_int(temporary))
+                logger.info(f"设置 RFID 芯片锁定类型 (dev_hdl={dev_hdl}, area={rfid_area}, lock_type={lock_type}, temp={temporary}) 返回码: {res}")
+                return res
+            except Exception as e:
+                logger.warning(f"设置 RFID 芯片锁定类型告警: {e}")
+        return -1
+
+    def rfid_lock_operate(self, dev_hdl: int, rfid_area: int = 1, password: str = "12345678"):
+        """开启并执行 RFID 芯片锁定操作 (DSTP2x_RFID_LockOperate)
+        dev_hdl: 必须传入打印设备句柄 (c_uint64)
+        rfid_area: 1-EPC区, 2-USER区, 8-访问密码区, 16-销毁密码区
+        password: 8位十六进制密码字符串，非全0 (如 '12345678')
+        """
+        if hasattr(self._dll, "DSTP2x_RFID_LockOperate") and dev_hdl:
             try:
                 pwd_bytes = password.encode('utf-8')
-                res = self._dll.DSTP2x_RFID_LockOperate(c_uint64(lc_hdl), c_int(lock_type), pwd_bytes)
-                logger.info(f"开启并设置 RFID 芯片锁 (lock_type={lock_type}) 返回码: {res}")
+                res = self._dll.DSTP2x_RFID_LockOperate(c_uint64(dev_hdl), c_int(rfid_area), pwd_bytes)
+                logger.info(f"执行 RFID 芯片物理锁定 (dev_hdl={dev_hdl}, area={rfid_area}) 返回码: {res}")
+                return res
             except Exception as e:
-                logger.warning(f"设置 RFID 芯片锁告警: {e}")
+                logger.warning(f"执行 RFID 芯片锁定告警: {e}")
+        return -1
+
 
     def read_rfid_direct(self, dev_hdl: int) -> Dict[str, str]:
         """直接读取当前芯片的 TID / EPC / USER 数据"""

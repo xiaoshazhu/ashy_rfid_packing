@@ -216,3 +216,11 @@ class LocalTestDatabase:
             conn.commit()
             return cursor.rowcount > 0
 
+    def clear_pending(self) -> int:
+        """归零重置：将所有 PENDING 状态的记录标记更新为 'CLEARED'。"""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE packing_case SET upload_status='CLEARED' WHERE upload_status='PENDING'")
+            conn.commit()
+            return cursor.rowcount
+

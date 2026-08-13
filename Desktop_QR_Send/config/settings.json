@@ -1,8 +1,8 @@
 {
   "vendor_dir": "vendor/t63r_x64",
   "label": {
-    "width_mm": 210.0,
-    "height_mm": 100.0,
+    "width_mm": 150.0,
+    "height_mm": 75.0,
     "gap_mm": 3.0,
     "offset_x_mm": 0.0,
     "offset_y_mm": 0.0,
@@ -16,7 +16,7 @@
     "region_type_code": 1,
     "data_format_code": 2,
     "read_type_mask": 1,
-    "allow_reprint_same_code": true
+    "allow_reprint_same_code": false
   },
   "light_controller": {
     "port": "COM3",
@@ -29,6 +29,8 @@
     "write_settle_ms": 400,
     "minimum_voltage_v": 8.0,
     "maximum_voltage_v": 12.0,
+    "startup_voltage_v": 12.0,
+    "startup_percent": 100,
     "enable_binary_calibration": false,
     "minimum_percent": 0,
     "samples_per_level": 5,

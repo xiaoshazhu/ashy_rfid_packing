@@ -201,7 +201,7 @@ def profile_name_for_size(width_mm: float, height_mm: float) -> str:
     return DEFAULT_PROFILE
 
 
-def default_elements(width_mm: float = 210.0, height_mm: float = 100.0) -> List[Dict[str, Any]]:
+def default_elements(width_mm: float = 150.0, height_mm: float = 75.0) -> List[Dict[str, Any]]:
     return copy.deepcopy(PROFILE_ELEMENTS[DEFAULT_PROFILE])
 
 
@@ -240,9 +240,9 @@ def resolve_layout_elements(
     height_mm: float,
 ) -> List[Dict[str, Any]]:
     """
-    解析版式并采用 210x100 满幅自适应比例算法。
+    解析版式并采用 150x75 满幅自适应比例算法。
     自动根据目标标签尺寸 (width_mm * height_mm) 换算并拉伸坐标，
-    使文字、分隔线与条形码在 210x100 标签纸上 100% 铺满延伸，消除四周非必要留白。
+    使文字、分隔线与条形码在 150x75 标签纸上 100% 铺满延伸，消除四周非必要留白。
     """
     layout = layout or {}
     base = copy.deepcopy(PROFILE_ELEMENTS[DEFAULT_PROFILE])
@@ -261,13 +261,14 @@ def resolve_layout_elements(
     else:
         raw_list = base
 
-    # 确定基准参考宽高 (默认按 210.0mm x 100.0mm 进行自适应缩放)
+    # 确定基准参考宽高 (默认按 210.0mm x 100.0mm 原始排版坐标系统进行自适应缩放)
     base_w = float(layout.get("width_mm", 210.0)) if layout and layout.get("width_mm") else 210.0
     base_h = float(layout.get("height_mm", 100.0)) if layout and layout.get("height_mm") else 100.0
 
+    # 扩大扩展：右侧定格 148mm (留 2mm 边距)，顶部定格 1mm，底部扩展至 74mm 满幅铺满
     scale_x = width_mm / max(1.0, base_w)
     scale_y = height_mm / max(1.0, base_h)
-    scale_uniform = min(scale_x, scale_y)
+    scale_uniform = max(scale_x, scale_y)
 
     # 靠右对齐的元素集合 ( Logo / 生产日期标题 / 生产日期 / 条形码 )，统一定格右边缘
     RIGHT_ALIGNED_TYPES = {"brand_logo", "produce_date_label", "produce_date", "barcode"}
@@ -282,27 +283,26 @@ def resolve_layout_elements(
         orig_w = float(item.get("w", 0.0))
         orig_h = float(item.get("h", 0.0))
 
-        # 纵向与横向坐标及宽高自适应比例计算
-        item["y"] = round(orig_y * scale_y, 2)
-        item["h"] = round(orig_h * scale_y, 2)
+        # 纵向与横向坐标及宽高扩大放缩计算
+        item["y"] = round(orig_y * scale_y * 0.95, 2)  # 顶部向上微调 5%，填充顶部留白
+        item["h"] = round(orig_h * scale_y * 1.05, 2)  # 高度扩大 5%，填充底部留白
 
         if elem_type in RIGHT_ALIGNED_TYPES:
-            # 右对齐逻辑：根据右侧边距 (base_w - (orig_x + orig_w)) 进行精确定距
+            # 右对齐逻辑：根据右侧边距进行精确定局扩大
             right_offset = base_w - (orig_x + orig_w)
-            scaled_w = orig_w * scale_x
+            scaled_w = orig_w * scale_x * 1.05  # 横向向右扩大 5%
             item["w"] = round(scaled_w, 2)
-            item["x"] = round(width_mm - (right_offset * scale_x + scaled_w), 2)
+            item["x"] = round(width_mm - (right_offset * scale_x + scaled_w) + 2.0, 2)
         elif elem_type == "divider":
-            # 中部分隔实线：从 orig_x 延伸至右边界对齐位置，横向贯穿，保持 y 净空无覆盖
             right_offset = base_w - (orig_x + orig_w)
             item["x"] = round(orig_x * scale_x, 2)
-            item["w"] = round(width_mm - (orig_x + right_offset) * scale_x, 2)
+            item["w"] = round(width_mm - (orig_x + right_offset) * scale_x + 2.0, 2)
             item["h"] = 0.0
         else:
             item["x"] = round(orig_x * scale_x, 2)
-            item["w"] = round(orig_w * scale_x, 2)
+            item["w"] = round(orig_w * scale_x * 1.05, 2)
 
-        # 比例变化时自动同比例缩放字号
+        # 比例变化时自动同比例扩充字号
         if "font_size" in item and scale_uniform != 1.0:
             item["font_size"] = round(float(item["font_size"]) * scale_uniform, 1)
 

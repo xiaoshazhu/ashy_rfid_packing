@@ -79,11 +79,12 @@ class UploadDataWorkerThread(QtCore.QThread):
                     MySQLDatabase().box_case_insert_data(result_dict)
                     logging.info(f"本地 MySQL 落库成功: ID={result_dict['id']} 箱码={result_dict.get('caseContent')} 盒码={result_dict.get('boxContent')}")
 
-                # 成功发送/落库后，回写本地数据库标记已上传状态，确保未同步数量能够减少
+                # 成功发送/落库后，回写本地数据库标记已上传状态，确保未同步数量能够减少归零
                 try:
                     db.box_case_history_insert_data(result_dict)
-                except Exception:
-                    pass
+                    db.box_case_delete_by_id(result_dict['id'])
+                except Exception as sync_err:
+                    logging.warning(f"更新本地数据状态告警: {sync_err}")
                 try:
                     LocalTestDatabase().mark_as_uploaded(result_dict['id'])
                 except Exception:

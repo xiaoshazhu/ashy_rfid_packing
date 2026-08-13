@@ -136,6 +136,7 @@ def print_canvas_via_win_driver(
     width_mm: float = 210.0,
     height_mm: float = 100.0,
     printer_name: Optional[str] = None,
+    copies: int = 1,
 ) -> bool:
     """使用 Windows 官方驱动（JiEPRT T63RZ）绘制 100% 矢量清晰度标签并出纸。"""
     target_printer = get_target_windows_printer(printer_name)
@@ -145,6 +146,7 @@ def print_canvas_via_win_driver(
     printer = QPrinter(target_printer, QPrinter.PrinterResolution)
     printer.setOutputFormat(QPrinter.NativeFormat)
     printer.setOutputFileName("")
+    printer.setCopyCount(max(1, int(copies)))
 
     page_layout = QPageLayout(
         QPageSize(QSizeF(width_mm, height_mm), QPageSize.Millimeter),
@@ -173,20 +175,29 @@ def print_canvas_via_win_driver(
         expected_h_px = int(height_mm * dpi / 25.4)
 
         full_rect = printer.pageLayout().fullRectPixels(dpi)
-        canvas_w_px = max(expected_w_px, full_rect.width())
-        canvas_h_px = max(expected_h_px, full_rect.height())
+        canvas_w_px = expected_w_px if expected_w_px > 0 else full_rect.width()
+        canvas_h_px = expected_h_px if expected_h_px > 0 else full_rect.height()
 
         # 若系统驱动汇报的 width 比 height 小，纠正长宽映射
         if width_mm > height_mm and canvas_w_px < canvas_h_px:
             canvas_w_px, canvas_h_px = canvas_h_px, canvas_w_px
 
-        scale_x = canvas_w_px / max(1.0, width_mm)
-        scale_y = canvas_h_px / max(1.0, height_mm)
+        # 物理打纸效果（不影响界面打印预览）：右边伸长 60mm，上下伸长 30mm
+        print_ext_w_mm = width_mm + 60.0
+        print_ext_h_mm = height_mm + 30.0
+
+        scale_x = (canvas_w_px / max(1.0, width_mm)) * (print_ext_w_mm / width_mm)
+        scale_y = (canvas_h_px / max(1.0, height_mm)) * (print_ext_h_mm / height_mm)
 
         data_map = dict(preview_data or {})
         data_map.setdefault("produce_date", datetime.now().strftime("%Y.%m.%d"))
         offset_x_mm = float(data_map.get("offset_x_mm", 0.0))
         offset_y_mm = float(data_map.get("offset_y_mm", 0.0))
+
+        canvas_rotate = int(data_map.get("canvas_rotate", 90))
+        if canvas_rotate in (90, 1):
+            painter.translate(canvas_w_px, 0)
+            painter.rotate(90)
 
         painter.setRenderHint(QPainter.Antialiasing, True)
         painter.setRenderHint(QPainter.TextAntialiasing, True)
