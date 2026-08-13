@@ -694,25 +694,109 @@ class Home:
 
         self.log_dialog.activateWindow()  #  ()
 
+    def show_large_warning_dialog(self, title: str, message: str):
+        """弹出宽敞清晰的大号提示弹窗，按钮与关闭控件更大易触按。"""
+        dlg = QtWidgets.QDialog(self.main_window)
+        dlg.setWindowTitle(title)
+        dlg.setMinimumSize(460, 240)
+        dlg.setStyleSheet("""
+            QDialog {
+                background-color: #FFFFFF;
+                border-radius: 12px;
+            }
+            QLabel#dlg_title {
+                font-size: 19px;
+                font-weight: bold;
+                color: #1E293B;
+            }
+            QLabel#dlg_msg {
+                font-size: 16px;
+                color: #334155;
+                line-height: 1.5;
+            }
+            QPushButton#btn_close_x {
+                font-size: 20px;
+                font-weight: bold;
+                color: #64748B;
+                border: none;
+                border-radius: 18px;
+                min-width: 36px;
+                max-width: 36px;
+                min-height: 36px;
+                max-height: 36px;
+                background-color: #F1F5F9;
+            }
+            QPushButton#btn_close_x:hover {
+                background-color: #E2E8F0;
+                color: #0F172A;
+            }
+            QPushButton#btn_ok {
+                font-size: 16px;
+                font-weight: bold;
+                color: #FFFFFF;
+                background-color: #2563EB;
+                border: none;
+                border-radius: 8px;
+                min-height: 46px;
+                min-width: 140px;
+                padding: 0 24px;
+            }
+            QPushButton#btn_ok:hover {
+                background-color: #1D4ED8;
+            }
+            QPushButton#btn_ok:pressed {
+                background-color: #1E40AF;
+            }
+        """)
+
+        layout = QtWidgets.QVBoxLayout(dlg)
+        layout.setContentsMargins(24, 20, 24, 24)
+        layout.setSpacing(16)
+
+        # 顶栏标题 + 大号 X 关闭按钮
+        top_bar = QtWidgets.QHBoxLayout()
+        lbl_title = QtWidgets.QLabel(title)
+        lbl_title.setObjectName("dlg_title")
+
+        btn_x = QtWidgets.QPushButton("✕")
+        btn_x.setObjectName("btn_close_x")
+        btn_x.setCursor(QtCore.Qt.PointingHandCursor)
+        btn_x.clicked.connect(dlg.reject)
+
+        top_bar.addWidget(lbl_title)
+        top_bar.addStretch()
+        top_bar.addWidget(btn_x)
+        layout.addLayout(top_bar)
+
+        # 提示内容正文
+        lbl_msg = QtWidgets.QLabel(message)
+        lbl_msg.setObjectName("dlg_msg")
+        lbl_msg.setWordWrap(True)
+        layout.addWidget(lbl_msg)
+
+        layout.addStretch()
+
+        # 底部大号【确 定】按钮
+        bottom_bar = QtWidgets.QHBoxLayout()
+        bottom_bar.addStretch()
+        btn_ok = QtWidgets.QPushButton("确 定")
+        btn_ok.setObjectName("btn_ok")
+        btn_ok.setCursor(QtCore.Qt.PointingHandCursor)
+        btn_ok.clicked.connect(dlg.accept)
+        bottom_bar.addWidget(btn_ok)
+        bottom_bar.addStretch()
+        layout.addLayout(bottom_bar)
+
+        dlg.exec()
+
     def on_button_again(self):
-
-        #  (10/10 )
-
         max_xiang = int(CONFIG_DATA.get('edit_max_xiang', 10))
-
         if len(self.scan_case_data) >= max_xiang:
-
             logging.info(f"当前箱已达到最大上限：{max_xiang}/{max_xiang}捆")
-
-            QtWidgets.QMessageBox.warning(
-
-                self.main_window,
-
-                "装箱已满",
-                f"当前箱已达到 {max_xiang}/{max_xiang} 捆。\n请先打印箱码或点击重新装箱，再继续扫描。",
-
+            self.show_large_warning_dialog(
+                "装箱已满提示",
+                f"当前箱装箱进度已达到 <b>{max_xiang}/{max_xiang} 捆</b> 上限！<br/><br/>请先点击<b>【打印箱码】</b>或<b>【重新装箱】</b>，再继续扫描。"
             )
-
             return
 
         if self._recognition_sequence_active:
@@ -1013,10 +1097,9 @@ class Home:
         # 检查当前箱装箱进度：如果已满 10 捆（1箱），提示装箱完成（必须由人工手动点击【打印箱码】按钮触发打印）
         if len(self.scan_case_data) >= max_bundles:
             logging.info(f"装箱进度已满 {len(self.scan_case_data)}/{max_bundles} 捆（1箱），请手动点击【打印箱码】按钮下发打印任务。")
-            self.show_temporary_tooltip(
-                self.main_window.groupBox_7,
-                "【装箱完成】",
-                f"已满 {max_bundles} 捆（1箱），请手动点击【打印箱码】按钮触发打印！",
+            self.show_large_warning_dialog(
+                "装箱完成提示",
+                f"当前箱装箱进度已满 <b>{max_bundles}/{max_bundles} 捆</b>（1箱）！<br/><br/>请手动点击<b>【打印箱码】</b>按钮下发打印任务。"
             )
 
         return True
@@ -1198,36 +1281,33 @@ class Home:
             self.main_window.play_warning()
 
     def on_button_cancel_clicked(self):
-        logging.info("执行界面与重置清空...")
-        self.reset_data()
-        self.stop_line()
+        logging.info("执行复位操作（清空当次识别结果、刷新摄像机页面，保留已装箱进度）...")
+        self._recognition_sequence_active = False
+        self._recognition_best_result = []
+        self._recognition_best_boxes = None
+        self.clear_recognition_boxes()
+        self.sacn_box_data = None
+        self.pending_box_scans = []
+        self._last_bundle_staged = False
+        self.preview_case_code = None
+        self.scan_code(0)
+        self.scan_code_end()
 
-        # 
-
+        # 刷新并保证摄像机预览画面正常运行
         if obj_cam_operation is None or not obj_cam_operation.b_open_device:
-
-            logging.warning("")
-
+            logging.warning("复位检测：相机连接关闭，尝试重新初始化...")
             self.hiKInit()
-
         else:
-
             self.ensure_camera_display()
 
-        logging.info("")
-
         try:
-
             self.show_temporary_tooltip(
                 self.main_window.groupBox_7,
                 "【设备复位成功】",
-                "相机预览与未录入识别结果已复位。",
+                "相机预览与当前未录入识别结果已复位，保留已装箱进度。",
             )
-
             self.main_window.play_success()
-
         except Exception:
-
             pass
 
     def open_settings(self):
