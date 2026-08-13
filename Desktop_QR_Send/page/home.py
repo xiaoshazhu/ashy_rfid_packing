@@ -714,32 +714,16 @@ class Home:
                 color: #334155;
                 line-height: 1.5;
             }
-            QPushButton#btn_close_x {
-                font-size: 20px;
-                font-weight: bold;
-                color: #64748B;
-                border: none;
-                border-radius: 18px;
-                min-width: 36px;
-                max-width: 36px;
-                min-height: 36px;
-                max-height: 36px;
-                background-color: #F1F5F9;
-            }
-            QPushButton#btn_close_x:hover {
-                background-color: #E2E8F0;
-                color: #0F172A;
-            }
             QPushButton#btn_ok {
-                font-size: 16px;
+                font-size: 20px;
                 font-weight: bold;
                 color: #FFFFFF;
                 background-color: #2563EB;
                 border: none;
-                border-radius: 8px;
-                min-height: 46px;
-                min-width: 140px;
-                padding: 0 24px;
+                border-radius: 10px;
+                min-height: 54px;
+                min-width: 180px;
+                padding: 0 32px;
             }
             QPushButton#btn_ok:hover {
                 background-color: #1D4ED8;
@@ -753,19 +737,13 @@ class Home:
         layout.setContentsMargins(24, 20, 24, 24)
         layout.setSpacing(16)
 
-        # 顶栏标题 + 大号 X 关闭按钮
+        # 顶栏标题
         top_bar = QtWidgets.QHBoxLayout()
         lbl_title = QtWidgets.QLabel(title)
         lbl_title.setObjectName("dlg_title")
 
-        btn_x = QtWidgets.QPushButton("✕")
-        btn_x.setObjectName("btn_close_x")
-        btn_x.setCursor(QtCore.Qt.PointingHandCursor)
-        btn_x.clicked.connect(dlg.reject)
-
         top_bar.addWidget(lbl_title)
         top_bar.addStretch()
-        top_bar.addWidget(btn_x)
         layout.addLayout(top_bar)
 
         # 提示内容正文
