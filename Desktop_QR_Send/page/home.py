@@ -911,16 +911,9 @@ class Home:
 
             # 4. 判定与反馈识别结果
             if current_count == expected_boxes:
-                # 凑满整捆（如 10/10 盒），自动封捆进组
+                # 凑满整捆（如 10/10 盒），自动封捆进组（由 stage_recognized_bundle 统一给出“第 X 捆成功加入”提示与播放音）
                 self.stage_recognized_bundle()
-                current_bundles = len(self.scan_case_data)
-                max_bundles = int(CONFIG_DATA.get("edit_max_xiang") or 10)
-                self.show_temporary_tooltip(
-                    self.main_window.groupBox_7,
-                    "【整捆录入成功】",
-                    f"本组去重识别到 {expected_boxes} 盒，已自动计入第 {current_bundles}/{max_bundles} 捆装箱进度。",
-                )
-                self.main_window.play_success()
+                return
 
             elif added_count > 0:
                 # 成功录入新盒码但尚未凑满一捆
@@ -1057,10 +1050,11 @@ class Home:
 
         )
 
+        current_bundles = len(self.scan_case_data)
         self.show_temporary_tooltip(
             self.main_window.groupBox_7,
-            "【装箱进度已更新】",
-            f"已完成一捆真实盒码识别，当前装箱进度：{len(self.scan_case_data)}/{max_bundles}捆。",
+            f"【第 {current_bundles} 捆成功加入】",
+            f"✅ 已成功录入第 <b>{current_bundles}/{max_bundles} 捆</b>！（本捆共 {expected_boxes} 盒）",
         )
 
         self.main_window.play_success()
