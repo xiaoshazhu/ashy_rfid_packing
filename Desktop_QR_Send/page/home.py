@@ -804,12 +804,11 @@ class Home:
         # 2
 
         self._recognition_sequence_active = True
-
         self._recognition_best_result = []
-
         self._recognition_best_boxes = None
 
-        QTimer.singleShot(150, lambda: self._run_recognition_attempt(1))
+        # 立即触发抓拍，零人为延迟，保障扫码响应极速流畅！
+        self._run_recognition_attempt(1)
 
     def _run_recognition_attempt(self, attempt_number):
 
@@ -844,11 +843,8 @@ class Home:
             return
 
         QTimer.singleShot(
-
-            150,
-
+            50,
             lambda: self._run_recognition_attempt(attempt_number + 1),
-
         )
 
     def _finish_recognition_sequence(self):
