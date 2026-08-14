@@ -32,7 +32,7 @@ TD39_UNCHANGED_NOTICE_SECONDS = 10.0
 TD39_RAW_LOG_INTERVAL_SECONDS = 1.0
 TD39_PRODUCT_SENSOR_CHANNEL = 5
 TD39_PRODUCT_SENSOR_ACTIVE_CLOSED = True
-TD39_PRODUCT_SENSOR_DEBOUNCE_SECONDS = 0.25
+TD39_PRODUCT_SENSOR_DEBOUNCE_SECONDS = 0.08  # 由 0.25 秒(250ms) 优化为 0.08 秒(80ms)，让换产品放入时瞬间响应！
 
 
 def _get_input_monitor_logger():
@@ -600,7 +600,8 @@ class RS485Utils:
 
         now = time.monotonic()
         last_time = self._last_trigger_time.get(door_number, 0)
-        if now - last_time < 0.3:
+        min_cooldown = 0.08 if door_number == TD39_PRODUCT_SENSOR_CHANNEL else 0.3
+        if now - last_time < min_cooldown:
             logging.debug(f"通道 {door_number} 处于消抖冷却期，忽略本次触发")
             return
         self._last_trigger_time[door_number] = now
